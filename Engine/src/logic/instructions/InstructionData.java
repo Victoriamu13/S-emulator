@@ -1,6 +1,4 @@
-package logic.Instructions;
-
-import logic.Instructions.SInstruction;
+package logic.instructions;
 
 public enum InstructionData {
     INCREASE("Increase",1),
