@@ -26,4 +26,8 @@ public class JumpNotZeroInstruction extends AbstractInstruction{
         }
         return SpecialLabels.EMPTY;
     }
+
+    public SLabel getJumpLabel() {
+        return jnzLabel;
+    }
 }

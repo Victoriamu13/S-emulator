@@ -1,6 +1,7 @@
 package logic.program;
 
 import logic.instructions.SInstruction;
+import logic.variable.SVars;
 
 import java.util.ArrayList;
 import java.util.List;

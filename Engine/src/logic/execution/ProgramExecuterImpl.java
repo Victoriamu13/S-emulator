@@ -2,12 +2,15 @@ package logic.execution;
 
 import logic.instructions.SInstruction;
 import logic.label.SpecialLabels;
+import logic.program.ProgramInfo;
+import logic.program.ProgramInfoImpl;
 import logic.program.SProgram;
 import logic.label.SLabel;
 import logic.variable.SVars;
 import logic.variable.SVarsImpl;
 import logic.variable.SVarsType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +18,10 @@ import java.util.Map;
 public class ProgramExecuterImpl implements ProgramExecuter {
     private final SProgram program;
 
+
     public ProgramExecuterImpl(SProgram program) {
         this.program = program;
+
     }
 
     @Override
@@ -43,6 +48,9 @@ public class ProgramExecuterImpl implements ProgramExecuter {
             SInstruction currInstruction = instructions.get(i);
             SLabel nextLabel = currInstruction.executeOperarion(context);
 
+            if(currInstruction.getLabel()==SpecialLabels.EXIT){
+                nextLabel=SpecialLabels.EXIT;}
+
             if (nextLabel == SpecialLabels.EXIT) {
                 break;
             } else if (nextLabel == SpecialLabels.EMPTY) {
@@ -53,6 +61,8 @@ public class ProgramExecuterImpl implements ProgramExecuter {
                 i = index;
             }
         }
+        SVars x1 = new SVarsImpl(SVarsType.INPUT, 1);
+        context.updateVariable(SVars.RESULT, context.getVariableValue(x1));
         return context.getVariableValue(SVars.RESULT);
     }
 }
