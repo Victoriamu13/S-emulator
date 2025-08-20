@@ -64,9 +64,10 @@ public class ProgramInfoImpl implements ProgramInfo {
 
         for(int i=0; i<inst.size(); i++){
             SInstruction s = inst.get(i);
+            SLabel lbl=s.getLabel();
             int index=i+1;
             boolean synthetic=false;
-            String labelText=labelToText(s.getLabel());
+            String labelText=lbl.getLabelRepresentation();
             String commandText=toCommandText(s);
             int cycles=s.cycles();
             out.add(new InstructionInfoImpl(index,synthetic,labelText,commandText,cycles));
@@ -76,10 +77,6 @@ public class ProgramInfoImpl implements ProgramInfo {
 
 
     //Helper functions for getInstructions func
-
-    private static String labelToText(SLabel lbl) {
-        return lbl.getLabelRepresentation();
-    }
 
     private static String toCommandText(SInstruction inst) {
         SVars v = inst.getVariable();

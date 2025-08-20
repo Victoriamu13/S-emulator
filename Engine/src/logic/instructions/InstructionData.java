@@ -10,7 +10,7 @@ public enum InstructionData {
     private final String name;
     private final int cycles;
 
-   InstructionData(String name, int cycles) {
+    InstructionData(String name, int cycles) {
         this.name = name;
         this.cycles = cycles;
     }
