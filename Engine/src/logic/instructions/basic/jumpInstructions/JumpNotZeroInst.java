@@ -1,20 +1,21 @@
-package logic.instructions;
+package logic.instructions.basic.jumpInstructions;
 
 import logic.execution.CurrentContext;
+import logic.instructions.AbstractInstruction;
 import logic.label.SLabel;
 import logic.label.SpecialLabels;
 import logic.variable.SVars;
 
-public class JumpNotZeroInstruction extends AbstractInstruction{
+public class JumpNotZeroInst extends AbstractInstruction {
 
     private final SLabel jnzLabel;
 
-    public JumpNotZeroInstruction(SVars variable, SLabel jnzLabel) {
+    public JumpNotZeroInst(SVars variable, SLabel jnzLabel) {
         this(variable,jnzLabel,SpecialLabels.EMPTY);
     }
 
-    public JumpNotZeroInstruction(SVars variable,SLabel jnzLabel,SLabel label) {
-        super(InstructionData.JUMP_NOT_ZERO,variable,label);
+    public JumpNotZeroInst(SVars variable, SLabel jnzLabel, SLabel label) {
+        super(logic.instructions.InstructionData.JUMP_NOT_ZERO,variable,label);
         this.jnzLabel=jnzLabel;
     }
 

@@ -1,8 +1,8 @@
-package logic.io.xml;
+package logic.io.xml.dto;
 
 import java.util.Map;
 
-record RawInstructions(int line, String typeAttr, String name, String varText, String labelText,  Map<String,String> args) { }
+public record RawInstructions(int line, String typeAttr, String name, String varText, String labelText, Map<String,String> args) { }
 
 /*Represents a single raw instruction as it was parsed from the XML file, before validation and conversion into the real SInstruction objects.
 -------

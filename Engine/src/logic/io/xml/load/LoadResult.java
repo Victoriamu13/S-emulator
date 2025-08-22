@@ -1,4 +1,4 @@
-package logic.io.xml;
+package logic.io.xml.load;
 
 import logic.program.SProgram;
 

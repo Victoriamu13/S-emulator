@@ -1,4 +1,4 @@
-package logic.io.xml;
+package logic.io.xml.load;
 
 import logic.io.app.AppState;
 
@@ -9,7 +9,7 @@ public class LoadService {
 
     public LoadResult loadFromXml(Path xmlPath, AppState state){
         LoadResult res = loader.load(xmlPath);
-        if(res.success){
+        if(res.success && res.program != null){
             state.setProgram(res.program); //overrun current program if program loaded successfully
         }
         return res;

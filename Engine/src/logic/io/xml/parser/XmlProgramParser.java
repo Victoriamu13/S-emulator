@@ -1,5 +1,7 @@
-package logic.io.xml;
+package logic.io.xml.parser;
 
+import logic.io.xml.dto.RawInstructions;
+import logic.io.xml.parser.utils.DomUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -13,7 +15,7 @@ public final class XmlProgramParser {
     public ParseResult parse(Path xmlPath){
         List<String> errors = new ArrayList<>();
 
-        Document doc=DomUtils.safeParse(xmlPath,errors);
+        Document doc= DomUtils.safeParse(xmlPath,errors);
         if(!errors.isEmpty() || doc==null){
             return new ParseResult(null,List.of(),errors);
         }

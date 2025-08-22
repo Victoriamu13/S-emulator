@@ -1,4 +1,4 @@
-package logic.io.xml;
+package logic.io.xml.parser.utils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -11,10 +11,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-final class DomUtils {
+public final class DomUtils {
     private DomUtils() {}
 
-    static Document safeParse(Path xmlPath, List<String> errors) {
+    public static Document safeParse(Path xmlPath, List<String> errors) {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
@@ -26,23 +26,23 @@ final class DomUtils {
         }
     }
 //Get first Element in Document
-    static Element first(Document doc, String tag) {
+    public static Element first(Document doc, String tag) {
         NodeList nl = doc.getElementsByTagName(tag);
         return nl.getLength() == 0 ? null : (Element) nl.item(0);
     }
 
 //Get first Element in Section
-    static Element first(Element parent, String tag) {
+    public static Element first(Element parent, String tag) {
         NodeList nl = parent.getElementsByTagName(tag);
         return nl.getLength() == 0 ? null : (Element) nl.item(0);
     }
 
-    static String childText(Element parent, String tag) {
+    public static String childText(Element parent, String tag) {
         Element e = first(parent, tag);
         return e == null ? "" : e.getTextContent().trim();
     }
 
-    static Map<String,String> allArgs(Element instEl) {
+    public static Map<String,String> allArgs(Element instEl) {
         Map<String,String> out = new LinkedHashMap<>();
         NodeList args = instEl.getElementsByTagName("S-Instruction-Argument");
 

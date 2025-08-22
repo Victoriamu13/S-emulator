@@ -1,8 +1,10 @@
-package logic.io.xml;
+package logic.io.xml.validation;
+
+import logic.io.xml.dto.RawInstructions;
 
 import java.util.List;
 
-record ValidateResult(List<RawInstructions> raw, List<String> errors) { }
+public record ValidateResult(List<RawInstructions> raw, List<String> errors) { }
 
 /*Checks if the program in the XML file is legal in the S-emulator language.
 -------

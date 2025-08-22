@@ -1,6 +1,10 @@
 package logic.program;
 
 import logic.instructions.*;
+import logic.instructions.basic.DecreaseInst;
+import logic.instructions.basic.IncreaseInst;
+import logic.instructions.basic.jumpInstructions.JumpNotZeroInst;
+import logic.instructions.basic.NeutralInst;
 import logic.label.SLabel;
 import logic.label.SpecialLabels;
 import logic.variable.SVars;
@@ -83,17 +87,17 @@ public class ProgramInfoImpl implements ProgramInfo {
         String var = (v != null) ? v.getRepresentation() : "";
 
         switch (inst) {
-            case IncreaseInstruction increaseInstruction -> {
+            case IncreaseInst increaseInst -> {
                 return String.format("%s <- %s + 1", var, var);
             }
-            case DecreaseInstruction decreaseInstruction -> {
+            case DecreaseInst decreaseInst -> {
                 return String.format("%s <- %s - 1", var, var);
             }
-            case NoOpInstruction noOpInstruction -> {
+            case NeutralInst neutralInst -> {
                 return String.format("%s <- %s", var, var);
             }
-            case JumpNotZeroInstruction jumpNotZeroInstruction -> {
-                SLabel target = jumpNotZeroInstruction.getJumpLabel();
+            case JumpNotZeroInst jumpNotZeroInst -> {
+                SLabel target = jumpNotZeroInst.getJumpLabel();
                 String tgt = target.getLabelRepresentation();
                 return String.format("IF %s != 0 GOTO %s", var, tgt);
             }
