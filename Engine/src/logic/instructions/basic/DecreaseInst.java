@@ -10,7 +10,7 @@ import logic.variable.SVars;
 public class DecreaseInst extends AbstractInstruction {
 
     public DecreaseInst(SVars variable) {
-        super(logic.instructions.InstructionData.DECREASE,variable);
+        super(InstructionData.DECREASE,variable);
     }
 
     public DecreaseInst(SVars variable, SLabel label) {
@@ -18,7 +18,7 @@ public class DecreaseInst extends AbstractInstruction {
     }
 
     @Override
-    public SLabel executeOperarion(CurrentContext context) {
+    public SLabel executeOperation(CurrentContext context) {
         long variableValue=context.getVariableValue(getVariable());
         variableValue = Math.max(0, variableValue - 1);
         context.updateVariable(getVariable(),variableValue);

@@ -10,7 +10,7 @@ import logic.variable.SVars;
 public class NeutralInst extends AbstractInstruction {
 
     public NeutralInst(SVars variable) {
-        super(logic.instructions.InstructionData.NEUTRAL,variable);
+        super(InstructionData.NEUTRAL,variable);
     }
 
     public NeutralInst(SVars variable, SLabel label) {
@@ -18,7 +18,7 @@ public class NeutralInst extends AbstractInstruction {
     }
 
     @Override
-    public SLabel executeOperarion(CurrentContext context){
+    public SLabel executeOperation(CurrentContext context){
         return SpecialLabels.EMPTY;
     }
 }

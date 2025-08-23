@@ -46,7 +46,7 @@ public class ProgramExecuterImpl implements ProgramExecuter {
         int i = 0;
         while (i >= 0 && i < instructions.size()) {
             SInstruction currInstruction = instructions.get(i);
-            SLabel nextLabel = currInstruction.executeOperarion(context);
+            SLabel nextLabel = currInstruction.executeOperation(context);
 
             if(currInstruction.getLabel()==SpecialLabels.EXIT){
                 nextLabel=SpecialLabels.EXIT;}

@@ -9,5 +9,5 @@ public interface SInstruction {
     int cycles();
     SLabel getLabel();
     SVars getVariable();
-    SLabel executeOperarion(CurrentContext context);
+    SLabel executeOperation(CurrentContext context);
 }
