@@ -1,10 +1,17 @@
 package logic.program;
 
 import logic.instructions.*;
-import logic.instructions.basic.DecreaseInst;
-import logic.instructions.basic.IncreaseInst;
-import logic.instructions.basic.jumpInstructions.JumpNotZeroInst;
-import logic.instructions.basic.NeutralInst;
+import logic.instructions.basic.bNoJumpInst.DecreaseInst;
+import logic.instructions.basic.bNoJumpInst.IncreaseInst;
+import logic.instructions.basic.bJumpInst.JumpNotZeroInst;
+import logic.instructions.basic.bNoJumpInst.NeutralInst;
+import logic.instructions.synthetic.sJumpInst.GoToLabelInst;
+import logic.instructions.synthetic.sJumpInst.JumpEqualConstantInst;
+import logic.instructions.synthetic.sJumpInst.JumpEqualVariableInst;
+import logic.instructions.synthetic.sJumpInst.JumpZeroInst;
+import logic.instructions.synthetic.sNoJumpInst.AssignmentInst;
+import logic.instructions.synthetic.sNoJumpInst.ConstantAssignmentInst;
+import logic.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
 import logic.label.SLabel;
 import logic.label.SpecialLabels;
 import logic.variable.SVars;
@@ -70,7 +77,7 @@ public class ProgramInfoImpl implements ProgramInfo {
             SInstruction s = inst.get(i);
             SLabel lbl=s.getLabel();
             int index=i+1;
-            boolean synthetic=false;
+            boolean synthetic=isSynthetic(s);
             String labelText=lbl.getLabelRepresentation();
             String commandText=toCommandText(s);
             int cycles=s.cycles();
@@ -82,26 +89,61 @@ public class ProgramInfoImpl implements ProgramInfo {
 
     //Helper functions for getInstructions func
 
-    private static String toCommandText(SInstruction inst) {
+    public static String toCommandText(SInstruction inst) {
         SVars v = inst.getVariable();
         String var = (v != null) ? v.getRepresentation() : "";
 
         switch (inst) {
-            case IncreaseInst increaseInst -> {
-                return String.format("%s <- %s + 1", var, var);
-            }
-            case DecreaseInst decreaseInst -> {
-                return String.format("%s <- %s - 1", var, var);
-            }
-            case NeutralInst neutralInst -> {
-                return String.format("%s <- %s", var, var);
-            }
-            case JumpNotZeroInst jumpNotZeroInst -> {
-                SLabel target = jumpNotZeroInst.getJumpLabel();
+            //basic instructions
+            case IncreaseInst inc -> {return String.format("%s <- %s + 1", var, var);}
+            case DecreaseInst dec -> {return String.format("%s <- %s - 1", var, var);}
+            case NeutralInst ntrl -> {return String.format("%s <- %s", var, var);}
+            case JumpNotZeroInst jnz -> {
+                SLabel target = jnz.getTargetLabel();
                 String tgt = target.getLabelRepresentation();
                 return String.format("IF %s != 0 GOTO %s", var, tgt);
             }
+
+            //synthetic instructions
+            case ZeroVariableInst zv -> { return String.format("%s <- 0", var); }
+            case AssignmentInst asg -> {
+                String vS=asg.getSourceVar().getRepresentation();
+                return String.format("%s <- %s", var,vS );
+            }
+            case ConstantAssignmentInst kset -> {
+                long valC=kset.getConstantValue();
+                return String.format("%s <- %d", var,valC );
+            }
+            case JumpZeroInst jz -> {
+                String target=jz.getTargetLabel().getLabelRepresentation();
+                return String.format("IF %s = 0 GOTO %s", var,target );
+            }
+            case JumpEqualConstantInst jec -> {
+                long valC=jec.getConstantValue();
+                String target=jec.getTargetLabel().getLabelRepresentation();
+                return String.format("IF %s = %d GOTO %s", var, valC, target);
+            }
+            case JumpEqualVariableInst jev -> {
+                String varOt=jev.getOtherVar().getRepresentation();
+                String target=jev.getTargetLabel().getLabelRepresentation();
+                return String.format("IF %s = %s GOTO %s", var, varOt, target);
+            }
+            case GoToLabelInst go -> {
+                String target=go.getTargetLabel().getLabelRepresentation();
+                return String.format("GOTO %s", target);
+            }
+
             default -> {return inst.getName();}
         }
+    }
+
+    private static boolean isSynthetic(SInstruction inst) {
+        return (inst instanceof ZeroVariableInst) ||
+                (inst instanceof AssignmentInst) ||
+                (inst instanceof ConstantAssignmentInst) ||
+                (inst instanceof JumpZeroInst) ||
+                (inst instanceof JumpEqualConstantInst) ||
+                (inst instanceof JumpEqualVariableInst) ||
+                (inst instanceof GoToLabelInst);
     }
 }

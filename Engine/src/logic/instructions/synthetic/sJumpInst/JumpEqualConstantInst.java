@@ -1,4 +1,4 @@
-package logic.instructions.synthetic.jumpInstructions;
+package logic.instructions.synthetic.sJumpInst;
 
 import logic.execution.CurrentContext;
 import logic.instructions.AbstractInstruction;
@@ -34,4 +34,9 @@ public class JumpEqualConstantInst extends AbstractInstruction {
         }
         return (val==0) ? this.jeLabel : SpecialLabels.EMPTY;
     }
+
+    public long getConstantValue() { return constantVal; }
+
+    @Override
+    public SLabel getTargetLabel() { return jeLabel; }
 }

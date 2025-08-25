@@ -1,4 +1,4 @@
-package logic.instructions.basic;
+package logic.instructions.basic.bNoJumpInst;
 
 import logic.execution.CurrentContext;
 import logic.instructions.AbstractInstruction;

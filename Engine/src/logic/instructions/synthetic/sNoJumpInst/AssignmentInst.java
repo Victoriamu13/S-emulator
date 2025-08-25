@@ -1,4 +1,4 @@
-package logic.instructions.synthetic;
+package logic.instructions.synthetic.sNoJumpInst;
 
 import logic.execution.CurrentContext;
 import logic.instructions.AbstractInstruction;
@@ -17,7 +17,7 @@ public class AssignmentInst extends AbstractInstruction {
     }
 
     public AssignmentInst(SVars targetVar, SVars sourceVar, SLabel label) {
-        super(InstructionData.ASSIGMENT,targetVar,label);
+        super(InstructionData.ASSIGNMENT,targetVar,label);
         this.sourceVar = sourceVar;
     }
 

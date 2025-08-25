@@ -1,4 +1,4 @@
-package logic.instructions.synthetic.jumpInstructions;
+package logic.instructions.synthetic.sJumpInst;
 
 import logic.execution.CurrentContext;
 import logic.instructions.AbstractInstruction;
@@ -29,5 +29,6 @@ public class GoToLabelInst extends AbstractInstruction {
         return gotoLabel;
     }
 
-    public SLabel getTarget() { return gotoLabel; }
+    @Override
+    public SLabel getTargetLabel() { return gotoLabel; }
 }

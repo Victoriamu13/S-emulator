@@ -1,4 +1,4 @@
-package logic.instructions.synthetic.jumpInstructions;
+package logic.instructions.synthetic.sJumpInst;
 
 import logic.execution.CurrentContext;
 import logic.instructions.AbstractInstruction;
@@ -25,5 +25,6 @@ public class JumpZeroInst extends AbstractInstruction {
         return (val==0) ? jzLabel : SpecialLabels.EMPTY;
     }
 
-    public SLabel getJzLabelLabel() {return jzLabel;}
+    @Override
+    public SLabel getTargetLabel() { return jzLabel; }
 }

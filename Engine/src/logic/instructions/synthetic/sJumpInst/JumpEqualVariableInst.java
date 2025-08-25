@@ -1,4 +1,4 @@
-package logic.instructions.synthetic.jumpInstructions;
+package logic.instructions.synthetic.sJumpInst;
 
 import logic.execution.CurrentContext;
 import logic.instructions.AbstractInstruction;
@@ -26,10 +26,15 @@ public class JumpEqualVariableInst extends AbstractInstruction {
         long val= context.getVariableValue(getVariable());
         long otherVal= context.getVariableValue(this.otherVariable);
 
-        while(otherVal==0 || val==0){
+        while(otherVal>0 && val>0){
             otherVal--;
             val--;
         }
         return (val==otherVal) ? this.jeLabel : SpecialLabels.EMPTY;
     }
+
+    public SVars getOtherVar() { return otherVariable; }
+
+    @Override
+    public SLabel getTargetLabel() { return jeLabel; }
 }

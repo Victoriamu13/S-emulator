@@ -1,4 +1,4 @@
-package logic.instructions.synthetic;
+package logic.instructions.synthetic.sNoJumpInst;
 
 import logic.execution.CurrentContext;
 import logic.instructions.AbstractInstruction;
@@ -16,7 +16,7 @@ public class ConstantAssignmentInst extends AbstractInstruction {
 
     public ConstantAssignmentInst(SVars targetVar, long constantValue, SLabel label) {
         super(InstructionData.CONSTANT_ASSIGNMENT,targetVar,label);
-        this.constantValue = constantValue;
+        this.constantValue = Math.max(0,constantValue);
     }
 
     @Override
@@ -29,6 +29,7 @@ public class ConstantAssignmentInst extends AbstractInstruction {
             targetVal++;
             constantVal--;
         }
+        context.updateVariable(targetVar, targetVal);
         return SpecialLabels.EMPTY;
     }
 

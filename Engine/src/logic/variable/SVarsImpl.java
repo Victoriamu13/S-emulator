@@ -34,4 +34,7 @@ public class SVarsImpl implements SVars {
         return Objects.hash(type, number);
     }
 
+    @Override
+    public String toString() {return getRepresentation();}
+
 }

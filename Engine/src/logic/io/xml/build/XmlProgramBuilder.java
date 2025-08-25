@@ -1,10 +1,10 @@
 package logic.io.xml.build;
 
 import logic.instructions.*;
-import logic.instructions.basic.DecreaseInst;
-import logic.instructions.basic.IncreaseInst;
-import logic.instructions.basic.jumpInstructions.JumpNotZeroInst;
-import logic.instructions.basic.NeutralInst;
+        import logic.instructions.basic.bNoJumpInst.DecreaseInst;
+import logic.instructions.basic.bNoJumpInst.IncreaseInst;
+import logic.instructions.basic.bJumpInst.JumpNotZeroInst;
+import logic.instructions.basic.bNoJumpInst.NeutralInst;
 import logic.io.xml.dto.RawInstructions;
 import logic.label.SLabel;
 import logic.program.SProgram;
@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static logic.io.xml.build.BuildUtils.*;
-import static logic.io.xml.build.BuildUtils.buildTargetLabel;
+        import static logic.io.xml.build.BuildUtils.buildTargetLabel;
 
 public class XmlProgramBuilder {
 
