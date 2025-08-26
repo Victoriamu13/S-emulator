@@ -1,5 +1,6 @@
 package logic.program.info;
 
+import logic.expand.expandProgram.ExpanderFactory;
 import logic.expand.expandProgram.ExpansionContext;
 import logic.expand.expandProgram.ProgramExpander;
 import logic.instructions.info.InstructionInfo;
@@ -45,14 +46,14 @@ public class ExpandedProgramInfo implements ProgramInfo {
             boolean allBasic = true;
             List<InstNode> next = new ArrayList<>();
             for (InstNode node : cur) {
-                List<SInstruction> expanded = expander.expandOne(node.instruction);
-                if (expanded.size() == 1 && expanded.getFirst() == node.instruction) {
+                boolean isBasic = (ExpanderFactory.forInstruction(node.instruction) == null);
+                if (isBasic) {
                     //basic instruction
                     next.add(node);
                 } else {
                     //synthetic instruction
                     allBasic = false;
-                    for (SInstruction child : expanded) {
+                    for (SInstruction child : expander.expandOne(node.instruction)) {
                         next.add(new InstNode(child, node,node.originIndex));
                     }
                 }
