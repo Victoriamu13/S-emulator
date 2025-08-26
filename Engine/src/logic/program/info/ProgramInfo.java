@@ -1,7 +1,6 @@
-package logic.program;
+package logic.program.info;
 
-import logic.instructions.InstructionInfo;
-import logic.instructions.SInstruction;
+import logic.instructions.info.InstructionInfo;
 
 import java.util.List;
 

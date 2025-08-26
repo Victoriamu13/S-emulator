@@ -1,6 +1,6 @@
 package logic.instructions;
 
-import logic.execution.CurrentContext;
+import logic.execution.context.CurrentContext;
 import logic.label.SLabel;
 import logic.label.SpecialLabels;
 import logic.variable.SVars;

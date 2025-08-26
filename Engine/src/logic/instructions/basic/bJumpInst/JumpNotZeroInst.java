@@ -1,8 +1,8 @@
 package logic.instructions.basic.bJumpInst;
 
-import logic.execution.CurrentContext;
+import logic.execution.context.CurrentContext;
 import logic.instructions.AbstractInstruction;
-import logic.instructions.InstructionData;
+import logic.instructions.data.InstructionData;
 import logic.label.SLabel;
 import logic.label.SpecialLabels;
 import logic.variable.SVars;

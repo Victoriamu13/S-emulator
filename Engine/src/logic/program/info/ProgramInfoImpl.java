@@ -1,10 +1,11 @@
-package logic.program;
+package logic.program.info;
 
 import logic.instructions.*;
 import logic.instructions.basic.bNoJumpInst.DecreaseInst;
 import logic.instructions.basic.bNoJumpInst.IncreaseInst;
 import logic.instructions.basic.bJumpInst.JumpNotZeroInst;
 import logic.instructions.basic.bNoJumpInst.NeutralInst;
+import logic.instructions.info.InstructionInfo;
 import logic.instructions.synthetic.sJumpInst.GoToLabelInst;
 import logic.instructions.synthetic.sJumpInst.JumpEqualConstantInst;
 import logic.instructions.synthetic.sJumpInst.JumpEqualVariableInst;
@@ -13,12 +14,10 @@ import logic.instructions.synthetic.sNoJumpInst.AssignmentInst;
 import logic.instructions.synthetic.sNoJumpInst.ConstantAssignmentInst;
 import logic.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
 import logic.label.SLabel;
-import logic.label.SpecialLabels;
+import logic.program.SProgram;
 import logic.variable.SVars;
-import logic.variable.SVarsType;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 public class ProgramInfoImpl implements ProgramInfo {
@@ -28,60 +27,23 @@ public class ProgramInfoImpl implements ProgramInfo {
         this.program = program;
     }
 
-    @Override
-    public String getName(){
+    @Override public String getName(){
         return program.getName();
     }
-
-    @Override
-    public int getNumberOfInstructions(){
+    @Override public int getNumberOfInstructions(){
         return program.getInstructions().size();
     }
-
-    @Override
-    public List<String> getInputsUsed(){
-        LinkedHashSet<String> inputs = new LinkedHashSet<>();
-        for (SInstruction inst : program.getInstructions()) {
-            SVars var=inst.getVariable();
-            if(var!=null && var.getType()== SVarsType.INPUT){
-                inputs.add(var.getRepresentation());
-            }
-        }
-        return new ArrayList<>(inputs);
-    }
-
-    @Override
-    public List<String> getLabelsUsed(){
-        LinkedHashSet<String> labels = new LinkedHashSet<>();
-        boolean hasExit=false;
-        for(SInstruction inst : program.getInstructions()){
-            SLabel lbl=inst.getLabel();
-            if(lbl==null || lbl== SpecialLabels.EMPTY){continue;}
-            if(lbl==SpecialLabels.EXIT){
-                hasExit=true;
-            }else{
-                labels.add(lbl.getLabelRepresentation());
-            }
-        }
-        List<String> out = new ArrayList<>(labels);
-        if(hasExit){out.add("EXIT");}
-        return out;
-    }
+    @Override public List<String> getInputsUsed(){return ProgramInfoUtils.inputsUsed(program.getInstructions());}
+    @Override public List<String> getLabelsUsed(){return ProgramInfoUtils.labelsUsed(program.getInstructions());}
 
     @Override
     public List<InstructionInfo> getInstructions(){
-        List<SInstruction>inst = program.getInstructions();
+        List<SInstruction> inst = program.getInstructions();
         List<InstructionInfo> out = new ArrayList<>(inst.size());
 
         for(int i=0; i<inst.size(); i++){
             SInstruction s = inst.get(i);
-            SLabel lbl=s.getLabel();
-            int index=i+1;
-            boolean synthetic=isSynthetic(s);
-            String labelText=lbl.getLabelRepresentation();
-            String commandText=toCommandText(s);
-            int cycles=s.cycles();
-            out.add(new InstructionInfoImpl(index,synthetic,labelText,commandText,cycles));
+            out.add(ProgramInfoUtils.toInfo(s, i+1, null)); // fullCommand=null => uses toCommandText(s)
         }
         return out;
     }
@@ -91,7 +53,7 @@ public class ProgramInfoImpl implements ProgramInfo {
 
     public static String toCommandText(SInstruction inst) {
         SVars v = inst.getVariable();
-        String var = (v != null) ? v.getRepresentation() : "";
+        String var = v.getRepresentation();
 
         switch (inst) {
             //basic instructions
@@ -137,7 +99,7 @@ public class ProgramInfoImpl implements ProgramInfo {
         }
     }
 
-    private static boolean isSynthetic(SInstruction inst) {
+    public static boolean isSynthetic(SInstruction inst) {
         return (inst instanceof ZeroVariableInst) ||
                 (inst instanceof AssignmentInst) ||
                 (inst instanceof ConstantAssignmentInst) ||

@@ -1,6 +1,6 @@
-package logic.instructions;
+package logic.instructions.info;
 
-public class InstructionInfoImpl implements InstructionInfo{
+public class InstructionInfoImpl implements InstructionInfo {
     private final int index;
     private final boolean synthetic;
     private final String labelText;

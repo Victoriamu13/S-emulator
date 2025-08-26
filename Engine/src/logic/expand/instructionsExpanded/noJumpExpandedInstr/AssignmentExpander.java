@@ -2,7 +2,6 @@ package logic.expand.instructionsExpanded.noJumpExpandedInstr;
 
 import logic.expand.expandProgram.ExpansionContext;
 import logic.expand.instructionsExpanded.InstructionExpander;
-import logic.instructions.InstructionData;
 import logic.instructions.SInstruction;
 import logic.instructions.basic.bNoJumpInst.DecreaseInst;
 import logic.instructions.basic.bNoJumpInst.IncreaseInst;

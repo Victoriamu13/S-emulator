@@ -1,7 +1,7 @@
 package logic.io.xml.validation;
 
-import logic.instructions.ArgumentData;
-import logic.instructions.InstructionData;
+import logic.instructions.data.ArgumentData;
+import logic.instructions.data.InstructionData;
 import logic.io.xml.dto.RawInstructions;
 
 import java.util.List;

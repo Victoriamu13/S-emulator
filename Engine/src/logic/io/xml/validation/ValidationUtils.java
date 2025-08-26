@@ -1,6 +1,6 @@
 package logic.io.xml.validation;
 
-import logic.instructions.InstructionData;
+import logic.instructions.data.InstructionData;
 import logic.io.xml.dto.RawInstructions;
 
 import java.util.Locale;

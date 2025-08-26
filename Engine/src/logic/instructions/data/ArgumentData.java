@@ -1,4 +1,4 @@
-package logic.instructions;
+package logic.instructions.data;
 
 public enum ArgumentData {
     JNZ_LABEL("JNZLabel"),

@@ -1,5 +1,6 @@
 package logic.instructions;
 
+import logic.instructions.data.InstructionData;
 import logic.label.SLabel;
 import logic.label.SpecialLabels;
 import logic.variable.SVars;

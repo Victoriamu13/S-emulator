@@ -28,9 +28,8 @@ public final class ExpansionContext {
     public void markUsedFromProgram(List<SInstruction> program) {
         for (SInstruction ins : program) {
 
-            SLabel lbl = ins.getLabel();
-            if (lbl.isNumberLabel()) {
-                String lblRep = lbl.getLabelRepresentation();
+            String lblRep = ins.getLabel().getLabelRepresentation();
+            if (lblRep!=null && !lblRep.equals("EXIT") && !lblRep.isEmpty()) {
                 usedLabelNames.add(lblRep);
                 int n = Integer.parseInt(lblRep.substring(1));
                 if (n >= freeLabelCounter) freeLabelCounter = n + 1;

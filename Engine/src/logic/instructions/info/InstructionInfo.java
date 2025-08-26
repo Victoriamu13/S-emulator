@@ -1,4 +1,4 @@
-package logic.instructions;
+package logic.instructions.info;
 
 public interface InstructionInfo {
     int getIndex();

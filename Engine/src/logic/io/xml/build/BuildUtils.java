@@ -1,6 +1,6 @@
 package logic.io.xml.build;
 
-import logic.instructions.ArgumentData;
+import logic.instructions.data.ArgumentData;
 import logic.label.SLabel;
 import logic.label.SLabelImpl;
 import logic.label.SpecialLabels;
@@ -42,12 +42,11 @@ public class BuildUtils {
             String val = e.getValue().trim();
 
             switch (key) {
-                case JNZ_LABEL, GOTO_LABEL, JZ_LABEL, JE_CONSTANT_LABEL, JE_VARIABLE_LABEL -> {
+                case JNZ_LABEL, GOTO_LABEL, JZ_LABEL, JE_CONSTANT_LABEL, JE_VARIABLE_LABEL ->
                     out.put(key, normalizeLabelValue(val));   // EXIT / L..
-                }
-                case ASSIGNED_VARIABLE, VARIABLE_NAME -> {
-                    out.put(key, normalizeVarText(val));      // y / xN / zN
-                }
+
+                case ASSIGNED_VARIABLE, VARIABLE_NAME -> out.put(key, normalizeVarText(val));      // y / xN / zN
+
                 default -> out.put(key, val);
             }
         }
@@ -73,7 +72,7 @@ public class BuildUtils {
         );
 
         if (target.equals("EXIT")) return SpecialLabels.EXIT;
-        int num = Integer.parseInt(target.substring(1)); //
+        int num = Integer.parseInt(target.substring(1));
         return new SLabelImpl(num);
     }
 
@@ -81,5 +80,14 @@ public class BuildUtils {
     private static <T> T firstNonNull(T... values) {
         for (T v : values) if (v != null) return v;
         return null;
+    }
+
+    public static long parseConstant(Map<ArgumentData, String> args) {
+        String s = getRequiredArg(args, ArgumentData.CONSTANT_VALUE);
+        return Long.parseLong(s.trim());
+    }
+
+   public static String getRequiredArg(Map<ArgumentData, String> args, ArgumentData key) {
+        return args.get(key);
     }
 }

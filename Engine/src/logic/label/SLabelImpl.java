@@ -9,8 +9,7 @@ public class SLabelImpl implements SLabel {
         label="L"+number;
     }
 
-    @Override
-    public String getLabelRepresentation() {
+    @Override public String getLabelRepresentation() {
         return label;
     }
 
@@ -21,19 +20,15 @@ public class SLabelImpl implements SLabel {
         return Objects.equals(label, other.label);
     }
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
         return Objects.hash(label);
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return label;
     }
 
-    @Override
-    public boolean isNumberLabel() {
-       return (label!=null && !label.equals("EXIT") && !label.isEmpty());
-    }
+    @Override public boolean isNumberLabel() { return true; }
+
 }
 

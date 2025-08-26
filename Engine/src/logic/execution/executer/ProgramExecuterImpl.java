@@ -1,16 +1,15 @@
-package logic.execution;
+package logic.execution.executer;
 
+import logic.execution.context.CurrentContext;
+import logic.execution.context.CurrentContextImpl;
 import logic.instructions.SInstruction;
 import logic.label.SpecialLabels;
-import logic.program.ProgramInfo;
-import logic.program.ProgramInfoImpl;
 import logic.program.SProgram;
 import logic.label.SLabel;
 import logic.variable.SVars;
 import logic.variable.SVarsImpl;
 import logic.variable.SVarsType;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
