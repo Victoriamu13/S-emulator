@@ -1,9 +1,9 @@
-package display;
+package display.instructions;
 
 import logic.instructions.info.InstructionInfo;
 import logic.program.info.ProgramInfo;
 
-public abstract class BaseConsoleProgramPrinter implements ProgramPrinter {
+public abstract class AbstractInstructionPrinter implements InstructionPrinter {
 
     @Override
     public final void display(ProgramInfo info) {

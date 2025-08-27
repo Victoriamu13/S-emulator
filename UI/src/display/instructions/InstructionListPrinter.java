@@ -1,8 +1,8 @@
-package display;
+package display.instructions;
 
 import logic.instructions.info.InstructionInfo;
 
-public class ConsoleProgramPrinter extends BaseConsoleProgramPrinter {
+public class InstructionListPrinter extends AbstractInstructionPrinter {
 
     @Override
     protected String formatInstruction(InstructionInfo inst) {

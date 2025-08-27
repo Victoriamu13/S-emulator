@@ -1,7 +1,7 @@
-package display;
+package display.instructions;
 
 import logic.program.info.ProgramInfo;
 
-public interface ProgramPrinter {
+public interface InstructionPrinter {
     void display(ProgramInfo info);
 }
