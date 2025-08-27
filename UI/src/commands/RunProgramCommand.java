@@ -26,6 +26,10 @@ public class RunProgramCommand implements UiCommand {
 
     @Override
     public void execute() {
+        if (!isEnabled()) {
+            io.println("Error: no valid program is loaded. Please load a program file first.");
+            return;
+        }
         EngineFacade engine = engineHolder.get();
 
         //1) Choose expansion degree
@@ -40,6 +44,9 @@ public class RunProgramCommand implements UiCommand {
 
         //3) Run program and deliver report
         ExecutionReport report = engine.runWithReport(used, inputs);
+
+        //Write current program run to history
+        engineHolder.history().add(used, inputs, report.yValue(), report.totalCycles());
 
         //4) Present current program
         io.println("\n=== Program executed  (degree " + used + ") ===");

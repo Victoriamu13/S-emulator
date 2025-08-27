@@ -16,6 +16,8 @@ public final class ConsoleIO {
 
     public void println(String s) { System.out.println(s);}
 
+    public void printf(String fmt, Object... args) {out.printf(fmt, args);}
+
     public long[] askCsvLongs(String prompt) {
         while (true) {
             out.print(prompt);
@@ -47,7 +49,6 @@ public final class ConsoleIO {
     }
 
     public void close() { in.close(); }
-
 
 }
 
