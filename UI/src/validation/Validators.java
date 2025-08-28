@@ -1,5 +1,6 @@
 package validation;
 
+import display.EngineHolder;
 import display.console.ConsoleIO;
 
 import java.util.ArrayList;
@@ -7,6 +8,14 @@ import java.util.List;
 
 public final class Validators {
     private Validators() {}
+
+    public static boolean requireEngineLoaded(EngineHolder holder, ConsoleIO io) {
+        if (!holder.hasEngine()) {
+            io.println("Error: no valid program is loaded. Please load a program file first.");
+            return false;
+        }
+        return true;
+    }
 
     public static long[] parseLongsStrict(String s) {
         if (s == null || s.isBlank()) return new long[0];

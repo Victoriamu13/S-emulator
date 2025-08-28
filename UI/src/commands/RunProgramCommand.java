@@ -8,6 +8,7 @@ import display.instructions.InstructionPrinter;
 import logic.engineFacade.facade.EngineFacade;
 import logic.engineFacade.report.ExecutionReport;
 import logic.program.info.ProgramInfo;
+import validation.Validators;
 
 public class RunProgramCommand implements UiCommand {
     private final EngineHolder engineHolder;
@@ -26,8 +27,7 @@ public class RunProgramCommand implements UiCommand {
 
     @Override
     public void execute() {
-        if (!isEnabled()) {
-            io.println("Error: no valid program is loaded. Please load a program file first.");
+        if (!Validators.requireEngineLoaded(engineHolder, io)) {
             return;
         }
         EngineFacade engine = engineHolder.get();

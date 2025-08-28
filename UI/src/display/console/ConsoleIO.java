@@ -18,6 +18,11 @@ public final class ConsoleIO {
 
     public void printf(String fmt, Object... args) {out.printf(fmt, args);}
 
+    public String askLine(String prompt) {
+        out.print(prompt);
+        return in.nextLine();
+    }
+
     public long[] askCsvLongs(String prompt) {
         while (true) {
             out.print(prompt);

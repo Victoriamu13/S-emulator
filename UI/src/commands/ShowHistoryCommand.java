@@ -4,6 +4,7 @@ import display.EngineHolder;
 import display.console.ConsoleIO;
 import logic.engineFacade.runHistory.RunHistory;
 import logic.engineFacade.runHistory.RunRecord;
+import validation.Validators;
 
 public class ShowHistoryCommand implements UiCommand{
     private final EngineHolder engineHolder;
@@ -22,8 +23,7 @@ public class ShowHistoryCommand implements UiCommand{
 
     @Override
     public void execute() {
-        if (!isEnabled()) {
-            io.println("Error: no valid program is loaded. Please load a program file first.");
+        if (!Validators.requireEngineLoaded(engineHolder, io)) {
             return;
         }
         RunHistory history = engineHolder.history();
