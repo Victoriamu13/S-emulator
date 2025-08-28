@@ -24,13 +24,12 @@ public class EngineFacadeImpl implements EngineFacade {
 
     //---Load program---
     @Override
-    public boolean loadProgram(Path xmlPath) {
-        LoadResult res = loader.loadFromXml(xmlPath,  new AppState());
+    public LoadResult  loadProgram(Path xmlPath) {
+        LoadResult res = loader.loadFromXml(xmlPath, new AppState());
         if (res.success && res.program != null) {
             this.program = res.program;
-            return true;
         }
-        return false;
+       return res;
     }
 
     @Override

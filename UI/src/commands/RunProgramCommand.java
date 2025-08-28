@@ -60,7 +60,7 @@ public class RunProgramCommand implements UiCommand {
         io.println("y = " + report.yValue());
 
         //6) Print all variables - y,x1...xN,z1....zM
-        io.println("\nFinal variables (ordered): ");
+        io.println("\n=== Final variables values (ordered) ===");
         report.finalVars().forEach((name, val) -> io.println(name + " = " + val));
 
         //7) Print total number of cycles

@@ -3,6 +3,8 @@ package commands;
 import display.EngineHolder;
 import display.console.ConsoleIO;
 import logic.engineFacade.facade.EngineFacade;
+import logic.engineFacade.facade.EngineFacadeImpl;
+import logic.io.xml.load.LoadResult;
 
 import java.nio.file.Path;
 
@@ -29,15 +31,18 @@ public class LoadProgramCommand implements UiCommand{
             return;
         }
 
-        EngineFacade engine=engineHolder.get();
-        boolean success = engine.loadProgram(Path.of(pathStr.trim()));
-        if (!success) {
-            io.println("Failed to load program from XML.");
+        EngineFacade engine = new EngineFacadeImpl();
+        LoadResult res = engine.loadProgram(Path.of(pathStr.trim()));
+        if (!res.success) {
+            io.println("Failed to load program from XML file.");
+            for (String err : res.errors) {
+                io.println(" - " + err);
+            }
             return;
         }
 
         engineHolder.set(engine);
-        io.println("Program loaded successfully.");
+        io.println("Program loaded successfully: " + res.program.getName());
     }
 }
 

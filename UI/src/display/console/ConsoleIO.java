@@ -38,7 +38,7 @@ public final class ConsoleIO {
 
     public int askExpansionDegree(int max) {
         while (true) {
-            out.print("\nEnter expansion degree (0-" + max + "). Press Enter for 0: ");
+            out.print("Enter expansion degree (0-" + max + "). Press Enter for 0: ");
             String line = in.nextLine();
             try {
                 int requested = (line == null || line.isBlank())

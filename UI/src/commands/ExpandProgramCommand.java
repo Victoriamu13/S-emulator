@@ -3,6 +3,7 @@ package commands;
 import display.EngineHolder;
 import display.console.ConsoleIO;
 import display.instructions.ExpansionChainsPrinter;
+import display.instructions.InstructionListPrinter;
 import display.instructions.InstructionPrinter;
 import logic.engineFacade.facade.EngineFacade;
 import logic.program.info.ProgramInfo;
@@ -29,13 +30,15 @@ public class ExpandProgramCommand implements UiCommand{
 
         EngineFacade engine = engineHolder.get();
         int max = engine.getMaxExpansionDegree();
-        io.println("Max expansion degree = " + max);
+        io.println("\nMax expansion degree = " + max);
         int degree = io.askExpansionDegree(max);
 
         ProgramInfo expanded = engine.getProgramInfo(degree);
 
         io.println("\n=== Expanded Program (degree " + degree + ") ===");
-        InstructionPrinter printer = new ExpansionChainsPrinter();
+        InstructionPrinter printer = (degree == 0)
+                ? new InstructionListPrinter()    //regular format
+                : new ExpansionChainsPrinter();
         printer.display(expanded);
         io.println("");
     }
