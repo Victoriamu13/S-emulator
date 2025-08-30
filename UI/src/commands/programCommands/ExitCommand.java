@@ -1,8 +1,9 @@
-package commands;
+package commands.programCommands;
 
+import commands.UiCommand;
 import display.console.ConsoleIO;
 
-public class ExitCommand implements UiCommand{
+public class ExitCommand implements UiCommand {
     private final ConsoleIO io;
     private boolean shouldExit = false;
 

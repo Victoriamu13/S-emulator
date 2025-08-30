@@ -6,7 +6,7 @@ import logic.expand.expandProgram.DegreeCalculator;
 import logic.expand.expandProgram.ExpansionContext;
 import logic.expand.expandProgram.ProgramExpander;
 import logic.instructions.SInstruction;
-import logic.io.app.AppState;
+import logic.io.app.CurrentAppState;
 import logic.io.xml.load.LoadResult;
 import logic.io.xml.load.LoadService;
 import logic.program.SProgram;
@@ -21,11 +21,12 @@ import java.util.List;
 public class EngineFacadeImpl implements EngineFacade {
     private SProgram program;
     private final LoadService loader = new LoadService();
+    private String loadedXmlPath;
 
     //---Load program---
     @Override
-    public LoadResult  loadProgram(Path xmlPath) {
-        LoadResult res = loader.loadFromXml(xmlPath, new AppState());
+    public LoadResult loadProgram(Path xmlPath) {
+        LoadResult res = loader.loadFromXml(xmlPath, new CurrentAppState());
         if (res.success && res.program != null) {
             this.program = res.program;
         }
@@ -36,6 +37,9 @@ public class EngineFacadeImpl implements EngineFacade {
     public boolean hasProgram() {
         return program != null;
     }
+
+    @Override
+    public String getLoadedXmlPath() {  return loadedXmlPath;}
 
     //---Program info---
     @Override

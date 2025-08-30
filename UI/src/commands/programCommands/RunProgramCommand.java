@@ -1,5 +1,6 @@
-package commands;
+package commands.programCommands;
 
+import commands.UiCommand;
 import display.EngineHolder;
 import display.console.ConsoleIO;
 import display.instructions.ExpansionChainsPrinter;
@@ -51,8 +52,8 @@ public class RunProgramCommand implements UiCommand {
         //4) Present current program
         io.println("\n=== Program executed  (degree " + used + ") ===");
         InstructionPrinter printer = (used == 0)
-                ? new InstructionListPrinter()
-                : new ExpansionChainsPrinter();
+                ? new InstructionListPrinter(io)
+                : new ExpansionChainsPrinter(io);
         printer.display(infoForRun);
 
         //5) Print program result - y

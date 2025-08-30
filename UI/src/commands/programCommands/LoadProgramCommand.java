@@ -1,5 +1,6 @@
-package commands;
+package commands.programCommands;
 
+import commands.UiCommand;
 import display.EngineHolder;
 import display.console.ConsoleIO;
 import logic.engineFacade.facade.EngineFacade;
@@ -8,7 +9,7 @@ import logic.io.xml.load.LoadResult;
 
 import java.nio.file.Path;
 
-public class LoadProgramCommand implements UiCommand{
+public class LoadProgramCommand implements UiCommand {
     private final EngineHolder engineHolder;
     private final ConsoleIO io;
 

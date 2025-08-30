@@ -1,12 +1,14 @@
 package logic.engineFacade.runHistory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public final class RunHistory {
+public final class RunHistory implements Serializable {
     private final List<RunRecord> records = new ArrayList<>();
+    private static final long serialVersionUID = 1L;
 
     public RunRecord add(int degree, long[] inputs, long yValue, long cycles) {
         int nextNo = records.size() + 1;

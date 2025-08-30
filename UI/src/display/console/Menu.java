@@ -1,6 +1,6 @@
 package display.console;
 
-import commands.ExitCommand;
+import commands.programCommands.ExitCommand;
 import commands.UiCommand;
 
 import java.util.List;

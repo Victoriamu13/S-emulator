@@ -2,7 +2,7 @@ package logic.io.app;
 
 import logic.program.SProgram;
 
-public class AppState {
+public class CurrentAppState {
     private SProgram currentProgram;
 
     public SProgram getCurrentProgram() {return currentProgram;}

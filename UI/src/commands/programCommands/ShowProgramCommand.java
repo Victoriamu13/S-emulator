@@ -1,5 +1,6 @@
-package commands;
+package commands.programCommands;
 
+import commands.UiCommand;
 import display.EngineHolder;
 import display.console.ConsoleIO;
 import display.instructions.InstructionListPrinter;
@@ -8,7 +9,7 @@ import logic.engineFacade.facade.EngineFacade;
 import logic.program.info.ProgramInfo;
 import validation.Validators;
 
-public class ShowProgramCommand implements UiCommand{
+public class ShowProgramCommand implements UiCommand {
     private final EngineHolder engineHolder;
     private final ConsoleIO io;
 
@@ -31,7 +32,7 @@ public class ShowProgramCommand implements UiCommand{
         ProgramInfo info = engine.getProgramInfo(0);
 
         io.println("\n=== Program Info ===");
-        InstructionPrinter printer = new InstructionListPrinter();
+        InstructionPrinter printer = new InstructionListPrinter(io);
         printer.display(info);
         io.println("");
     }

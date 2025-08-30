@@ -1,5 +1,6 @@
-package commands;
+package commands.programCommands;
 
+import commands.UiCommand;
 import display.EngineHolder;
 import display.console.ConsoleIO;
 import display.instructions.ExpansionChainsPrinter;
@@ -9,7 +10,7 @@ import logic.engineFacade.facade.EngineFacade;
 import logic.program.info.ProgramInfo;
 import validation.Validators;
 
-public class ExpandProgramCommand implements UiCommand{
+public class ExpandProgramCommand implements UiCommand {
     private final EngineHolder engineHolder;
     private final ConsoleIO io;
 
@@ -37,8 +38,8 @@ public class ExpandProgramCommand implements UiCommand{
 
         io.println("\n=== Expanded Program (degree " + degree + ") ===");
         InstructionPrinter printer = (degree == 0)
-                ? new InstructionListPrinter()    //regular format
-                : new ExpansionChainsPrinter();
+                ? new InstructionListPrinter(io)    //regular format
+                : new ExpansionChainsPrinter(io);
         printer.display(expanded);
         io.println("");
     }

@@ -1,12 +1,13 @@
-package commands;
+package commands.programCommands;
 
+import commands.UiCommand;
 import display.EngineHolder;
 import display.console.ConsoleIO;
 import logic.engineFacade.runHistory.RunHistory;
 import logic.engineFacade.runHistory.RunRecord;
 import validation.Validators;
 
-public class ShowHistoryCommand implements UiCommand{
+public class ShowHistoryCommand implements UiCommand {
     private final EngineHolder engineHolder;
     private final ConsoleIO io;
 

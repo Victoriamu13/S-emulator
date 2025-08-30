@@ -10,6 +10,7 @@ public interface EngineFacade {
     //---Load program---
     LoadResult loadProgram(Path xmlPath);
     boolean hasProgram();
+    String getLoadedXmlPath();
 
     //---Program info---
     ProgramInfo getProgramInfo(int degree);
@@ -17,4 +18,5 @@ public interface EngineFacade {
 
     //---Execute program---
     ExecutionReport runWithReport(int degree, long... inputs);
+
 }

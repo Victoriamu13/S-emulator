@@ -1,9 +1,17 @@
 package display.instructions;
 
+import display.console.ConsoleIO;
 import logic.instructions.info.InstructionInfo;
 import logic.program.info.ProgramInfo;
 
+import java.io.Console;
+
 public abstract class AbstractInstructionPrinter implements InstructionPrinter {
+    private final ConsoleIO io;
+
+    public AbstractInstructionPrinter(ConsoleIO io) {
+        this.io = io;
+    }
 
     @Override
     public final void display(ProgramInfo info) {
@@ -13,15 +21,16 @@ public abstract class AbstractInstructionPrinter implements InstructionPrinter {
         }
         printHeader(info);
         for (InstructionInfo inst : info.getInstructions()) {
-            System.out.println(formatInstruction(inst));
+            io.println(formatInstruction(inst));
+            io.println("");
         }
     }
 
     protected void printHeader(ProgramInfo info) {
-        System.out.println("Program Name: " + info.getName());
-        System.out.println("Inputs used: " + info.getInputsUsed());
-        System.out.println("Labels used: " + info.getLabelsUsed());
-        System.out.println("Instructions:");
+        io.println("Program Name: " + info.getName());
+        io.println("Inputs used: " + info.getInputsUsed());
+        io.println("Labels used: " + info.getLabelsUsed());
+        io.println("Instructions:");
     }
 
 
