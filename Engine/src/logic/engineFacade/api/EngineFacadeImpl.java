@@ -83,25 +83,31 @@ public class EngineFacadeImpl implements EngineFacade {
 
     @Override
     public List<InstructionDTO>getExpansionHistoryChain(int degree, int finalIndex){
-        int used=validDegree(degree);
-        ProgramInfo info=getProgramInfo(used);
+        int used = validDegree(degree);
+        ProgramInfo info = getProgramInfo(used);
+        List<InstructionInfo> chain;
 
         if (info instanceof ExpandedProgramInfo exp) {
-            List<InstructionInfo> chain = exp.getExpansionForFinalIndex(finalIndex);
-            return chain.stream()
-                    .map(ii -> new InstructionDTO(
-                            ii.getIndex(),
-                            ii.getOriginIndex(),
-                            ii.isSynthetic() ? "S" : "B",
-                            ii.getLabelName(),
-                            ii.getFullCommand(),
-                            ii.getCycles()
-                    ))
+            // מעבירים גם את הדרגה וגם את האינדקס כדי לקבל את ההרחבה קדימה
+            chain = exp.getExpansionForFinalIndex(used, finalIndex);
+        } else {
+            // fallback – אם זה ProgramInfo רגיל בלי הרחבות
+            chain = info.getInstructions().stream()
+                    .filter(ii -> ii.getIndex() == finalIndex)
                     .toList();
         }
-        return List.of();
-    }
 
+        return chain.stream()
+                .map(ii -> new InstructionDTO(
+                        ii.getIndex(),
+                        ii.getOriginIndex(),
+                        ii.isSynthetic() ? "S" : "B",
+                        ii.getLabelName(),
+                        ii.getFullCommand(),
+                        ii.getCycles()
+                ))
+                .toList();
+    }
 
 
     @Override

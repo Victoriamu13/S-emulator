@@ -33,20 +33,20 @@ public class ProgramControlsController {
 
     @FXML
     public void initialize(){
-     lblDegree.textProperty().bind(currDegree.asString().concat(" / ").concat(maxDegree.asString()));
+        lblDegree.textProperty().bind(currDegree.asString().concat(" / ").concat(maxDegree.asString()));
 
-     btnExpand.setOnAction(e->{
-         if(holder.hasEngine()&& currDegree.get()<maxDegree.get()){
-             currDegree.set(currDegree.get()+1);
-             refreshHighlightList(currDegree.get());
-         }
-     });
-     btnCollapse.setOnAction(e->{
-         if(holder.hasEngine() && currDegree.get() > 0){
-             currDegree.set(currDegree.get() - 1);
-             refreshHighlightList(currDegree.get());
-         }
-     });
+        btnExpand.setOnAction(e->{
+            if(holder.hasEngine()&& currDegree.get()<maxDegree.get()){
+                currDegree.set(currDegree.get()+1);
+                refreshHighlightList(currDegree.get());
+            }
+        });
+        btnCollapse.setOnAction(e->{
+            if(holder.hasEngine() && currDegree.get() > 0){
+                currDegree.set(currDegree.get() - 1);
+                refreshHighlightList(currDegree.get());
+            }
+        });
         highlightSelector.getSelectionModel().selectedItemProperty()
                 .addListener((obs, oldVal, newVal) -> highlightSelection.set(newVal));
     }

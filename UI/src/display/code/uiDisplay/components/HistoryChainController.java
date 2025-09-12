@@ -41,10 +41,10 @@ public class HistoryChainController {
 
         instCtrl.setOnInstructionSelected(sel->{
             if(sel!=null) {
-                lastSelectedFinalIndex  = sel.index();
+                lastSelectedFinalIndex = sel.index();
                 refreshHistoryChain(programCtrl.getCurrentDegree());
             }else{
-                lastSelectedFinalIndex  = null;
+                lastSelectedFinalIndex   = null;
                 clear();
             }
         });
@@ -56,14 +56,6 @@ public class HistoryChainController {
         this.holder = holder;
         this.lastSelectedFinalIndex =null;
         clear();
-    }
-
-    public void showInstHistoryChain(List<InstructionDTO> chain){
-        if (chain == null || chain.isEmpty()) {
-            clear();
-            return;
-        }
-        historyChainTable.getItems().setAll(chain);
     }
 
     private void refreshHistoryChain(int degree){
