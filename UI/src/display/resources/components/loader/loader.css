@@ -1,0 +1,4 @@
+.status-label {
+    -fx-font-weight: bold;
+    -fx-wrap-text: true;
+}

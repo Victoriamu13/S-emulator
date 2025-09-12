@@ -1,0 +1,7 @@
+.table-cell{
+    -fx-alignment: CENTER;
+}
+
+.table-row-cell.highlighted {
+    -fx-background-color: yellow ;
+}
