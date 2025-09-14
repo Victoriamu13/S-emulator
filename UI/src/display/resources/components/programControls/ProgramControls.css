@@ -1,0 +1,5 @@
+#highlightSelector .text-field {
+    -fx-prompt-text-fill: black;
+    -fx-font-style: normal;
+    -fx-opacity: 1.0;
+}

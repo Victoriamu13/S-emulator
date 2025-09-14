@@ -18,6 +18,8 @@ import logic.domain.program.info.ProgramInfo;
 import logic.domain.program.info.ProgramInfoImpl;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class EngineFacadeImpl implements EngineFacade {
@@ -66,6 +68,11 @@ public class EngineFacadeImpl implements EngineFacade {
     }
 
     @Override
+    public List<String> getVariablesUsed(int degree) {
+        return getProgramInfo(validDegree(degree)).getVariablesUsed();
+    }
+
+    @Override
     public String getProgramName() {
         return program != null ? program.getName() : "";
     }
@@ -88,10 +95,8 @@ public class EngineFacadeImpl implements EngineFacade {
         List<InstructionInfo> chain;
 
         if (info instanceof ExpandedProgramInfo exp) {
-            // מעבירים גם את הדרגה וגם את האינדקס כדי לקבל את ההרחבה קדימה
             chain = exp.getExpansionForFinalIndex(used, finalIndex);
         } else {
-            // fallback – אם זה ProgramInfo רגיל בלי הרחבות
             chain = info.getInstructions().stream()
                     .filter(ii -> ii.getIndex() == finalIndex)
                     .toList();
@@ -106,6 +111,7 @@ public class EngineFacadeImpl implements EngineFacade {
                         ii.getFullCommand(),
                         ii.getCycles()
                 ))
+                .sorted(Comparator.comparing(InstructionDTO::index).reversed())
                 .toList();
     }
 

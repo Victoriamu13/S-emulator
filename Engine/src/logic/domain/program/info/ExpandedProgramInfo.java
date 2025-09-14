@@ -5,7 +5,6 @@ import logic.domain.expand.expandProgram.ExpansionContext;
 import logic.domain.expand.expandProgram.ProgramExpander;
 import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.info.InstructionInfo;
-import logic.domain.instructions.info.InstructionInfoImpl;
 import logic.domain.program.SProgram;
 
 import java.util.*;
@@ -49,6 +48,15 @@ public class ExpandedProgramInfo implements ProgramInfo {
     @Override public List<String> getInputsUsed() { return inputs; }
     @Override public List<String> getLabelsUsed() { return labels; }
     @Override public List<InstructionInfo> getInstructions() { return instructions; }
+
+    public List<String> getVariablesUsed() {
+        List<InstNode> finalLayer = layers.get(layers.size() - 1);
+        List<SInstruction> instrs = new ArrayList<>();
+        for (InstNode n : finalLayer) {
+            instrs.add(n.instruction);
+        }
+        return ProgramInfoUtils.variablesUsed(instrs);
+    }
 
     // Build all expansion layers up to given degree
     private void buildLayers(SProgram program, int degree) {

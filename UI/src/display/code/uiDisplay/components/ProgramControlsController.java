@@ -35,6 +35,9 @@ public class ProgramControlsController {
     public void initialize(){
         lblDegree.textProperty().bind(currDegree.asString().concat(" / ").concat(maxDegree.asString()));
 
+        highlightSelector.setEditable(true);
+        highlightSelector.getEditor().setEditable(false);
+
         btnExpand.setOnAction(e->{
             if(holder.hasEngine()&& currDegree.get()<maxDegree.get()){
                 currDegree.set(currDegree.get()+1);
@@ -68,10 +71,17 @@ public class ProgramControlsController {
 
     public void refreshHighlightList(int degree){
         var engine=holder.getEngine();
+        String currSelection = highlightSelector.getValue();
 
         highlightSelector.getItems().clear();
         highlightSelector.getItems().addAll(engine.getInputsUsed(degree));
+        highlightSelector.getItems().addAll(engine.getVariablesUsed(degree));
         highlightSelector.getItems().addAll(engine.getLabelsUsed(degree));
+
+        highlightSelector.getSelectionModel().clearSelection();
+        highlightSelection.set("");
+
+        highlightSelector.setPromptText("Highlight");
     }
 
 }

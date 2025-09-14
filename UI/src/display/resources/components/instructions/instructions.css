@@ -3,5 +3,19 @@
 }
 
 .table-row-cell.highlighted {
-    -fx-background-color: yellow ;
+    -fx-background-color: yellow;
+}
+
+
+.table-row-cell.highlighted .table-cell {
+    -fx-text-fill: black;
+}
+
+
+.table-row-cell.highlighted:selected {
+    -fx-background-color: yellow;
+}
+
+.table-row-cell.highlighted:selected .table-cell {
+    -fx-text-fill: black;
 }

@@ -10,8 +10,6 @@ public interface ProgramInfo {
     int getNumberOfInstructions();
     List<String> getInputsUsed();
     List<String> getLabelsUsed();
+    List<String> getVariablesUsed();
 
-    default List<InstructionInfo> getHistoryForOriginIndex(int originIndex) {
-        return List.of(); // Default - no history chain
-    }
 }

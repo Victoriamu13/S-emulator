@@ -5,6 +5,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -27,26 +28,69 @@ public class InstructionsController {
 
     private EngineHolder holder;
     private int currDegree=0;
+    private String currentHighlight = null;
+
     private Consumer<InstructionDTO> onInstructionSelected =selIn -> {};
 
-    public void setOnInstructionSelected(Consumer<InstructionDTO> listener){
-        this.onInstructionSelected= (listener!=null) ? listener : selIn->{};
-    }
+    private final String HIGHLIGHTED = "highlighted";
 
 
     @FXML
     private void initialize(){
+        setupColumns();
+        setupSelectionListener();
+        setupRowHighlighting();
+        setupPlaceholder();
+    }
+
+    // --- setup helpers ---
+
+    private void setupColumns() {
         colIdx.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().index()));
-        colBS.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().type()));          // "B"/"S"
+        colBS.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().type()));
         colLabel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().label()));
         colInstr.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().command()));
         colCycles.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().cycles()));
+    }
 
-        // Placeholder
-        instructionsTable.setPlaceholder(new Label("No program loaded"));
+    private void setupSelectionListener() {
         instructionsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldV, sel) -> {
             if (sel != null) onInstructionSelected.accept(sel);
         });
+    }
+
+    private void setupRowHighlighting() {
+        instructionsTable.setRowFactory(tv -> new TableRow<>() {
+            @Override
+            protected void updateItem(InstructionDTO item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item != null && !empty && currentHighlight != null && !currentHighlight.isEmpty()) {
+                    String search = currentHighlight.trim();
+                    boolean match = (item.command() != null && item.command().contains(search)) ||
+                            (item.label() != null && item.label().contains(search));
+
+                    if (match) {
+                        if (!getStyleClass().contains(HIGHLIGHTED)) {
+                            getStyleClass().add(HIGHLIGHTED);
+                        }
+                    } else {
+                        getStyleClass().remove(HIGHLIGHTED);
+                    }
+                } else {
+                    getStyleClass().remove(HIGHLIGHTED);
+                }
+            }
+        });
+    }
+
+    private void setupPlaceholder() {
+        instructionsTable.setPlaceholder(new Label("No program loaded"));
+    }
+
+    // --- API for other controllers ---
+
+    public void setOnInstructionSelected(Consumer<InstructionDTO> listener){
+        this.onInstructionSelected= (listener!=null) ? listener : selIn->{};
     }
 
     public void setEngineHolder(EngineHolder holder) {
@@ -68,15 +112,16 @@ public class InstructionsController {
 
    public void bindHighlight(StringProperty highlightProp){
        highlightProp.addListener((obs,oldVal,newVal)->{
-           if(newVal!=null){
-               highlightStr(newVal);
-           }
+           currentHighlight = newVal;
+           instructionsTable.refresh();
        });
    }
 
     public InstructionDTO getSelectedInstruction() {
         return instructionsTable.getSelectionModel().getSelectedItem();
     }
+
+    // --- internals ---
 
     private void refreshInstructions(){
         if(!holder.hasEngine()){
@@ -94,23 +139,6 @@ public class InstructionsController {
         int synth = engine.getInstructionSyntheticCount(currDegree);
 
         lblSummary.setText(String.format("Total: %d | Basic: %d | Synthetic: %d",total,basic,synth));
-    }
-
-    public void  highlightStr(String str){
-        instructionsTable.setRowFactory(tv -> new TableRow<>() {
-            @Override
-            protected void updateItem(InstructionDTO item, boolean empty) {
-                super.updateItem(item, empty);
-
-                getStyleClass().remove("highlighted");
-
-                if (item != null && !empty) {
-                    if (item.command().contains(str) || item.label().equals(str)) {
-                        getStyleClass().add("highlighted");
-                    }
-                }
-            }
-        });
     }
 
 }

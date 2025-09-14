@@ -93,6 +93,23 @@ public final class ProgramInfoUtils {
         return out;
     }
 
+    public static List<String> variablesUsed(Iterable<SInstruction> instrs) {
+        TreeSet<String> vars = new TreeSet<>();
+
+        for (SInstruction inst : instrs) {
+            SVars var = inst.getVariable();
+            if (var != null) {
+                if (var.getType() == SVarsType.RESULT) {
+                    vars.add("y");
+                }
+                else if (var.getType() == SVarsType.WORK) {
+                    vars.add(var.getRepresentation()); // zN
+                }
+            }
+        }
+        return new ArrayList<>(vars);
+    }
+
     private static boolean isExitTarget(SInstruction inst) {
         if (inst instanceof JumpNotZeroInst jnz) {
             return jnz.getTargetLabel() == SpecialLabels.EXIT;

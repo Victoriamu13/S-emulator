@@ -35,6 +35,7 @@ public class ProgramInfoImpl implements ProgramInfo {
     }
     @Override public List<String> getInputsUsed(){return ProgramInfoUtils.inputsUsed(program.getInstructions());}
     @Override public List<String> getLabelsUsed(){return ProgramInfoUtils.labelsUsed(program.getInstructions());}
+    @Override public List<String> getVariablesUsed(){return ProgramInfoUtils.variablesUsed(program.getInstructions());}
 
     @Override
     public List<InstructionInfo> getInstructions(){
@@ -107,14 +108,6 @@ public class ProgramInfoImpl implements ProgramInfo {
                 (inst instanceof JumpEqualConstantInst) ||
                 (inst instanceof JumpEqualVariableInst) ||
                 (inst instanceof GoToLabelInst);
-    }
-
-    @Override
-    public List<InstructionInfo> getHistoryForOriginIndex(int originIndex){
-        if(originIndex<1 || originIndex> getInstructions().size()){
-            return List.of();
-        }
-        return List.of(getInstructions().get(originIndex-1));
     }
 
 }

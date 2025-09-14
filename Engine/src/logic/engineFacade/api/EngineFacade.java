@@ -17,6 +17,7 @@ public interface EngineFacade {
     //---Program info---
     List<String> getInputsUsed(int degree);
     List<String> getLabelsUsed(int degree);
+    List<String> getVariablesUsed(int degree);
     String getProgramName();
     int getMaxExpansionDegree();
 
