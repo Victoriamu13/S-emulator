@@ -1,6 +1,7 @@
 package logic.engineFacade.api;
 import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.program.info.ExpandedProgramInfo;
+import logic.domain.variable.SVarsType;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
 import logic.domain.execution.executer.ProgramExecuterImpl;
@@ -18,9 +19,9 @@ import logic.domain.program.info.ProgramInfo;
 import logic.domain.program.info.ProgramInfoImpl;
 
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+
+import static logic.engineFacade.api.EngineFacadeUtils.numericAwareComparator;
 
 public class EngineFacadeImpl implements EngineFacade {
     private SProgram program;
@@ -49,30 +50,6 @@ public class EngineFacadeImpl implements EngineFacade {
 
     //---Program info---
     @Override
-    public int getMaxExpansionDegree() {
-        ExpansionContext ctx = ExpansionContext.seedFrom(program);
-        ProgramExpander  exp = new ProgramExpander(ctx);
-        DegreeCalculator calc = new DegreeCalculator(exp);
-        return calc.maxProgramDegree(program);
-    }
-
-
-    @Override
-    public List<String> getInputsUsed(int degree) {
-        return getProgramInfo(validDegree(degree)).getInputsUsed();
-    }
-
-    @Override
-    public List<String> getLabelsUsed(int degree) {
-        return getProgramInfo(validDegree(degree)).getLabelsUsed();
-    }
-
-    @Override
-    public List<String> getVariablesUsed(int degree) {
-        return getProgramInfo(validDegree(degree)).getVariablesUsed();
-    }
-
-    @Override
     public String getProgramName() {
         return program != null ? program.getName() : "";
     }
@@ -84,7 +61,7 @@ public class EngineFacadeImpl implements EngineFacade {
         ProgramInfo info=getProgramInfo(used);
         return info.getInstructions().stream()
                 .map(ins->new InstructionDTO(
-                        ins.getIndex(),ins.getOriginIndex(),ins.isSynthetic() ? "S" : "B",
+                        ins.getIndex(),ins.isSynthetic() ? "S" : "B", ins.getVariableName(),
                         ins.getLabelName(),ins.getFullCommand(), ins.getCycles())).toList();
     }
 
@@ -105,8 +82,8 @@ public class EngineFacadeImpl implements EngineFacade {
         return chain.stream()
                 .map(ii -> new InstructionDTO(
                         ii.getIndex(),
-                        ii.getOriginIndex(),
                         ii.isSynthetic() ? "S" : "B",
+                        ii.getVariableName(),
                         ii.getLabelName(),
                         ii.getFullCommand(),
                         ii.getCycles()
@@ -126,6 +103,67 @@ public class EngineFacadeImpl implements EngineFacade {
     public int getInstructionSyntheticCount(int degree) {
         var info = getProgramInfo(degree);
         return (int) info.getInstructions().stream().filter(i -> i.isSynthetic()).count();
+    }
+
+    @Override
+    public List<String> getInputsUsed(int degree) {
+        return getProgramInfo(validDegree(degree)).getInputsUsed();
+    }
+
+    @Override
+    public List<String> getVariablesUsed(int degree) {
+        return getProgramInfo(validDegree(degree)).getVariablesUsed();
+    }
+
+    @Override
+    public List<String> getLabelsUsed(int degree) {
+        return getProgramInfo(validDegree(degree)).getLabelsUsed();
+    }
+
+
+    @Override
+    public List<String> getAllVariablesUsed(int degree, Integer finalIndex) {
+        Set<String> vars = new LinkedHashSet<>();
+
+        vars.addAll(getProgramInfo(degree).getVariablesUsed());
+        vars.add(SVarsType.RESULT.getVarRepresentation(0));
+
+        if (finalIndex != null) {
+            getExpansionHistoryChain(degree, finalIndex).forEach(ii -> {
+                if (ii.variable() != null && !ii.variable().isBlank() && !ii.command().toUpperCase().startsWith("GOTO")) {
+                    vars.add(ii.variable());
+                }
+            });
+        }
+
+        return vars.stream().sorted(numericAwareComparator()).toList();
+    }
+
+    @Override
+    public List<String> getAllLabelsUsed(int degree,Integer finalIndex) {
+        Set<String> labels = new LinkedHashSet<>();
+
+        labels.addAll(getProgramInfo(degree).getLabelsUsed());
+
+        if (finalIndex != null) {
+            getExpansionHistoryChain(degree, finalIndex).forEach(ii -> {
+                if (ii.label() != null && !ii.label().isBlank()) {
+                    labels.add(ii.label());
+                }
+            });
+        }
+
+        return labels.stream().sorted(numericAwareComparator()).toList();
+    }
+
+
+    //Expansion---
+    @Override
+    public int getMaxExpansionDegree() {
+        ExpansionContext ctx = ExpansionContext.seedFrom(program);
+        ProgramExpander  exp = new ProgramExpander(ctx);
+        DegreeCalculator calc = new DegreeCalculator(exp);
+        return calc.maxProgramDegree(program);
     }
 
     //---Execute program---
@@ -172,5 +210,6 @@ public class EngineFacadeImpl implements EngineFacade {
         ProgramExpander  exp = new ProgramExpander(ctx);
         return new ExpandedProgramInfo(program, used, exp, ctx);
     }
+
 
 }

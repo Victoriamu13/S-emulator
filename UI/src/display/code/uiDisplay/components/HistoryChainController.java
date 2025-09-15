@@ -84,13 +84,18 @@ public class HistoryChainController {
         instCtrl.setOnInstructionSelected(sel->{
             if(sel!=null) {
                 lastSelectedFinalIndex = sel.index();
+                programCtrl.setSelectedFinalIndex(lastSelectedFinalIndex);
                 refreshHistoryChain(programCtrl.getCurrentDegree());
             }else{
                 lastSelectedFinalIndex   = null;
+                programCtrl.setSelectedFinalIndex(null);
                 clear();
             }
         });
         degreeProp.addListener((obs,oldVal,newVal)->{
+            lastSelectedFinalIndex = null;
+            programCtrl.setSelectedFinalIndex(null);
+            clear();
             refreshHistoryChain(newVal.intValue());});
     }
 

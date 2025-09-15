@@ -10,6 +10,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 
 public class ProgramControlsController {
 
@@ -19,6 +22,7 @@ public class ProgramControlsController {
     @FXML private Label lblDegree;
     @FXML private ComboBox<String> highlightSelector;
 
+    private Integer selectedFinalIndex = null;
     private EngineHolder holder;
 
     private final IntegerProperty currDegree=new SimpleIntegerProperty(0);
@@ -69,18 +73,21 @@ public class ProgramControlsController {
         }
     }
 
+    public void setSelectedFinalIndex(Integer index) {
+        this.selectedFinalIndex = index;
+        refreshHighlightList(currDegree.get());
+    }
+
     public void refreshHighlightList(int degree){
         var engine=holder.getEngine();
-        String currSelection = highlightSelector.getValue();
+        Set<String> highlightItems = new LinkedHashSet<>();
 
-        highlightSelector.getItems().clear();
-        highlightSelector.getItems().addAll(engine.getInputsUsed(degree));
-        highlightSelector.getItems().addAll(engine.getVariablesUsed(degree));
-        highlightSelector.getItems().addAll(engine.getLabelsUsed(degree));
+        highlightItems.addAll(engine.getInputsUsed(degree));
+        highlightItems.addAll(engine.getAllVariablesUsed(degree,selectedFinalIndex));
+        highlightItems.addAll(engine.getAllLabelsUsed(degree,selectedFinalIndex));
 
+        highlightSelector.getItems().setAll(highlightItems);
         highlightSelector.getSelectionModel().clearSelection();
-        highlightSelection.set("");
-
         highlightSelector.setPromptText("Highlight");
     }
 

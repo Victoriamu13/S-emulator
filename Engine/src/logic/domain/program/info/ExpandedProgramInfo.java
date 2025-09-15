@@ -112,7 +112,7 @@ public class ExpandedProgramInfo implements ProgramInfo {
         List<InstructionInfo> out = new ArrayList<>(ordered.size());
         for (InstNode n : ordered) {
             int idx = idxMap.get(n);
-            out.add(toInfo(n.instruction, idx, n.originIndex, null));
+            out.add(toInfo(n.instruction, idx, null));
         }
         return out;
     }
@@ -140,15 +140,14 @@ public class ExpandedProgramInfo implements ProgramInfo {
             List<InstructionInfo> out = new ArrayList<>();
             int k = 1;
             for (SInstruction child : children) {
-                out.add(ProgramInfoUtils.toInfo(child, k++, selected.originIndex, null));
+                out.add(ProgramInfoUtils.toInfo(child, k++,null));
             }
             return out;
         }
 
         // Case 2: basic instruction → return as is
         return List.of(
-                ProgramInfoUtils.toInfo(selected.instruction, curIdx.get(selected),
-                        selected.originIndex, null)
+                ProgramInfoUtils.toInfo(selected.instruction, curIdx.get(selected), null)
         );
     }
 

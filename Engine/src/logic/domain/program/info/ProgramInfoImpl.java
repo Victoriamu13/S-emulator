@@ -44,10 +44,11 @@ public class ProgramInfoImpl implements ProgramInfo {
 
         for(int i=0; i<inst.size(); i++){
             SInstruction s = inst.get(i);
-            out.add(ProgramInfoUtils.toInfo(s, i+1,i+1, null)); // fullCommand=null => uses toCommandText(s)
+            out.add(ProgramInfoUtils.toInfo(s, i+1, null)); // fullCommand=null => uses toCommandText(s)
         }
         return out;
     }
+
 
 
     //Helper functions for getInstructions func

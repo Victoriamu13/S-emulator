@@ -2,6 +2,7 @@ package logic.domain.instructions.synthetic.sJumpInst;
 
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.instructions.AbstractInstruction;
+import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.data.InstructionData;
 import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
@@ -31,4 +32,5 @@ public class GoToLabelInst extends AbstractInstruction {
 
     @Override
     public SLabel getTargetLabel() { return gotoLabel; }
+
 }

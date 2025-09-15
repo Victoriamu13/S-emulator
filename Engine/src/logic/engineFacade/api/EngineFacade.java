@@ -15,11 +15,7 @@ public interface EngineFacade {
     String getLoadedXmlPath();
 
     //---Program info---
-    List<String> getInputsUsed(int degree);
-    List<String> getLabelsUsed(int degree);
-    List<String> getVariablesUsed(int degree);
     String getProgramName();
-    int getMaxExpansionDegree();
 
     //---instructions---
     List<InstructionDTO> getInstructionRows(int degree);
@@ -27,6 +23,15 @@ public interface EngineFacade {
     int getInstructionBasicCount(int degree);
     int getInstructionSyntheticCount(int degree);
     int getInstructionTotal(int degree);
+    List<String> getInputsUsed(int degree);
+    List<String> getVariablesUsed(int degree);
+    List<String> getLabelsUsed(int degree);
+    List<String> getAllLabelsUsed(int degree, Integer finalIndex);
+    List<String> getAllVariablesUsed(int degree, Integer finalIndex);
+
+
+    //---Expansion---
+    int getMaxExpansionDegree();
 
     //---Execute program---
     ExecutionReport runWithReport(int degree, long... inputs);

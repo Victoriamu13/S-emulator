@@ -22,14 +22,19 @@ public final class ProgramInfoUtils {
     private ProgramInfoUtils() {}
 
     // Build InstructionInfo for a single instruction.
-    public static InstructionInfo toInfo(SInstruction inst, int index,int originIndex, String fullCommandOrNull) {
+    public static InstructionInfo toInfo(SInstruction inst, int index,String fullCommandOrNull) {
 
         boolean synthetic = ProgramInfoImpl.isSynthetic(inst);
         String labelText = inst.getLabel().getLabelRepresentation();
         String command = (fullCommandOrNull != null) ? fullCommandOrNull : ProgramInfoImpl.toCommandText(inst);
         int cycles = inst.cycles();
 
-        return new InstructionInfoImpl(index,originIndex, synthetic, labelText, command, cycles);
+        String varName = null;
+        if (inst.getVariable() != null) {
+            varName = inst.getVariable().getRepresentation();
+        }
+
+        return new InstructionInfoImpl(index, synthetic,varName, labelText, command, cycles);
     }
 
 
@@ -97,13 +102,16 @@ public final class ProgramInfoUtils {
         TreeSet<String> vars = new TreeSet<>();
 
         for (SInstruction inst : instrs) {
-            SVars var = inst.getVariable();
-            if (var != null) {
-                if (var.getType() == SVarsType.RESULT) {
-                    vars.add("y");
-                }
-                else if (var.getType() == SVarsType.WORK) {
-                    vars.add(var.getRepresentation()); // zN
+            if (inst instanceof GoToLabelInst) {
+                continue;
+            }else {
+                SVars var = inst.getVariable();
+                if (var != null) {
+                    if (var.getType() == SVarsType.RESULT) {
+                        vars.add("y");
+                    } else if (var.getType() == SVarsType.WORK) {
+                        vars.add(var.getRepresentation()); // zN
+                    }
                 }
             }
         }
@@ -128,4 +136,5 @@ public final class ProgramInfoUtils {
         }
         return false;
     }
+
 }

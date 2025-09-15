@@ -1,6 +1,7 @@
 package logic.domain.expand.expandProgram;
 
 import logic.domain.instructions.SInstruction;
+import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
 import logic.domain.label.SLabel;
 import logic.domain.label.SLabelImpl;
 import logic.domain.program.SProgram;
@@ -19,6 +20,14 @@ public final class ExpansionContext {
     private final Set<String> usedWorkNames  = new HashSet<>();
     private final Set<String> usedLabelNames = new HashSet<>();
 
+    public Set<String> getAllUsedLabels() {
+        return Set.copyOf(usedLabelNames);
+    }
+
+    public Set<String> getAllUsedWorkVars() {
+        return Set.copyOf(usedWorkNames);
+    }
+
     public static ExpansionContext seedFrom(SProgram program) {
         ExpansionContext ctx = new ExpansionContext();
         ctx.markUsedFromProgram(program.getInstructions());
@@ -35,13 +44,17 @@ public final class ExpansionContext {
                 if (n >= freeLabelCounter) freeLabelCounter = n + 1;
             }
 
-            SVars var = ins.getVariable();
-            if (var != null) {
-                String varRep = var.getRepresentation();
-                if (varRep.startsWith("z") || varRep.startsWith("Z")) {
-                    usedWorkNames.add(varRep);
-                    int n = Integer.parseInt(varRep.substring(1));
-                    if (n >= workVarCounter) workVarCounter = n + 1;
+            if (ins instanceof GoToLabelInst) { //Avoid dummy variable
+              continue;
+            } else {
+                SVars var = ins.getVariable();
+                if (var != null) {
+                    String varRep = var.getRepresentation();
+                    if (varRep.startsWith("z") || varRep.startsWith("Z")) {
+                        usedWorkNames.add(varRep);
+                        int n = Integer.parseInt(varRep.substring(1));
+                        if (n >= workVarCounter) workVarCounter = n + 1;
+                    }
                 }
             }
         }
