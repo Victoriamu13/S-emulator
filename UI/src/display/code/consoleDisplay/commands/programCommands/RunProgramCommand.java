@@ -12,6 +12,8 @@ import logic.engineFacade.model.InstructionDTO;
 
 import java.util.List;
 
+import static logic.engineFacade.api.EngineFacadeUtils.normalizeInputsForProgram;
+
 public class RunProgramCommand implements consoleDisplay.commands.UiCommand {
     private final engineHolder.EngineHolder engineHolder;
     private final consoleDisplay.console.ConsoleIO io;
@@ -41,7 +43,7 @@ public class RunProgramCommand implements consoleDisplay.commands.UiCommand {
         //2) Print inputs and receive values from user
         List<String> inputsUsed = engine.getInputsUsed(used);
         io.println("\nInputs used: " + inputsUsed);
-        long[] rawInputs = io.askCsvLongs("\nEnter inputs as CSV (e.g., 3,5,0) or leave empty:");
+        long[] rawInputs = io.askCsvLongs("\nEnter inputs as CSV (e.g., 3,5,0) or leave empty:",engine,used);
         long[] inputs = normalizeInputsForProgram(rawInputs, inputsUsed);
 
         //3) Run program and deliver report
@@ -70,23 +72,6 @@ public class RunProgramCommand implements consoleDisplay.commands.UiCommand {
 
         //7) Print total number of cycles
         io.println("\nTotal cycles: " + report.totalCycles());
-    }
-
-
-    //-----helper funcs-----
-    private static long[] normalizeInputsForProgram(long[] userInputs,  List<String> inputsUsed) {
-
-        int requiredLen = 0;
-        for (String s : inputsUsed) {
-            s = s.trim();
-            if (s.matches("x\\d+")) {
-                int idx = Integer.parseInt(s.substring(1));
-                if (idx > requiredLen) {
-                    requiredLen = idx;
-                }
-            }
-        }
-        return java.util.Arrays.copyOf(userInputs, requiredLen);
     }
 
 }

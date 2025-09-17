@@ -1,6 +1,7 @@
 package consoleDisplay.console;
 
 import consoleDisplay.validation.Validators;
+import logic.engineFacade.api.EngineFacade;
 
 import java.io.PrintStream;
 import java.util.Scanner;
@@ -23,12 +24,12 @@ public final class ConsoleIO {
         return in.nextLine();
     }
 
-    public long[] askCsvLongs(String prompt) {
+    public long[] askCsvLongs(String prompt, EngineFacade engine, int degree) {
         while (true) {
             out.print(prompt);
             String line = in.nextLine();
             try {
-                return Validators.parseLongsStrict(line);
+                return engine.parseInputsCsv(line,degree);
             } catch (IllegalArgumentException e) {
                 out.println("Invalid input: " + e.getMessage());
                 out.println("For example: 7,-3,5 is a valid input. (TIP: leave empty for default input).");

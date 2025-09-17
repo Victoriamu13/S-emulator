@@ -6,6 +6,7 @@ import logic.engineFacade.model.InstructionDTO;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 public interface EngineFacade {
 
@@ -19,12 +20,9 @@ public interface EngineFacade {
 
     //---instructions---
     List<InstructionDTO> getInstructionRows(int degree);
-    List<InstructionDTO> getExpansionHistoryChain(int degree, int finalIndex);
     int getInstructionBasicCount(int degree);
     int getInstructionSyntheticCount(int degree);
     int getInstructionTotal(int degree);
-    List<String> getInputsUsed(int degree);
-    List<String> getVariablesUsed(int degree);
     List<String> getLabelsUsed(int degree);
     List<String> getAllLabelsUsed(int degree, Integer finalIndex);
     List<String> getAllVariablesUsed(int degree, Integer finalIndex);
@@ -32,8 +30,12 @@ public interface EngineFacade {
 
     //---Expansion---
     int getMaxExpansionDegree();
+    List<InstructionDTO> getExpansionHistoryChain(int degree, int finalIndex);
 
     //---Execute program---
-    ExecutionReport runWithReport(int degree, long... inputs);
+    List<String> getInputsUsed(int degree);
+    public long[] parseInputsCsv(String csv, int degree);
+    long[] prepareInputsFields(int degree, List<String> rawValues);
+    ExecutionReport runWithReport(int degree,long... inputs);
 
 }

@@ -1,27 +1,23 @@
 package logic.engineFacade.api;
+import logic.domain.execution.executer.ProgramExecuterImpl;
 import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.program.info.ExpandedProgramInfo;
 import logic.domain.variable.SVarsType;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
-import logic.domain.execution.executer.ProgramExecuterImpl;
 import logic.domain.expand.expandProgram.DegreeCalculator;
 import logic.domain.expand.expandProgram.ExpansionContext;
 import logic.domain.expand.expandProgram.ProgramExpander;
-import logic.domain.instructions.SInstruction;
 import logic.engineFacade.model.InstructionDTO;
 import logic.infrastructure.io.app.CurrentAppState;
 import logic.infrastructure.io.xml.load.LoadResult;
 import logic.infrastructure.io.xml.load.LoadService;
 import logic.domain.program.SProgram;
-import logic.domain.program.SProgramImpl;
 import logic.domain.program.info.ProgramInfo;
-import logic.domain.program.info.ProgramInfoImpl;
-
 import java.nio.file.Path;
 import java.util.*;
 
-import static logic.engineFacade.api.EngineFacadeUtils.numericAwareComparator;
+import static logic.engineFacade.api.EngineFacadeUtils.*;
 
 public class EngineFacadeImpl implements EngineFacade {
     private SProgram program;
@@ -57,75 +53,51 @@ public class EngineFacadeImpl implements EngineFacade {
     //---instructions---
     @Override
     public List<InstructionDTO>getInstructionRows(int degree){
-        int used=validDegree(degree);
-        ProgramInfo info=getProgramInfo(used);
+        int maxDegree=getMaxExpansionDegree();
+        int used=validDegree(degree,maxDegree);
+        ProgramInfo info=getProgramInfo(program,maxDegree,degree);
         return info.getInstructions().stream()
                 .map(ins->new InstructionDTO(
                         ins.getIndex(),ins.isSynthetic() ? "S" : "B", ins.getVariableName(),
                         ins.getLabelName(),ins.getFullCommand(), ins.getCycles())).toList();
     }
 
-    @Override
-    public List<InstructionDTO>getExpansionHistoryChain(int degree, int finalIndex){
-        int used = validDegree(degree);
-        ProgramInfo info = getProgramInfo(used);
-        List<InstructionInfo> chain;
-
-        if (info instanceof ExpandedProgramInfo exp) {
-            chain = exp.getExpansionForFinalIndex(used, finalIndex);
-        } else {
-            chain = info.getInstructions().stream()
-                    .filter(ii -> ii.getIndex() == finalIndex)
-                    .toList();
-        }
-
-        return chain.stream()
-                .map(ii -> new InstructionDTO(
-                        ii.getIndex(),
-                        ii.isSynthetic() ? "S" : "B",
-                        ii.getVariableName(),
-                        ii.getLabelName(),
-                        ii.getFullCommand(),
-                        ii.getCycles()
-                ))
-                .sorted(Comparator.comparing(InstructionDTO::index).reversed())
-                .toList();
-    }
-
 
     @Override
     public int getInstructionBasicCount(int degree) {
-        var info = getProgramInfo(degree);
+        int maxDegree=getMaxExpansionDegree();
+        var info = getProgramInfo(program,maxDegree,degree);
         return (int) info.getInstructions().stream().filter(i -> !i.isSynthetic()).count();
     }
 
     @Override
     public int getInstructionSyntheticCount(int degree) {
-        var info = getProgramInfo(degree);
+        int maxDegree=getMaxExpansionDegree();
+        var info = getProgramInfo(program,maxDegree,degree);
         return (int) info.getInstructions().stream().filter(i -> i.isSynthetic()).count();
     }
 
     @Override
-    public List<String> getInputsUsed(int degree) {
-        return getProgramInfo(validDegree(degree)).getInputsUsed();
+    public int getInstructionTotal(int degree) {
+        int maxDegree=getMaxExpansionDegree();
+        var info = getProgramInfo(program,maxDegree,degree);
+        return info.getInstructions().size();
     }
 
-    @Override
-    public List<String> getVariablesUsed(int degree) {
-        return getProgramInfo(validDegree(degree)).getVariablesUsed();
-    }
 
     @Override
     public List<String> getLabelsUsed(int degree) {
-        return getProgramInfo(validDegree(degree)).getLabelsUsed();
+        int maxDegree=getMaxExpansionDegree();
+        int used=validDegree(degree,maxDegree);
+        return getProgramInfo(program,getMaxExpansionDegree(),used).getLabelsUsed();
     }
 
 
     @Override
     public List<String> getAllVariablesUsed(int degree, Integer finalIndex) {
         Set<String> vars = new LinkedHashSet<>();
-
-        vars.addAll(getProgramInfo(degree).getVariablesUsed());
+        int maxDegree=getMaxExpansionDegree();
+        vars.addAll(getProgramInfo(program,maxDegree,degree).getVariablesUsed());
         vars.add(SVarsType.RESULT.getVarRepresentation(0));
 
         if (finalIndex != null) {
@@ -142,8 +114,8 @@ public class EngineFacadeImpl implements EngineFacade {
     @Override
     public List<String> getAllLabelsUsed(int degree,Integer finalIndex) {
         Set<String> labels = new LinkedHashSet<>();
-
-        labels.addAll(getProgramInfo(degree).getLabelsUsed());
+        int maxDegree=getMaxExpansionDegree();
+        labels.addAll(getProgramInfo(program,maxDegree,degree).getLabelsUsed());
 
         if (finalIndex != null) {
             getExpansionHistoryChain(degree, finalIndex).forEach(ii -> {
@@ -152,12 +124,33 @@ public class EngineFacadeImpl implements EngineFacade {
                 }
             });
         }
-
         return labels.stream().sorted(numericAwareComparator()).toList();
     }
 
-
     //Expansion---
+    @Override
+    public List<InstructionDTO>getExpansionHistoryChain(int degree, int finalIndex){
+        int maxDegree=getMaxExpansionDegree();
+        int used = validDegree(degree,maxDegree);
+        ProgramInfo info = getProgramInfo(program,maxDegree,degree);
+        List<InstructionInfo> chain;
+
+        if (info instanceof ExpandedProgramInfo exp) {
+            chain = exp.getExpansionForFinalIndex(used, finalIndex);
+        } else {
+            chain = info.getInstructions().stream()
+                    .filter(ii -> ii.getIndex() == finalIndex)
+                    .toList();
+        }
+
+        return chain.stream()
+                .map(ii -> new InstructionDTO(
+                        ii.getIndex(), ii.isSynthetic() ? "S" : "B", ii.getVariableName(),
+                        ii.getLabelName(), ii.getFullCommand(), ii.getCycles()))
+                .sorted(Comparator.comparing(InstructionDTO::index).reversed()).toList();
+    }
+
+
     @Override
     public int getMaxExpansionDegree() {
         ExpansionContext ctx = ExpansionContext.seedFrom(program);
@@ -168,48 +161,37 @@ public class EngineFacadeImpl implements EngineFacade {
 
     //---Execute program---
     @Override
-    public ExecutionReport runWithReport(int degree, long... inputs) {
-        int used = validDegree(degree);
-        SProgram materialized = materializeProgram(used);
-        return new ProgramExecuterImpl(materialized).runWithReport(inputs);
+    public long[] parseInputsCsv(String csv, int degree) {
+        List<String> inputsUsed = getInputsUsed(degree);
+        int required = getRequiredInputsCount(inputsUsed);
+        if (csv == null || csv.isBlank()) {
+            return new long[required];
+        }
+        List<String> values = Arrays.stream(csv.split(",")).toList();
+        return parseInputValues(values, required,null);
     }
 
     @Override
-    public int getInstructionTotal(int degree) {
-        var info = getProgramInfo(degree);
-        return info.getInstructions().size();
+    public long[] prepareInputsFields(int degree, List<String> rawValues) {
+        List<String> inputsUsed = getInputsUsed(degree);
+        int required = getRequiredInputsCount(inputsUsed);
+        return parseInputValues(rawValues, required,inputsUsed);
     }
 
-    //-----helper func-----
-    private int validDegree(int degree) {
-        int max = getMaxExpansionDegree();
-        if (degree < 0) return 0;
-        if (degree > max) return max;
-        return degree;
+
+    @Override
+    public List<String> getInputsUsed(int degree) {
+        int maxDegree=getMaxExpansionDegree();
+        int used=validDegree(degree,maxDegree);
+        return getProgramInfo(program,maxDegree,used).getInputsUsed();
     }
 
-    private SProgram materializeProgram(int usedDegree) {
-        if (usedDegree == 0) return program; // regular program - no expansion
-
-        // expand program to degree
-        ExpansionContext ctx = ExpansionContext.seedFrom(program);
-        ProgramExpander  exp = new ProgramExpander(ctx);
-        List<SInstruction> expanded = exp.expandToDegree(program.getInstructions(), usedDegree);
-
-        SProgramImpl expandedProg = new SProgramImpl(program.getName() + "_deg" + usedDegree);
-        for (SInstruction ins : expanded) expandedProg.addInstruction(ins);
-        return expandedProg;
+    @Override
+    public ExecutionReport runWithReport(int degree,long... inputs) {
+        int maxDegree=getMaxExpansionDegree();
+        int used = validDegree(degree,maxDegree);
+        SProgram materialized = materializeProgram(program,used);
+        return new ProgramExecuterImpl(materialized).runWithReport(inputs);
     }
-
-    public ProgramInfo getProgramInfo(int degree) {
-        int used = validDegree(degree);
-        if (used == 0) {
-            return new ProgramInfoImpl(program);
-        }
-        ExpansionContext ctx = ExpansionContext.seedFrom(program);
-        ProgramExpander  exp = new ProgramExpander(ctx);
-        return new ExpandedProgramInfo(program, used, exp, ctx);
-    }
-
 
 }
