@@ -50,7 +50,7 @@ public class RunProgramCommand implements consoleDisplay.commands.UiCommand {
         ExecutionReport report = engine.runWithReport(used, inputs);
 
         //Write current program run to history
-        engineHolder.history().add(used, inputs, report.yValue(), report.totalCycles());
+        engineHolder.history().add(used, inputs, report.yValue(), report.totalCycles(),report.finalVars());
 
         //4) Present current program
         io.println("\n=== Program executed  (degree " + used + ") ===");

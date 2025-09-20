@@ -39,7 +39,7 @@ public class LoadSystemStateCommand implements UiCommand {
             // clears history and load from file
             holder.set(eng);
             for(RunRecord r: s.history.records()){
-                holder.history().add(r.degree(),r.inputs(),r.yValue(),r.cycles());
+                holder.history().add(r.degree(),r.inputs(),r.yValue(),r.cycles(),r.finalVars());
             }
             io.println("System state loaded.");
 

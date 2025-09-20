@@ -7,6 +7,7 @@ import javafx.scene.layout.HBox;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.ExecutionReport;
 import uiDisplay.components.ProgramControlsController;
+import uiDisplay.components.RunHistoryController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +27,9 @@ public class ExecutionController {
 
     private EngineHolder holder;
     private ProgramControlsController programControls;
+    private RunHistoryController runHistoryController;
 
-    // === Setters ===
+    // === setup helpers ===
 
     public void setEngineHolder(EngineHolder holder) {
         this.holder = holder;
@@ -35,6 +37,10 @@ public class ExecutionController {
 
     public void setProgramControls(ProgramControlsController programControls) {
         this.programControls = programControls;
+    }
+
+    public void setRunHistoryController(RunHistoryController rhc) {
+        this.runHistoryController = rhc;
     }
 
     @FXML
@@ -91,9 +97,17 @@ public class ExecutionController {
         btnRun.setOnAction(e -> onRunClicked());
     }
 
+    // === Actions ===
     private void onNewRunClicked() {
         clearExecutionResults();
         loadInputVars();
+    }
+
+    public void prefillInputs(long[] inputs) { //Save user inputs
+        for (int i = 0; i < inputsList.getItems().size(); i++) {
+            String val = (i < inputs.length) ? String.valueOf(inputs[i]) : "";
+            inputsList.getItems().get(i).setVarValue(val);
+        }
     }
 
     private void onRunClicked(){
@@ -118,7 +132,10 @@ public class ExecutionController {
         updateVarsTable(report);
         lblCycles.setText("Cycles: " + report.totalCycles());
 
-        holder.history().add(degree, inputs, report.yValue(), report.totalCycles());
+        holder.history().add(degree, inputs, report.yValue(), report.totalCycles(), report.finalVars());
+        if (runHistoryController != null) {
+            runHistoryController.refreshHistory();
+        }
     }
 
     private List<String> collectInputsFromUI() {
