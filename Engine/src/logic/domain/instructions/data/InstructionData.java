@@ -11,7 +11,8 @@ public enum InstructionData {
     CONSTANT_ASSIGNMENT("CONSTANT_ASSIGNMENT",2,false),
     JUMP_ZERO("JUMP_ZERO",2,false),
     JUMP_EQUAL_CONSTANT("JUMP_EQUAL_CONSTANT",2,false),
-    JUMP_EQUAL_VARIABLE("JUMP_EQUAL_VARIABLE",2,false);
+    JUMP_EQUAL_VARIABLE("JUMP_EQUAL_VARIABLE",2,false),
+    QUOTE("QUOTE",5,false); //min 5 cycles
 
     private final String name;
     private final int cycles;

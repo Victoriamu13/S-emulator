@@ -5,6 +5,7 @@ import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
 import logic.domain.label.SLabel;
 import logic.domain.label.SLabelImpl;
 import logic.domain.program.SProgram;
+import logic.domain.program.functions.FunctionLookup;
 import logic.domain.variable.SVars;
 import logic.domain.variable.SVarsImpl;
 import logic.domain.variable.SVarsType;
@@ -20,6 +21,8 @@ public final class ExpansionContext {
     private final Set<String> usedWorkNames  = new HashSet<>();
     private final Set<String> usedLabelNames = new HashSet<>();
 
+    private FunctionLookup functions;
+
     public Set<String> getAllUsedLabels() {
         return Set.copyOf(usedLabelNames);
     }
@@ -31,6 +34,7 @@ public final class ExpansionContext {
     public static ExpansionContext seedFrom(SProgram program) {
         ExpansionContext ctx = new ExpansionContext();
         ctx.markUsedFromProgram(program.getInstructions());
+        ctx.withFunctionLookup(program.getFunctionLookup());
         return ctx;
     }
 
@@ -76,5 +80,7 @@ public final class ExpansionContext {
         }
     }
 
+    public ExpansionContext withFunctionLookup(FunctionLookup f) { this.functions = f; return this; }
+    public FunctionLookup getFunctionLookup() { return functions; }
 
 }

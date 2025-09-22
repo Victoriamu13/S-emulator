@@ -1,5 +1,6 @@
 package logic.infrastructure.io.xml.parser.utils;
 
+import logic.infrastructure.io.xml.dto.RawInstructions;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -7,6 +8,7 @@ import org.w3c.dom.NodeList;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +55,28 @@ public final class DomUtils {
             String v=a.getAttribute("value");
             String vText=v==null ? "":v.trim();
             out.put(n.trim(),vText);
+        }
+        return out;
+    }
+
+    public static RawInstructions rawOf(Element instEl, int line) {
+        return new RawInstructions(
+                line,
+                instEl.getAttribute("type"),
+                instEl.getAttribute("name"),
+                childText(instEl, "S-Variable"),
+                childText(instEl, "S-Label"),
+                allArgs(instEl)
+        );
+    }
+
+    public static List<RawInstructions> readInstructions(Element sInstructionsEl) {
+        if (sInstructionsEl == null) return List.of();
+        NodeList nodes = sInstructionsEl.getElementsByTagName("S-Instruction");
+        List<RawInstructions> out = new ArrayList<>(nodes.getLength());
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Element e = (Element) nodes.item(i);
+            out.add(rawOf(e, i + 1));
         }
         return out;
     }

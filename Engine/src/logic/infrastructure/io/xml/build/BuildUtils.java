@@ -1,20 +1,99 @@
 package logic.infrastructure.io.xml.build;
 
+import logic.domain.instructions.SInstruction;
+import logic.domain.instructions.basic.bJumpInst.JumpNotZeroInst;
+import logic.domain.instructions.basic.bNoJumpInst.DecreaseInst;
+import logic.domain.instructions.basic.bNoJumpInst.IncreaseInst;
+import logic.domain.instructions.basic.bNoJumpInst.NeutralInst;
 import logic.domain.instructions.data.ArgumentData;
+import logic.domain.instructions.data.InstructionData;
+import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
+import logic.domain.instructions.synthetic.sJumpInst.JumpEqualConstantInst;
+import logic.domain.instructions.synthetic.sJumpInst.JumpEqualVariableInst;
+import logic.domain.instructions.synthetic.sJumpInst.JumpZeroInst;
+import logic.domain.instructions.synthetic.sNoJumpInst.AssignmentInst;
+import logic.domain.instructions.synthetic.sNoJumpInst.ConstantAssignmentInst;
+import logic.domain.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
+import logic.domain.instructions.synthetic.sNoJumpInst.quoteInst.QuoteInst;
 import logic.domain.label.SLabel;
 import logic.domain.label.SLabelImpl;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
 import logic.domain.variable.SVarsImpl;
 import logic.domain.variable.SVarsType;
+import logic.infrastructure.io.xml.dto.RawInstructions;
 
-import java.util.EnumMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class BuildUtils {
 
-     static SVars buildVar(String variableName) {
+    public static SInstruction constructInstruction(
+            InstructionData type,
+            SVars var,
+            SLabel label,
+            Map<ArgumentData,String> args)
+    {
+        return switch(type) {
+            case INCREASE -> new IncreaseInst(var, label);
+            case DECREASE -> new DecreaseInst(var, label);
+            case NEUTRAL -> new NeutralInst(var, label);
+            case JUMP_NOT_ZERO -> {
+                SLabel target = buildTargetLabel(args);
+                yield new JumpNotZeroInst(var, target, label);
+            }
+            case ZERO_VARIABLE -> new ZeroVariableInst(var, label);
+            case ASSIGNMENT -> {
+                String srcText = getRequiredArg(args, ArgumentData.ASSIGNED_VARIABLE);
+                SVars src = buildVar(srcText);
+                yield new AssignmentInst(var, src, label);
+            }
+            case CONSTANT_ASSIGNMENT -> {
+                long k = parseConstant(args);
+                yield new ConstantAssignmentInst(var, k, label);
+            }
+            case JUMP_ZERO -> {
+                SLabel target = buildTargetLabel(args);
+                yield new JumpZeroInst(var, target, label);
+            }
+            case JUMP_EQUAL_CONSTANT -> {
+                long k = parseConstant(args);
+                SLabel target = buildTargetLabel(args);
+                yield new JumpEqualConstantInst(var, target, k, label);
+            }
+            case JUMP_EQUAL_VARIABLE -> {
+                String otherval = getRequiredArg(args, ArgumentData.VARIABLE_NAME);
+                SVars other = buildVar(otherval);
+                SLabel target = buildTargetLabel(args);
+                yield new JumpEqualVariableInst(var, other, target, label);
+            }
+            case GOTO_LABEL -> {
+                SLabel target = buildTargetLabel(args);
+                yield new GoToLabelInst(var, target, label);
+            }
+            case QUOTE -> {
+                String funcName = getRequiredArg(args, ArgumentData.FUNCTION_NAME);
+                String rawArgs = args.getOrDefault(ArgumentData.FUNCTION_ARGUMENTS, "");
+                List<String> funcArgs = rawArgs.isBlank()
+                        ? List.of()
+                        : Arrays.stream(rawArgs.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .toList();
+                yield new QuoteInst(var, funcName, funcArgs, label);
+            }
+        };
+    }
+
+    public static SInstruction buildInstruction(RawInstructions raw){
+
+        InstructionData instName=InstructionData.valueOf(raw.name().trim().toUpperCase(Locale.ROOT));
+        SLabel lineLabel=buildLineLabel(raw.labelText());
+        SVars var=buildVar(raw.varText());
+        Map<ArgumentData,String> args=buildArgs(raw.args());
+        return constructInstruction(instName, var, lineLabel, args);
+    }
+
+     public static SVars buildVar(String variableName) {
         String s = variableName.trim();
         if (s.equalsIgnoreCase("y")) {
             return SVars.RESULT;

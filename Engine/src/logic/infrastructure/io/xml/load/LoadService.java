@@ -9,8 +9,8 @@ public class LoadService {
 
     public LoadResult loadFromXml(Path xmlPath, CurrentAppState state){
         LoadResult res = loader.load(xmlPath);
-        if(res.success && res.program != null){
-            state.setProgram(res.program); //overrun current program if program loaded successfully
+        if(res.success() && res.program() != null){
+            state.setProgram(res.program()); //overrun current program if program loaded successfully
         }
         return res;
     }

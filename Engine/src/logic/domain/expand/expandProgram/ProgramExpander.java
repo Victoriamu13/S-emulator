@@ -2,6 +2,7 @@ package logic.domain.expand.expandProgram;
 
 import logic.domain.expand.instructionsExpanded.InstructionExpander;
 import logic.domain.instructions.SInstruction;
+import logic.domain.program.functions.FunctionLookup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,9 +13,8 @@ public class ProgramExpander {
     public ProgramExpander(ExpansionContext ctx) { this.ctx = ctx; }
 
     public List<SInstruction> expandOne(SInstruction inst) {
-        InstructionExpander ex = ExpanderFactory.forInstruction(inst);
-        if (ex == null) return List.of(inst);    // basic instruction
-        return ex.expand(inst, ctx);    // expand synthetic instruction
+        InstructionExpander ex = ExpanderFactory.forInstruction(inst,ctx);
+        return (ex == null) ? java.util.List.of(inst) : ex.expand(inst, ctx);
     }
 
     public List<SInstruction> expandToDegree(List<SInstruction> prog, int degree) {
@@ -25,7 +25,7 @@ public class ProgramExpander {
             List<SInstruction> next = new ArrayList<>();
 
             for (SInstruction q : cur) {
-                InstructionExpander ex = ExpanderFactory.forInstruction(q);
+                InstructionExpander ex = ExpanderFactory.forInstruction(q, ctx);
                 if (ex == null) { next.add(q); continue; }  // basic instruction- just add to list
                 allBasic = false;
                 next.addAll(ex.expand(q, ctx)); //expand synthetic instruction and add to list

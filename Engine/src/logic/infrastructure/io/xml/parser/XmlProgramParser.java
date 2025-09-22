@@ -1,5 +1,6 @@
 package logic.infrastructure.io.xml.parser;
 
+import logic.infrastructure.io.xml.dto.RawFunction;
 import logic.infrastructure.io.xml.dto.RawInstructions;
 import logic.infrastructure.io.xml.parser.utils.DomUtils;
 import org.w3c.dom.Document;
@@ -10,6 +11,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static logic.infrastructure.io.xml.parser.utils.DomUtils.first;
+import static logic.infrastructure.io.xml.parser.utils.DomUtils.readInstructions;
+
 public final class XmlProgramParser {
 
     public ParseResult parse(Path xmlPath){
@@ -17,39 +21,44 @@ public final class XmlProgramParser {
 
         Document doc= DomUtils.safeParse(xmlPath,errors);
         if(!errors.isEmpty() || doc==null){
-            return new ParseResult(null,List.of(),errors);
+            return new ParseResult(null,List.of(),List.of(),errors);
         }
 
-        Element progEl=DomUtils.first(doc,"S-Program");
+        Element progEl= first(doc,"S-Program");
         if(progEl==null){
             errors.add("Missing S-Program element.");
-            return new ParseResult(null,List.of(),errors);
+            return new ParseResult(null,List.of(),List.of(),errors);
         }
 
         String programName=progEl.getAttribute("name");
 
-        Element instEl=DomUtils.first(progEl,"S-Instructions");
+        Element instEl= first(progEl,"S-Instructions");
         if(instEl==null){
             errors.add("Missing S-Instructions element inside S-Program.");
-            return new ParseResult(null,List.of(),errors);
+            return new ParseResult(null,List.of(),List.of(),errors);
         }
 
-        NodeList instNodes=instEl.getElementsByTagName("S-Instruction");
-        if(instNodes.getLength()==0){
+        List<RawInstructions> raw = readInstructions(instEl);
+        if (raw.isEmpty()) {
             errors.add("No S-Instruction elements found inside S-Instructions.");
-            return new ParseResult(null,List.of(),errors);
+            return new ParseResult(null,List.of(),List.of(),errors);
         }
 
-        List<RawInstructions> raw=new ArrayList<>(instNodes.getLength());
-        for(int i=0; i<instNodes.getLength(); i++) {
-            Element e = (Element) instNodes.item(i);
-            raw.add(new RawInstructions(i + 1,
-                    e.getAttribute("type"),
-                    e.getAttribute("name"),
-                    DomUtils.childText(e, "S-Variable"),
-                    DomUtils.childText(e, "S-Label"),
-                    DomUtils.allArgs(e)));
+        // --- functions ---
+        List<RawFunction> functions = new ArrayList<>();
+        Element funcsEl = first(progEl, "S-Functions");
+        if (funcsEl != null) {
+            NodeList fnNodes = funcsEl.getElementsByTagName("S-Function");
+            for (int f = 0; f < fnNodes.getLength(); f++) {
+                Element fnEl = (Element) fnNodes.item(f);
+                String fnName = fnEl.getAttribute("name");
+
+                Element fnInstEl = first(fnEl, "S-Instructions");
+                List<RawInstructions> fnBody = readInstructions(fnInstEl);
+
+                functions.add(new RawFunction(fnName, fnBody));
+            }
         }
-        return new ParseResult(programName,raw,errors);
+        return new ParseResult(programName,raw,functions,errors);
     }
 }

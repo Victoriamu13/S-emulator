@@ -2,24 +2,24 @@ package logic.domain.variable;
 
 public enum SVarsType {
 
-    RESULT{
+    RESULT {
         @Override
         public String getVarRepresentation(int number) {
             return "y";
         }
     },
-    INPUT{
+    INPUT {
         @Override
         public String getVarRepresentation(int number) {
-            return "x"+number;
+            return "x" + number;
         }
     },
-    WORK{
-            @Override
-            public String getVarRepresentation(int number) {
-                return "z"+number;
-            }
-        };
+    WORK {
+        @Override
+        public String getVarRepresentation(int number) {
+            return "z" + number;
+        }
+    };
 
     public abstract String getVarRepresentation(int number);
 }

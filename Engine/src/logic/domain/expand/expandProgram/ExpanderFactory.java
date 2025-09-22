@@ -7,12 +7,15 @@ import logic.domain.expand.instructionsExpanded.jumpExpandedInst.JumpEqlVarExpan
 import logic.domain.expand.instructionsExpanded.jumpExpandedInst.JumpZeroExpander;
 import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.AssignmentExpander;
 import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.ConstAssignmentExpander;
+import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.QuoteExpander;
 import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.ZeroVariableExpander;
 import logic.domain.instructions.SInstruction;
+import logic.domain.program.functions.EmptyFunctionLookup;
+import logic.domain.program.functions.FunctionLookup;
 
 public class ExpanderFactory {
 
-    public static InstructionExpander forInstruction(SInstruction ins) {
+    public static InstructionExpander forInstruction(SInstruction ins, ExpansionContext ctx) {
         String n = ins.getName();
         return switch (n) {
             case "ZERO_VARIABLE" -> new ZeroVariableExpander();
@@ -22,6 +25,8 @@ public class ExpanderFactory {
             case "JUMP_EQUAL_CONSTANT" -> new JumpEqlConstExpander();
             case "JUMP_EQUAL_VARIABLE" -> new JumpEqlVarExpander();
             case "GOTO_LABEL" -> new GotoLabelExpander();
+            case "QUOTE" -> new QuoteExpander(ctx.getFunctionLookup() != null ? ctx.getFunctionLookup()
+                    : EmptyFunctionLookup.EMPTY);
             default -> null; // case basic instruction
         };
     }

@@ -28,12 +28,12 @@ public class EngineFacadeImpl implements EngineFacade {
     @Override
     public LoadOutcome loadProgram(Path xmlPath) {
         LoadResult res = loader.loadFromXml(xmlPath, new CurrentAppState());
-        if (res.success && res.program != null) {
-            this.program = res.program;
+        if (res.success() && res.program() != null) {
+            this.program = res.program();
             this.loadedXmlPath=xmlPath.toString();
             return LoadOutcome.ok();
         }
-       return LoadOutcome.fail(res.errors);
+       return LoadOutcome.fail(res.errors());
     }
 
     @Override

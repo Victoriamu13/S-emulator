@@ -8,7 +8,9 @@ public enum ArgumentData {
     JZ_LABEL("JZLabel"),
     JE_CONSTANT_LABEL("JEConstantLabel"),
     JE_VARIABLE_LABEL("JEVariableLabel"),
-    VARIABLE_NAME("variableName");
+    VARIABLE_NAME("variableName"),
+    FUNCTION_NAME("functionName"),
+    FUNCTION_ARGUMENTS("functionArguments");
 
     private final String name;
 
