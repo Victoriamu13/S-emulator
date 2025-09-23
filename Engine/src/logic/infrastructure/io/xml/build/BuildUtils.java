@@ -22,6 +22,8 @@ import logic.domain.variable.SVars;
 import logic.domain.variable.SVarsImpl;
 import logic.domain.variable.SVarsType;
 import logic.infrastructure.io.xml.dto.RawInstructions;
+import logic.infrastructure.io.xml.parser.composition.CompositionParseResult;
+import logic.infrastructure.io.xml.parser.composition.CompositionParser;
 
 import java.util.*;
 
@@ -73,13 +75,9 @@ public class BuildUtils {
             case QUOTE -> {
                 String funcName = getRequiredArg(args, ArgumentData.FUNCTION_NAME);
                 String rawArgs = args.getOrDefault(ArgumentData.FUNCTION_ARGUMENTS, "");
-                List<String> funcArgs = rawArgs.isBlank()
-                        ? List.of()
-                        : Arrays.stream(rawArgs.split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .toList();
-                yield new QuoteInst(var, funcName, funcArgs, label);
+                CompositionParseResult parsed = CompositionParser.parseTopLevel(rawArgs);
+
+                yield new QuoteInst(var, funcName, parsed.args(), label);
             }
         };
     }

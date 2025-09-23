@@ -47,7 +47,7 @@ public abstract class AbstractInstructionDTOPrinter implements InstructionDTOPri
         String type     = inst.type();
         String labelBox = String.format("[ %-5s ]", inst.label());
         String command  = inst.command();
-        int cycles      = inst.cycles();
+        String cycles      = inst.cyclesText();
 
         return String.format("%s(%s)%s%s(%d)", number, type, labelBox, command, cycles);
     }

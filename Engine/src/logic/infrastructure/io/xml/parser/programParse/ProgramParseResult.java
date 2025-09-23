@@ -1,12 +1,12 @@
-package logic.infrastructure.io.xml.parser;
+package logic.infrastructure.io.xml.parser.programParse;
 
 import logic.infrastructure.io.xml.dto.RawFunction;
 import logic.infrastructure.io.xml.dto.RawInstructions;
 
 import java.util.List;
 
-public record ParseResult(String programName, List<RawInstructions> raw,
-                          List<RawFunction> functions, List<String> errors) { }
+public record ProgramParseResult(String programName, List<RawInstructions> raw,
+                                 List<RawFunction> functions, List<String> errors) { }
 
 /*Checks if the XML file is structurally valid.
 -------

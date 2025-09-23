@@ -15,7 +15,7 @@ public class FunctionRepository implements FunctionLookup {
     }
 
     public void register(String name,List<SInstruction> body){
-        functions.put(name,body);
+        functions.put(key(name), body);
     }
 
     @Override

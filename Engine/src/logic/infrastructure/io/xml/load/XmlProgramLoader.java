@@ -2,20 +2,18 @@ package logic.infrastructure.io.xml.load;
 
 import logic.domain.program.functions.FunctionRepository;
 import logic.infrastructure.io.xml.build.XmlProgramBuilder;
-import logic.infrastructure.io.xml.parser.ParseResult;
-import logic.infrastructure.io.xml.parser.XmlProgramParser;
+import logic.infrastructure.io.xml.parser.programParse.ProgramParseResult;
+import logic.infrastructure.io.xml.parser.programParse.XmlProgramParser;
 import logic.infrastructure.io.xml.parser.utils.BasicFileChecks;
 import logic.infrastructure.io.xml.validation.ValidateResult;
 import logic.infrastructure.io.xml.validation.XmlProgramValidator;
 import logic.domain.program.SProgram;
-import org.w3c.dom.Element;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 import static logic.infrastructure.io.xml.parser.utils.DomUtils.first;
-import static logic.infrastructure.io.xml.parser.utils.DomUtils.safeParse;
 
 public class XmlProgramLoader {
     private final XmlProgramParser parser = new XmlProgramParser();
@@ -32,7 +30,7 @@ public class XmlProgramLoader {
          }
 
          // 1) Parse
-         ParseResult parsed = parser.parse(xmlPath);
+         ProgramParseResult parsed = parser.parse(xmlPath);
          if (!parsed.errors().isEmpty()) {
              return LoadResult.failed(parsed.errors());
          }

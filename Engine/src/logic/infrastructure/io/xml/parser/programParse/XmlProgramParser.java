@@ -1,4 +1,4 @@
-package logic.infrastructure.io.xml.parser;
+package logic.infrastructure.io.xml.parser.programParse;
 
 import logic.infrastructure.io.xml.dto.RawFunction;
 import logic.infrastructure.io.xml.dto.RawInstructions;
@@ -16,18 +16,18 @@ import static logic.infrastructure.io.xml.parser.utils.DomUtils.readInstructions
 
 public final class XmlProgramParser {
 
-    public ParseResult parse(Path xmlPath){
+    public ProgramParseResult parse(Path xmlPath){
         List<String> errors = new ArrayList<>();
 
         Document doc= DomUtils.safeParse(xmlPath,errors);
         if(!errors.isEmpty() || doc==null){
-            return new ParseResult(null,List.of(),List.of(),errors);
+            return new ProgramParseResult(null,List.of(),List.of(),errors);
         }
 
         Element progEl= first(doc,"S-Program");
         if(progEl==null){
             errors.add("Missing S-Program element.");
-            return new ParseResult(null,List.of(),List.of(),errors);
+            return new ProgramParseResult(null,List.of(),List.of(),errors);
         }
 
         String programName=progEl.getAttribute("name");
@@ -35,13 +35,13 @@ public final class XmlProgramParser {
         Element instEl= first(progEl,"S-Instructions");
         if(instEl==null){
             errors.add("Missing S-Instructions element inside S-Program.");
-            return new ParseResult(null,List.of(),List.of(),errors);
+            return new ProgramParseResult(null,List.of(),List.of(),errors);
         }
 
         List<RawInstructions> raw = readInstructions(instEl);
         if (raw.isEmpty()) {
             errors.add("No S-Instruction elements found inside S-Instructions.");
-            return new ParseResult(null,List.of(),List.of(),errors);
+            return new ProgramParseResult(null,List.of(),List.of(),errors);
         }
 
         // --- functions ---
@@ -59,6 +59,6 @@ public final class XmlProgramParser {
                 functions.add(new RawFunction(fnName, fnBody));
             }
         }
-        return new ParseResult(programName,raw,functions,errors);
+        return new ProgramParseResult(programName,raw,functions,errors);
     }
 }

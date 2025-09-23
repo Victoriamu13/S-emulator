@@ -13,6 +13,7 @@ import logic.domain.instructions.synthetic.sJumpInst.JumpZeroInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.AssignmentInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.ConstantAssignmentInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
+import logic.domain.instructions.synthetic.sNoJumpInst.quoteInst.QuoteInst;
 import logic.domain.label.SLabel;
 import logic.domain.program.SProgram;
 import logic.domain.variable.SVars;
@@ -108,7 +109,8 @@ public class ProgramInfoImpl implements ProgramInfo {
                 (inst instanceof JumpZeroInst) ||
                 (inst instanceof JumpEqualConstantInst) ||
                 (inst instanceof JumpEqualVariableInst) ||
-                (inst instanceof GoToLabelInst);
+                (inst instanceof GoToLabelInst)||
+                (inst instanceof QuoteInst);
     }
 
 }

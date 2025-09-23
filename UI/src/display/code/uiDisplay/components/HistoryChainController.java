@@ -20,7 +20,7 @@ public class HistoryChainController {
     @FXML private TableColumn<InstructionDTO, String> colBS;
     @FXML private TableColumn<InstructionDTO, String> colLabel;
     @FXML private TableColumn<InstructionDTO, String> colInstr;
-    @FXML private TableColumn<InstructionDTO, Number> colCycles;
+    @FXML private TableColumn<InstructionDTO, String> colCycles;
 
     private EngineHolder holder;
     private Integer lastSelectedFinalIndex;
@@ -43,7 +43,7 @@ public class HistoryChainController {
         colBS.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().type()));
         colLabel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().label()));
         colInstr.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().command()));
-        colCycles.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().cycles()));
+        colCycles.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().cyclesText()));
     }
 
     private void setupPlaceholder() {

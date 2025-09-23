@@ -15,9 +15,13 @@ import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
 import logic.infrastructure.io.xml.build.BuildUtils;
+import logic.infrastructure.io.xml.parser.composition.ComposeArgument;
+import logic.infrastructure.io.xml.parser.composition.FuncCallArgument;
+import logic.infrastructure.io.xml.parser.composition.VarArgument;
 import logic.infrastructure.io.xml.validation.ValidationUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static logic.infrastructure.io.xml.build.BuildUtils.constructInstruction;
 
@@ -68,20 +72,24 @@ public final class QuoteMapper {
     }
 
     public SInstruction buildResultAssignment(){
-        return new AssignmentInst(qctx.targetVar(),tempResult);
+        return new AssignmentInst(qctx.targetVar(),tempResult,endLabel);
     }
 
     public SInstruction remapInstruction(SInstruction inst){
         InstructionData type=InstructionData.valueOf(inst.getName());
 
-        SVars mappedVar=(inst.getVariable()!=null && varMap.containsKey(inst.getVariable()))
-                ? varMap.get(inst.getVariable()) : null;
+        SVars mappedVar=(inst.getVariable()!=null)
+                ? varMap.getOrDefault(inst.getVariable(), inst.getVariable()) : null;
 
-        SLabel mappedLabel = (inst.getLabel() != null && labelMap.containsKey(inst.getLabel()))
-                ? labelMap.get(inst.getLabel()) : SpecialLabels.EMPTY;
+        SLabel mappedLabel = (inst.getLabel() != null)
+              ? labelMap.getOrDefault(inst.getLabel(), inst.getLabel()) : SpecialLabels.EMPTY;
+
+        if (inst instanceof QuoteInst q) {
+            List<ComposeArgument> mappedAst = mapComposeAst(q.getArguments());
+            return new QuoteInst(mappedVar, q.getFunctionName(), mappedAst, mappedLabel);
+        }
 
         Map<ArgumentData,String> args = remapArgs(inst);
-
         return constructInstruction(type, mappedVar, mappedLabel, args);
     }
 
@@ -136,7 +144,11 @@ public final class QuoteMapper {
         // ----- Quote -----
         if (inst instanceof QuoteInst q) {
             out.put(ArgumentData.FUNCTION_NAME, q.getFunctionName());
-            String joined = String.join(",", q.getArguments());
+
+            String joined = q.getArguments().stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
+
             out.put(ArgumentData.FUNCTION_ARGUMENTS, joined);
         }
 
@@ -150,4 +162,29 @@ public final class QuoteMapper {
         return labelMap.getOrDefault(target, target);
     }
 
+    private List<ComposeArgument> mapComposeAst(List<ComposeArgument> ast) {
+        if (ast == null || ast.isEmpty()) return List.of();
+        List<ComposeArgument> out = new ArrayList<>(ast.size());
+        for (ComposeArgument a : ast) out.add(mapOneArg(a));
+        return out;
+    }
+
+    private ComposeArgument mapOneArg(ComposeArgument a) {
+        if (a instanceof VarArgument v) {
+
+            SVars orig = BuildUtils.buildVar(v.getName());
+            SVars mapped = varMap.getOrDefault(orig, orig);
+            return new VarArgument(mapped.getRepresentation());
+        }
+        if (a instanceof FuncCallArgument f) {
+            List<ComposeArgument> mappedChildren = new ArrayList<>(f.getArguments().size());
+            for (ComposeArgument child : f.getArguments()) {
+                mappedChildren.add(mapOneArg(child));
+            }
+            return new FuncCallArgument(f.getFunctionName(), mappedChildren);
+        }
+        return a; // fallback
+    }
 }
+
+

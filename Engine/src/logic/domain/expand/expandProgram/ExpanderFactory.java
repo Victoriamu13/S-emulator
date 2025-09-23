@@ -25,8 +25,7 @@ public class ExpanderFactory {
             case "JUMP_EQUAL_CONSTANT" -> new JumpEqlConstExpander();
             case "JUMP_EQUAL_VARIABLE" -> new JumpEqlVarExpander();
             case "GOTO_LABEL" -> new GotoLabelExpander();
-            case "QUOTE" -> new QuoteExpander(ctx.getFunctionLookup() != null ? ctx.getFunctionLookup()
-                    : EmptyFunctionLookup.EMPTY);
+            case "QUOTE" -> new QuoteExpander(ctx.getFunctionLookup());
             default -> null; // case basic instruction
         };
     }

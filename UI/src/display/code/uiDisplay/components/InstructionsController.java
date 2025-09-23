@@ -23,7 +23,7 @@ public class InstructionsController {
     @FXML private TableColumn<InstructionDTO, String> colBS;
     @FXML private TableColumn<InstructionDTO, String> colLabel;
     @FXML private TableColumn<InstructionDTO, String> colInstr;
-    @FXML private TableColumn<InstructionDTO, Number> colCycles;
+    @FXML private TableColumn<InstructionDTO, String> colCycles;
     @FXML private Label lblSummary;
 
     private EngineHolder holder;
@@ -50,7 +50,7 @@ public class InstructionsController {
         colBS.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().type()));
         colLabel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().label()));
         colInstr.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().command()));
-        colCycles.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().cycles()));
+        colCycles.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().cyclesText()));
     }
 
     private void setupSelectionListener() {

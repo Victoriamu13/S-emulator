@@ -2,16 +2,43 @@ package logic.infrastructure.io.xml.validation;
 
 import logic.infrastructure.io.xml.dto.RawFunction;
 import logic.infrastructure.io.xml.dto.RawInstructions;
+import logic.infrastructure.io.xml.parser.composition.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import static logic.infrastructure.io.xml.validation.ValidationUtils.*;
 
 public final class FunctionValidator {
 
     private FunctionValidator() {}
+
+    private static final String ARG_FN_NAME = "functionName";
+    private static final String ARG_FN_ARGS = "functionArguments";
+
+    static void validateFunctionBodies(List<RawFunction> functions, FunctionIndexV fIndex, List<String> errors) {
+        if (functions == null) return;
+
+        for (RawFunction fn : functions) {
+            String fnName = safeString(fn.name());
+            List<RawInstructions> body = safeList(fn.body());
+
+            LabelIndexV lblIdx = LabelIndexV.build(body);
+            addPrefixed(errors, fnName, lblIdx.errors());
+
+            InstructionValidator iv = new InstructionValidator(lblIdx.definedLabelsUpper());
+            List<String> local = new ArrayList<>();
+            for (RawInstructions r : body) {
+                iv.validateInstruction(r, local);
+            }
+            addPrefixed(errors, fnName, local);
+
+            List<String> qErrors = new ArrayList<>();
+            validateQuoteCalls(body, fIndex, qErrors);
+            addPrefixed(errors, fnName, qErrors);
+        }
+    }
+
 
     static void validateQuoteCalls(List<RawInstructions> raw, FunctionIndexV fIndex, List<String> errors) {
         if (raw == null) return;
@@ -20,61 +47,80 @@ public final class FunctionValidator {
             String name = safeString(r.name());
             if (!"QUOTE".equalsIgnoreCase(name)) continue;
 
-            Map<String, String> args = (r.args() == null) ? Map.of() : r.args();
-            String fnName = safeString(args.get("functionName"));
-            String fnArgs = safeString(args.get("functionArguments"));
+            validateOneQuote(r, fIndex, errors);
+        }
+    }
 
-            if (fnName.isEmpty()) {
-                errors.add(msg(r, "QUOTE requires 'functionName' argument."));
-                continue;
+    private static QuoteCall readQuoteCall(RawInstructions r, List<String> errors) {
+        Map<String, String> args = safeArgs(r.args());
+        String fnName = safeString(args.get(ARG_FN_NAME));
+        String fnArgs = safeString(args.get(ARG_FN_ARGS));
+
+        if (fnName.isEmpty()) {
+            errors.add(msg(r, "QUOTE requires 'functionName' argument."));
+            return null;
+        }
+        return new QuoteCall(fnName, fnArgs);
+    }
+
+
+    private static void validateOneQuote(RawInstructions r, FunctionIndexV fIndex, List<String> errors) {
+        QuoteCall call = readQuoteCall(r, errors);
+        if (call == null) return;
+
+        if (!fIndex.exists(call.fnName)) {
+            errors.add(msg(r, "Function '" + call.fnName + "' is not defined in <S-Functions>."));
+            return;
+        }
+
+        CompositionParseResult parsed = CompositionParser.parseTopLevel(call.fnArgs);
+        if (!parsed.isOk()) {
+            addParseErrors(errors, r, parsed);
+            return;
+        }
+
+        int provided = parsed.args().size();
+        int expected = fIndex.arityOf(call.fnName);
+        if (expected >= 0 && expected != provided) {
+            errors.add(msg(r, "Function '" + call.fnName + "' expects " + expected +
+                    " argument(s) but got " + provided + "."));
+        }
+
+        for (ComposeArgument a : parsed.args()) {
+            validateArgsRecursively(r, a, fIndex, errors);
+        }
+    }
+
+    private static void validateArgsRecursively(
+            RawInstructions r, ComposeArgument arg, FunctionIndexV fIndex, List<String> errors) {
+
+        if (arg instanceof VarArgument v) {
+            String token = v.getName();
+            if (!isValidVariable(token)) {
+                errors.add(msg(r, "Invalid variable in functionArguments: '" + token + "'."));
             }
-            if (!fIndex.exists(fnName)) {
-                errors.add(msg(r, "Function '" + fnName + "' is not defined in <S-Functions>."));
-                continue;
+            return;
+        }
+        if (arg instanceof FuncCallArgument f) {
+            String fn = f.getFunctionName();
+
+            if (!fIndex.exists(fn)) {
+                errors.add(msg(r, "Function '" + fn + "' used in functionArguments is not defined in <S-Functions>."));
+            } else {
+                int expected = fIndex.arityOf(fn);
+                int provided = f.getArguments().size();
+                if (expected >= 0 && expected != provided) {
+                    errors.add(msg(r, "Function '" + fn + "' expects " + expected +
+                            " argument(s) but got " + provided + "."));
+                }
             }
-
-            int provided = countParenGroups(fnArgs);
-            int expected = fIndex.arityOf(fnName);
-
-            if (provided < 0) {
-                errors.add(msg(r, "Unbalanced parentheses in 'functionArguments'."));
-                continue;
-            }
-
-            if (expected >= 0 && expected != provided) {
-                errors.add(msg(r, "Function '" + fnName + "' expects " + expected +
-                        " argument(s) but got " + provided + "."));
+            for (ComposeArgument child : f.getArguments()) {
+                validateArgsRecursively(r, child, fIndex, errors);
             }
         }
     }
 
-    public static void validateFunctionBodies(List<RawFunction> functions, FunctionIndexV fIndex, List<String> errors) {
-        if (functions == null) return;
-
-        for (RawFunction fn : functions) {
-            String fnName = safeString(fn.name());
-            List<RawInstructions> body = safeList(fn.body());
-
-            // a) Label duplicates / range inside the function
-            LabelIndexV flabels = LabelIndexV.build(body);
-            addPrefixed(flabels.errors(),
-                    "Function '" + fnName + "': ",
-                    errors);
-
-            // b) Instruction validations inside the function (using its own labels)
-            InstructionValidator fiv = new InstructionValidator(flabels.definedLabelsUpper());
-            List<String> local = new ArrayList<>();
-            for (RawInstructions r : body) {
-                fiv.validateInstruction(r, local);
-            }
-            addPrefixed(local, "Function '" + fnName + "': ", errors);
-
-            // c) QUOTE validations inside the function
-            List<String> localQuote = new ArrayList<>();
-            FunctionValidator.validateQuoteCalls(body, fIndex, localQuote);
-            addPrefixed(localQuote, "Function '" + fnName + "': ", errors);
-        }
-    }
+    private record QuoteCall(String fnName, String fnArgs) {}
 }
 
 

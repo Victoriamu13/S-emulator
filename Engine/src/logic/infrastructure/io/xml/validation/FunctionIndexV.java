@@ -55,7 +55,7 @@ public class FunctionIndexV {
         Set<Integer> xs = new java.util.HashSet<>();
 
         for (RawInstructions r : body) {
-            String v = safe(r.varText());
+            String v = safeString(r.varText());
             if (isValidInputVariable(v)) {
                 xs.add(parseXIndex(v));
             }

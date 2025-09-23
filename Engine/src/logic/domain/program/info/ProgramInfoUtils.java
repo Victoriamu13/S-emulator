@@ -34,7 +34,7 @@ public final class ProgramInfoUtils {
             varName = inst.getVariable().getRepresentation();
         }
 
-        return new InstructionInfoImpl(index, synthetic,varName, labelText, command, cycles);
+        return new InstructionInfoImpl(inst.getName(),index, synthetic,varName, labelText, command, cycles);
     }
 
 

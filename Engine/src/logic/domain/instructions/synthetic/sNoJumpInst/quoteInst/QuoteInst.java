@@ -6,18 +6,19 @@ import logic.domain.instructions.data.InstructionData;
 import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
+import logic.infrastructure.io.xml.parser.composition.ComposeArgument;
 
 import java.util.List;
 
 public class QuoteInst extends AbstractInstruction {
     private final String functionName;
-    private final List<String> functionArgs;
+    private final List<ComposeArgument> functionArgs;
 
-    public QuoteInst(SVars targetVar,String functionName,List<String>arguments){
+    public QuoteInst(SVars targetVar,String functionName,List<ComposeArgument>arguments){
         this(targetVar,functionName,arguments, SpecialLabels.EMPTY);
     }
 
-    public QuoteInst(SVars targetVar, String functionName, List<String>arguments, SLabel label){
+    public QuoteInst(SVars targetVar, String functionName, List<ComposeArgument>arguments, SLabel label){
         super(InstructionData.QUOTE,targetVar,label);
         this.functionName=functionName;
         this.functionArgs=arguments;
@@ -27,7 +28,7 @@ public class QuoteInst extends AbstractInstruction {
         return functionName;
     }
 
-    public List<String> getArguments(){
+    public List<ComposeArgument> getArguments(){
         return functionArgs;
     }
 

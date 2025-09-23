@@ -2,9 +2,11 @@ package logic.infrastructure.io.xml.validation;
 
 import logic.domain.instructions.data.InstructionData;
 import logic.infrastructure.io.xml.dto.RawInstructions;
+import logic.infrastructure.io.xml.parser.composition.CompositionParseResult;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public final class ValidationUtils {
 
@@ -124,5 +126,15 @@ public final class ValidationUtils {
 
     public static void addPrefixed(List<String> src, String prefix, List<String> dst) {
         for (String m : src) dst.add(prefix + m);
+    }
+
+    public static Map<String,String> safeArgs(Map<String,String> m) {
+        return (m == null) ? Map.of() : m;
+    }
+
+    public static void addParseErrors(List<String> errors, RawInstructions r, CompositionParseResult parsed) {
+        for (String e : parsed.errors()) {
+            errors.add(msg(r, e));
+        }
     }
 }

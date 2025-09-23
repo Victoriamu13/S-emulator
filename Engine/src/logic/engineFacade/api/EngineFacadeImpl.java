@@ -59,7 +59,7 @@ public class EngineFacadeImpl implements EngineFacade {
         return info.getInstructions().stream()
                 .map(ins->new InstructionDTO(
                         ins.getIndex(),ins.isSynthetic() ? "S" : "B", ins.getVariableName(),
-                        ins.getLabelName(),ins.getFullCommand(), ins.getCycles())).toList();
+                        ins.getLabelName(),ins.getFullCommand(), cyclesTextOf(ins.getName(), ins.getCycles()))).toList();
     }
 
 
@@ -127,6 +127,15 @@ public class EngineFacadeImpl implements EngineFacade {
         return labels.stream().sorted(numericAwareComparator()).toList();
     }
 
+    private static String cyclesTextOf(String nameUpper, int numeric) {
+        String n = (nameUpper == null ? "" : nameUpper.trim().toUpperCase(java.util.Locale.ROOT));
+        return switch (n) {
+            case "QUOTE" -> "x+5";
+            case "JUMP_EQUAL_FUNCTION" -> "x+6";
+            default -> Integer.toString(numeric);
+        };
+    }
+
     //Expansion---
     @Override
     public List<InstructionDTO>getExpansionHistoryChain(int degree, int finalIndex){
@@ -146,7 +155,7 @@ public class EngineFacadeImpl implements EngineFacade {
         return chain.stream()
                 .map(ii -> new InstructionDTO(
                         ii.getIndex(), ii.isSynthetic() ? "S" : "B", ii.getVariableName(),
-                        ii.getLabelName(), ii.getFullCommand(), ii.getCycles()))
+                        ii.getLabelName(), ii.getFullCommand(),cyclesTextOf(ii.getName(), ii.getCycles())))
                 .sorted(Comparator.comparing(InstructionDTO::index).reversed()).toList();
     }
 

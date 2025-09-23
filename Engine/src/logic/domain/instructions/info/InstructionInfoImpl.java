@@ -1,6 +1,7 @@
 package logic.domain.instructions.info;
 
 public class InstructionInfoImpl implements InstructionInfo {
+    private final String name;
     private final int index;
     private final boolean synthetic;
     private final String variableName;
@@ -8,7 +9,8 @@ public class InstructionInfoImpl implements InstructionInfo {
     private final String commandText;
     private final int cycles;
 
-    public InstructionInfoImpl(int index, boolean synthetic,String variableName, String labelText, String commandText, int cycles) {
+    public InstructionInfoImpl(String name,int index, boolean synthetic,String variableName, String labelText, String commandText, int cycles) {
+       this.name=name;
         this.index = index;
         this.synthetic = synthetic;
         this.variableName = variableName;
@@ -17,6 +19,7 @@ public class InstructionInfoImpl implements InstructionInfo {
         this.cycles = cycles;
     }
 
+    @Override public String getName() { return name; }
     @Override public int getIndex() { return index; }
     @Override public boolean isSynthetic() { return synthetic; }
     @Override public String getVariableName() { return variableName; }

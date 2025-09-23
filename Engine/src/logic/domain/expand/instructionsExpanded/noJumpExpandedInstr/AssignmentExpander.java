@@ -11,6 +11,7 @@ import logic.domain.instructions.synthetic.sNoJumpInst.AssignmentInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
 import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
 import logic.domain.label.SLabel;
+import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public final class AssignmentExpander implements InstructionExpander {
         SLabel L3 = ctx.newFreeLabel();
 
         List<SInstruction> out = new ArrayList<>();
+
 
         out.add(new ZeroVariableInst(var, inst.getLabel()));
 
