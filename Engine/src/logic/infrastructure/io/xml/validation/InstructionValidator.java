@@ -60,7 +60,7 @@ final class InstructionValidator {
                         errors.add(msg(r, "Invalid variable value for '" + arg.name() + "': '" + argValRaw + "'."));
                     }
                 }
-                case JNZ_LABEL, GOTO_LABEL, JZ_LABEL, JE_CONSTANT_LABEL, JE_VARIABLE_LABEL -> {
+                case JNZ_LABEL, GOTO_LABEL, JZ_LABEL, JE_CONSTANT_LABEL, JE_VARIABLE_LABEL,JE_FUNCTION_LABEL -> {
                     String val = makeValidString(argValRaw);
                     if (val.isEmpty()) {
                         errors.add(msg(r, "Missing label value for '" + arg.name() + "'."));

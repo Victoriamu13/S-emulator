@@ -91,4 +91,13 @@ public class ProgramControlsController {
         highlightSelector.setPromptText("Highlight");
     }
 
+    public void clear() {
+        currDegree.set(0);
+        maxDegree.set(0);
+        highlightSelector.getItems().clear();
+        highlightSelection.set(null);
+        highlightSelector.setPromptText("Highlight");
+        lblDegree.setText("0 / 0");
+    }
+
 }

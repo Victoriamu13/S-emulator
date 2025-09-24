@@ -6,16 +6,14 @@ import logic.domain.instructions.basic.bNoJumpInst.IncreaseInst;
 import logic.domain.instructions.basic.bJumpInst.JumpNotZeroInst;
 import logic.domain.instructions.basic.bNoJumpInst.NeutralInst;
 import logic.domain.instructions.info.InstructionInfo;
-import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
-import logic.domain.instructions.synthetic.sJumpInst.JumpEqualConstantInst;
-import logic.domain.instructions.synthetic.sJumpInst.JumpEqualVariableInst;
-import logic.domain.instructions.synthetic.sJumpInst.JumpZeroInst;
+import logic.domain.instructions.synthetic.sJumpInst.*;
 import logic.domain.instructions.synthetic.sNoJumpInst.AssignmentInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.ConstantAssignmentInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.quoteInst.QuoteInst;
 import logic.domain.label.SLabel;
 import logic.domain.program.SProgram;
+import logic.domain.program.functions.FunctionsUtils;
 import logic.domain.variable.SVars;
 
 import java.util.ArrayList;
@@ -97,6 +95,18 @@ public class ProgramInfoImpl implements ProgramInfo {
                 String target=go.getTargetLabel().getLabelRepresentation();
                 return String.format("GOTO %s", target);
             }
+            case QuoteInst quote->{
+                String funcName = quote.getFunctionName();
+                String args = FunctionsUtils.argsToString(quote.getArguments());
+                return String.format("%s <- (%s%s%s)", var, funcName, args.isEmpty() ? "" : ",", args);
+            }
+            case JumpEqualFuncInst jef->{
+                String target=jef.getTargetLabel().getLabelRepresentation();
+                String funcName = jef.getFunctionName();
+                String args = FunctionsUtils.argsToString(jef.getFunctionArgs());
+                return String.format("IF %s = (%s%s%s) GOTO %s",
+                        var, funcName, args.isEmpty() ? "" : ",", args, target);
+            }
 
             default -> {return inst.getName();}
         }
@@ -110,7 +120,8 @@ public class ProgramInfoImpl implements ProgramInfo {
                 (inst instanceof JumpEqualConstantInst) ||
                 (inst instanceof JumpEqualVariableInst) ||
                 (inst instanceof GoToLabelInst)||
-                (inst instanceof QuoteInst);
+                (inst instanceof QuoteInst)||
+                (inst instanceof JumpEqualFuncInst);
     }
 
 }

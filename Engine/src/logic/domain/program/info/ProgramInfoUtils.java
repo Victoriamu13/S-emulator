@@ -4,10 +4,7 @@ import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.instructions.info.InstructionInfoImpl;
 import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.basic.bJumpInst.JumpNotZeroInst;
-import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
-import logic.domain.instructions.synthetic.sJumpInst.JumpEqualConstantInst;
-import logic.domain.instructions.synthetic.sJumpInst.JumpEqualVariableInst;
-import logic.domain.instructions.synthetic.sJumpInst.JumpZeroInst;
+import logic.domain.instructions.synthetic.sJumpInst.*;
 import logic.domain.instructions.synthetic.sNoJumpInst.AssignmentInst;
 import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
@@ -133,6 +130,9 @@ public final class ProgramInfoUtils {
         }
         if (inst instanceof GoToLabelInst go) {
             return go.getTargetLabel() == SpecialLabels.EXIT;
+        }
+        if(inst instanceof JumpEqualFuncInst jef){
+            return jef.getTargetLabel() == SpecialLabels.EXIT;
         }
         return false;
     }

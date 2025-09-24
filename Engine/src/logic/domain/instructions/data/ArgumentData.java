@@ -10,7 +10,8 @@ public enum ArgumentData {
     JE_VARIABLE_LABEL("JEVariableLabel"),
     VARIABLE_NAME("variableName"),
     FUNCTION_NAME("functionName"),
-    FUNCTION_ARGUMENTS("functionArguments");
+    FUNCTION_ARGUMENTS("functionArguments"),
+    JE_FUNCTION_LABEL("JEFunctionLabel");
 
     private final String name;
 

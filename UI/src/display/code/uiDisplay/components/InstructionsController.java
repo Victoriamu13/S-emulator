@@ -66,8 +66,8 @@ public class InstructionsController {
                 super.updateItem(item, empty);
                 if (item != null && !empty && currentHighlight != null && !currentHighlight.isEmpty()) {
                     String search = currentHighlight.trim();
-                    boolean match = (item.command() != null && item.command().contains(search)) ||
-                            (item.label() != null && item.label().contains(search));
+                    boolean match = (item.command() != null && item.command().trim().equals(search)) ||
+                            (item.label() != null && item.label().trim().equals(search));
 
                     if (match) {
                         if (!getStyleClass().contains(HIGHLIGHTED)) {
@@ -139,6 +139,12 @@ public class InstructionsController {
         int synth = engine.getInstructionSyntheticCount(currDegree);
 
         lblSummary.setText(String.format("Total: %d | Basic: %d | Synthetic: %d",total,basic,synth));
+    }
+
+    public void clear() {
+        instructionsTable.getItems().clear();
+        instructionsTable.setPlaceholder(new Label("No program loaded"));
+        lblSummary.setText("Total: 0 | Basic: 0 | Synthetic: 0");
     }
 
 }

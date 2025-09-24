@@ -31,8 +31,9 @@ public final class XmlProgramValidator {
         FunctionIndexV fIndex = FunctionIndexV.build(functions);
         errors.addAll(fIndex.errors());
 
-        // 5) QUOTE validations (top-level)
+        // 5) QUOTE and JUMP_EQUAL_FUNCTION validations (top-level)
         FunctionValidator.validateQuoteCalls(raw, fIndex, errors);
+        FunctionValidator.validateJumpEqualFunctionCalls(raw, fIndex, errors);
 
         // 6) Functions content validations (labels, instructions, QUOTE inside functions)
         FunctionValidator.validateFunctionBodies(functions, fIndex, errors);

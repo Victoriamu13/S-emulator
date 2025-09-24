@@ -12,7 +12,7 @@ import uiDisplay.components.execution.ExecutionController;
 public class RunHistoryController {
 
     @FXML
-    private TableView<RunRecord> runHistory;
+    private TableView<RunRecord> runHistoryTable;
     @FXML private TableColumn<RunRecord, Number> colRunNo;
     @FXML private TableColumn<RunRecord, Number> colDegree;
     @FXML private TableColumn<RunRecord, String>  colYValue;
@@ -44,14 +44,14 @@ public class RunHistoryController {
         colYValue.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().yValue())));
         colCycles.setCellValueFactory(c -> new SimpleLongProperty(c.getValue().cycles()));
 
-        runHistory.setPlaceholder(new Label("No runs yet"));
+        runHistoryTable.setPlaceholder(new Label("No runs yet"));
     }
 
     private void setupButtons() {
         btnReRun.setDisable(true);
         btnShow.setDisable(true);
 
-        runHistory.getSelectionModel().selectedItemProperty().addListener((obs, oldV, sel) -> {
+        runHistoryTable.getSelectionModel().selectedItemProperty().addListener((obs, oldV, sel) -> {
             boolean hasSelection = (sel != null);
             btnReRun.setDisable(!hasSelection);
             btnShow.setDisable(!hasSelection);
@@ -64,13 +64,13 @@ public class RunHistoryController {
     public void refreshHistory() {
         if (holder == null) return;
         var hist = holder.history();
-        runHistory.getItems().setAll(hist.records());
-        runHistory.refresh();
+        runHistoryTable.getItems().setAll(hist.records());
+        runHistoryTable.refresh();
     }
 
     // === Actions ===
     private void onReRun() {
-        RunRecord selected = runHistory.getSelectionModel().getSelectedItem();
+        RunRecord selected = runHistoryTable.getSelectionModel().getSelectedItem();
         if (selected == null || holder == null) return;
 
         programControls.currentDegreeProperty().set(selected.degree());
@@ -83,7 +83,7 @@ public class RunHistoryController {
 
 
     private void onShowStatus() {
-        RunRecord selected = runHistory.getSelectionModel().getSelectedItem();
+        RunRecord selected = runHistoryTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             showRunStatus(selected);
         } else {
@@ -107,5 +107,10 @@ public class RunHistoryController {
         alert.setHeaderText("Variables for run #" + record.runNo());
         alert.setContentText(sb.toString());
         alert.showAndWait();
+    }
+
+    public void clear() {
+        runHistoryTable.getItems().clear();
+        runHistoryTable.setPlaceholder(new Label("No runs yet"));
     }
 }

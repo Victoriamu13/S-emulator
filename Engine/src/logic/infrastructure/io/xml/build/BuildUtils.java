@@ -7,10 +7,7 @@ import logic.domain.instructions.basic.bNoJumpInst.IncreaseInst;
 import logic.domain.instructions.basic.bNoJumpInst.NeutralInst;
 import logic.domain.instructions.data.ArgumentData;
 import logic.domain.instructions.data.InstructionData;
-import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
-import logic.domain.instructions.synthetic.sJumpInst.JumpEqualConstantInst;
-import logic.domain.instructions.synthetic.sJumpInst.JumpEqualVariableInst;
-import logic.domain.instructions.synthetic.sJumpInst.JumpZeroInst;
+import logic.domain.instructions.synthetic.sJumpInst.*;
 import logic.domain.instructions.synthetic.sNoJumpInst.AssignmentInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.ConstantAssignmentInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
@@ -79,6 +76,14 @@ public class BuildUtils {
 
                 yield new QuoteInst(var, funcName, parsed.args(), label);
             }
+            case JUMP_EQUAL_FUNCTION -> {
+                SLabel target = buildTargetLabel(args);
+                String funcName = getRequiredArg(args, ArgumentData.FUNCTION_NAME);
+                String rawArgs  = args.getOrDefault(ArgumentData.FUNCTION_ARGUMENTS, "");
+                CompositionParseResult parsed = CompositionParser.parseTopLevel(rawArgs);
+
+                yield new JumpEqualFuncInst(var, funcName, parsed.args(), target);
+            }
         };
     }
 
@@ -145,7 +150,8 @@ public class BuildUtils {
                 args.get(ArgumentData.GOTO_LABEL),
                 args.get(ArgumentData.JZ_LABEL),
                 args.get(ArgumentData.JE_CONSTANT_LABEL),
-                args.get(ArgumentData.JE_VARIABLE_LABEL)
+                args.get(ArgumentData.JE_VARIABLE_LABEL),
+                args.get(ArgumentData.JE_FUNCTION_LABEL)
         );
 
         if (target.equals("EXIT")) return SpecialLabels.EXIT;

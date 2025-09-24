@@ -13,6 +13,7 @@ public final class FunctionValidator {
 
     private FunctionValidator() {}
 
+    private static final String ARG_JEF_LABEL = "JEFunctionLabel";
     private static final String ARG_FN_NAME = "functionName";
     private static final String ARG_FN_ARGS = "functionArguments";
 
@@ -33,9 +34,10 @@ public final class FunctionValidator {
             }
             addPrefixed(errors, fnName, local);
 
-            List<String> qErrors = new ArrayList<>();
-            validateQuoteCalls(body, fIndex, qErrors);
-            addPrefixed(errors, fnName, qErrors);
+            List<String> callErrors = new ArrayList<>();
+            validateQuoteCalls(body, fIndex, callErrors);
+            validateJumpEqualFunctionCalls(body, fIndex, callErrors);
+            addPrefixed(errors, fnName, callErrors);
         }
     }
 
@@ -46,43 +48,47 @@ public final class FunctionValidator {
         for (RawInstructions r : raw) {
             String name = safeString(r.name());
             if (!"QUOTE".equalsIgnoreCase(name)) continue;
-
-            validateOneQuote(r, fIndex, errors);
+            validateFunctionCall(r, fIndex, errors, "QUOTE", "QUOTE requires 'functionName' argument.");
         }
     }
 
-    private static QuoteCall readQuoteCall(RawInstructions r, List<String> errors) {
+    static void validateJumpEqualFunctionCalls(List<RawInstructions> raw, FunctionIndexV fIndex, List<String> errors) {
+        if (raw == null) return;
+
+        for (RawInstructions r : raw) {
+            String name = safeString(r.name());
+            if (!"JUMP_EQUAL_FUNCTION".equalsIgnoreCase(name)) continue;
+            validateFunctionCall(r, fIndex, errors, "JUMP_EQUAL_FUNCTION",
+                    "JUMP_EQUAL_FUNCTION requires 'functionName' argument.");
+        }
+    }
+
+    private static void validateFunctionCall(RawInstructions r, FunctionIndexV fIndex, List<String> errors,
+                                             String instructionName, String missingFnMessage) {
+
         Map<String, String> args = safeArgs(r.args());
         String fnName = safeString(args.get(ARG_FN_NAME));
         String fnArgs = safeString(args.get(ARG_FN_ARGS));
 
         if (fnName.isEmpty()) {
-            errors.add(msg(r, "QUOTE requires 'functionName' argument."));
-            return null;
+            errors.add(msg(r, missingFnMessage));
+            return;
         }
-        return new QuoteCall(fnName, fnArgs);
-    }
-
-
-    private static void validateOneQuote(RawInstructions r, FunctionIndexV fIndex, List<String> errors) {
-        QuoteCall call = readQuoteCall(r, errors);
-        if (call == null) return;
-
-        if (!fIndex.exists(call.fnName)) {
-            errors.add(msg(r, "Function '" + call.fnName + "' is not defined in <S-Functions>."));
+        if (!fIndex.exists(fnName)) {
+            errors.add(msg(r, "Function '" + fnName + "' is not defined in <S-Functions>."));
             return;
         }
 
-        CompositionParseResult parsed = CompositionParser.parseTopLevel(call.fnArgs);
+        CompositionParseResult parsed = CompositionParser.parseTopLevel(fnArgs);
         if (!parsed.isOk()) {
             addParseErrors(errors, r, parsed);
             return;
         }
 
         int provided = parsed.args().size();
-        int expected = fIndex.arityOf(call.fnName);
+        int expected = fIndex.arityOf(fnName);
         if (expected >= 0 && expected != provided) {
-            errors.add(msg(r, "Function '" + call.fnName + "' expects " + expected +
+            errors.add(msg(r, "Function '" + fnName + "' expects " + expected +
                     " argument(s) but got " + provided + "."));
         }
 
@@ -90,6 +96,7 @@ public final class FunctionValidator {
             validateArgsRecursively(r, a, fIndex, errors);
         }
     }
+
 
     private static void validateArgsRecursively(
             RawInstructions r, ComposeArgument arg, FunctionIndexV fIndex, List<String> errors) {
@@ -119,8 +126,6 @@ public final class FunctionValidator {
             }
         }
     }
-
-    private record QuoteCall(String fnName, String fnArgs) {}
 }
 
 

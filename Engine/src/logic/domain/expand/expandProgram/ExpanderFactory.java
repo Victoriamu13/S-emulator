@@ -1,10 +1,7 @@
 package logic.domain.expand.expandProgram;
 
 import logic.domain.expand.instructionsExpanded.InstructionExpander;
-import logic.domain.expand.instructionsExpanded.jumpExpandedInst.GotoLabelExpander;
-import logic.domain.expand.instructionsExpanded.jumpExpandedInst.JumpEqlConstExpander;
-import logic.domain.expand.instructionsExpanded.jumpExpandedInst.JumpEqlVarExpander;
-import logic.domain.expand.instructionsExpanded.jumpExpandedInst.JumpZeroExpander;
+import logic.domain.expand.instructionsExpanded.jumpExpandedInst.*;
 import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.AssignmentExpander;
 import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.ConstAssignmentExpander;
 import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.QuoteExpander;
@@ -26,6 +23,7 @@ public class ExpanderFactory {
             case "JUMP_EQUAL_VARIABLE" -> new JumpEqlVarExpander();
             case "GOTO_LABEL" -> new GotoLabelExpander();
             case "QUOTE" -> new QuoteExpander(ctx.getFunctionLookup());
+            case "JUMP_EQUAL_FUNCTION" -> new JumpEqualFuncExpander();
             default -> null; // case basic instruction
         };
     }
