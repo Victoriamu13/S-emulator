@@ -7,8 +7,6 @@ import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.ConstAssignm
 import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.QuoteExpander;
 import logic.domain.expand.instructionsExpanded.noJumpExpandedInstr.ZeroVariableExpander;
 import logic.domain.instructions.SInstruction;
-import logic.domain.program.functions.EmptyFunctionLookup;
-import logic.domain.program.functions.FunctionLookup;
 
 public class ExpanderFactory {
 

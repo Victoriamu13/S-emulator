@@ -2,10 +2,13 @@ package logic.domain.instructions.synthetic.sNoJumpInst;
 
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.instructions.AbstractInstruction;
+import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.data.InstructionData;
 import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
+
+import java.util.Map;
 
 public class ZeroVariableInst extends AbstractInstruction {
 
@@ -19,12 +22,14 @@ public class ZeroVariableInst extends AbstractInstruction {
 
     @Override
     public SLabel executeOperation(CurrentContext context){
-        long val=context.getVariableValue(getVariable());
-        while(val!=0){
-            val-=1;
-        }
-        context.updateVariable(getVariable(),val);
+        context.updateVariable(getVariable(), 0L);
         return SpecialLabels.EMPTY;
     }
 
+    @Override
+    public SInstruction remap(Map<SVars,SVars> varMap, Map<SLabel,SLabel> labelMap) {
+        SVars newVar   = varMap.getOrDefault(getVariable(), getVariable());
+        SLabel newLabel = labelMap.getOrDefault(getLabel(), getLabel());
+        return new ZeroVariableInst(newVar, newLabel);
+    }
 }

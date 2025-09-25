@@ -3,6 +3,8 @@ package logic.domain.execution.context;
 import java.util.HashMap;
 import java.util.Map;
 
+import logic.domain.program.functions.FunctionLookup;
+import logic.domain.program.functions.FunctionRepository;
 import logic.domain.variable.SVars;
 import logic.domain.variable.SVarsImpl;
 import logic.domain.variable.SVarsType;
@@ -10,14 +12,14 @@ import logic.domain.variable.SVarsType;
 public class CurrentContextImpl implements CurrentContext {
 
     private final Map<SVars,Long> variableState=new HashMap<>();
+    private final FunctionLookup functionLookup;
 
-    public CurrentContextImpl(long[] inputs) {
-
+    public CurrentContextImpl(long[] inputs,FunctionLookup functionLookup) {
         for (int i = 0; i < inputs.length; i++) {
             SVars xi = new SVarsImpl(SVarsType.INPUT, i + 1); // "x" + (i+1)
             variableState.put(xi, inputs[i]);
         }
-
+        this.functionLookup = functionLookup;
     }
 
     @Override
@@ -30,8 +32,14 @@ public class CurrentContextImpl implements CurrentContext {
         variableState.put(variable,value);
     }
 
+    @Override
     public Map<SVars, Long> snapshot() {
         return new HashMap<>(variableState);
+    }
+
+    @Override
+    public FunctionLookup getFunctionLookup() {
+        return functionLookup;
     }
 
 }

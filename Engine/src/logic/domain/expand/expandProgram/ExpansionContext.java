@@ -2,6 +2,8 @@ package logic.domain.expand.expandProgram;
 
 import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
+import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;
+import logic.domain.expand.functionCall.FunctionCallExpander;
 import logic.domain.label.SLabel;
 import logic.domain.label.SLabelImpl;
 import logic.domain.program.SProgram;
@@ -9,6 +11,9 @@ import logic.domain.program.functions.FunctionLookup;
 import logic.domain.variable.SVars;
 import logic.domain.variable.SVarsImpl;
 import logic.domain.variable.SVarsType;
+import logic.infrastructure.io.xml.parser.composition.ComposeArgument;
+import logic.infrastructure.io.xml.parser.composition.FuncCallArgument;
+import logic.infrastructure.io.xml.parser.composition.VarArgument;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,14 +27,6 @@ public final class ExpansionContext {
     private final Set<String> usedLabelNames = new HashSet<>();
 
     private FunctionLookup functions;
-
-    public Set<String> getAllUsedLabels() {
-        return Set.copyOf(usedLabelNames);
-    }
-
-    public Set<String> getAllUsedWorkVars() {
-        return Set.copyOf(usedWorkNames);
-    }
 
     public static ExpansionContext seedFrom(SProgram program) {
         ExpansionContext ctx = new ExpansionContext();
@@ -83,4 +80,29 @@ public final class ExpansionContext {
     public ExpansionContext withFunctionLookup(FunctionLookup f) { this.functions = f; return this; }
     public FunctionLookup getFunctionLookup() { return functions; }
 
+    public List<SInstruction> lookupFunctionBody(String fnName) {
+        return functions.bodyOf(fnName);
+    }
+
+    public SVars lookupFunctionResult(String fnName) {
+        return SVars.RESULT;
+    }
+
+
+    public SVars resolveArgument(ComposeArgument arg, List<SInstruction> out) {
+        if (arg instanceof VarArgument var) {
+            return new SVarsImpl(SVarsType.INPUT, Integer.parseInt(var.getName().substring(1)));
+        }
+
+        if (arg instanceof FuncCallArgument func) {
+            SVars tmp = newWorkVar();
+
+            QuoteInst innerQuote = new QuoteInst(tmp, func.getFunctionName(), func.getArguments());
+            FunctionCallExpander innerMapper = new FunctionCallExpander(this, innerQuote);
+
+            out.addAll(innerMapper.expandQuote());
+            return tmp;
+        }
+        return null;
+    }
 }

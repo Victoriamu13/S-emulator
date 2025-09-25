@@ -7,7 +7,7 @@ import logic.infrastructure.io.xml.parser.composition.VarArgument;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FunctionsUtils {
+public class  FunctionsUtils {
     public static String argsToString(List<ComposeArgument> args) {
         if (args == null || args.isEmpty()) return "";
         return args.stream()

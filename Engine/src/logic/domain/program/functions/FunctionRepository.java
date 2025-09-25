@@ -1,21 +1,21 @@
 package logic.domain.program.functions;
 
 import logic.domain.instructions.SInstruction;
+import logic.domain.variable.SVars;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class FunctionRepository implements FunctionLookup {
-    private final Map<String, List<SInstruction>> functions=new HashMap<>();
+    private final Map<String, List<SInstruction>> functions = new HashMap<>();
+    private final Map<String, List<SVars>> functionArgs = new HashMap<>();
 
     private static String key(String name) {
         return name == null ? "" : name.trim().toUpperCase(Locale.ROOT);
     }
 
-    public void register(String name,List<SInstruction> body){
+    public void register(String name, List<SVars> args, List<SInstruction> body){
         functions.put(key(name), body);
+        functionArgs.put(key(name), args);
     }
 
     @Override
@@ -24,7 +24,11 @@ public class FunctionRepository implements FunctionLookup {
     }
 
     @Override
-    public boolean exists(String functionName) {
-        return functions.containsKey(key(functionName));
+    public List<SVars> argsOf(String functionName) {
+        return functionArgs.getOrDefault(key(functionName), List.of());
+    }
+
+    public Set<String> names() {
+        return Collections.unmodifiableSet(functionArgs.keySet());
     }
 }

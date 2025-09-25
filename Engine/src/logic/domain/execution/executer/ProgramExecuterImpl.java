@@ -28,7 +28,7 @@ public class ProgramExecuterImpl implements ProgramExecuter {
 
     @Override
     public ExecutionReport runWithReport(long... inputs) {
-        CurrentContext context = new CurrentContextImpl(inputs);
+        CurrentContext context = new CurrentContextImpl(inputs,program.getFunctionLookup());
 
         List<SInstruction> instructions = program.getInstructions();
         Map<String, Integer> labelIndex = new HashMap<>();

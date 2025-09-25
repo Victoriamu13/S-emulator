@@ -5,6 +5,8 @@ import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
 
+import java.util.Map;
+
 public abstract class AbstractInstruction implements SInstruction {
 
     private final InstructionData InstructionData;
@@ -35,13 +37,12 @@ public abstract class AbstractInstruction implements SInstruction {
 
 
     @Override
-    public SLabel getLabel() {
-        return label;
-    }
+    public SLabel getLabel() {return (label != null) ? label : SpecialLabels.EMPTY;}
 
     @Override
     public SVars getVariable() {
         return variable;
     }
 
+    public abstract SInstruction remap(Map<SVars,SVars> varMap, Map<SLabel,SLabel> labelMap);
 }

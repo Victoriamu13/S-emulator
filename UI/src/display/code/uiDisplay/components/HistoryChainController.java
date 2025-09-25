@@ -59,8 +59,8 @@ public class HistoryChainController {
                 boolean match = false;
                 if (item != null && !empty && currentHighlight != null && !currentHighlight.isEmpty()) {
                     String search = currentHighlight.trim();
-                    if ((item.command() != null && item.command().contains(search)) ||
-                            (item.label() != null && item.label().contains(search))) {
+                    if ((item.command() != null && item.command().trim().equals(search)) ||
+                            (item.label() != null && item.label().trim().equals(search))) {
                         match = true;
                     }
                 }

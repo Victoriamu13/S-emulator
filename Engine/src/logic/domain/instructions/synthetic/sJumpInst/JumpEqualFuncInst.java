@@ -1,13 +1,16 @@
 package logic.domain.instructions.synthetic.sJumpInst;
 
 import logic.domain.execution.context.CurrentContext;
+import logic.domain.execution.executer.FunctionExecuter;
 import logic.domain.instructions.AbstractInstruction;
+import logic.domain.instructions.SInstruction;
 import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
 import logic.infrastructure.io.xml.parser.composition.ComposeArgument;
 
 import java.util.List;
+import java.util.Map;
 
 public class JumpEqualFuncInst extends AbstractInstruction {
     private final String functionName;
@@ -31,7 +34,17 @@ public class JumpEqualFuncInst extends AbstractInstruction {
 
     @Override
     public SLabel executeOperation(CurrentContext context){
-        return SpecialLabels.EMPTY;
+        long result = FunctionExecuter.evaluateFunctionCall(context, functionName, functionArgs);
+
+        long varVal = context.getVariableValue(getVariable());
+        return (varVal == result) ? targetLabel : SpecialLabels.EMPTY;
     }
 
+    @Override
+    public SInstruction remap(Map<SVars,SVars> varMap, Map<SLabel,SLabel> labelMap) {
+        SVars newVar     = varMap.getOrDefault(getVariable(), getVariable());
+        SLabel newLabel   = labelMap.getOrDefault(getLabel(), getLabel());
+        SLabel newTarget  = labelMap.getOrDefault(getTargetLabel(), getTargetLabel());
+        return new JumpEqualFuncInst(newVar, functionName, functionArgs, newTarget, newLabel);
+    }
 }

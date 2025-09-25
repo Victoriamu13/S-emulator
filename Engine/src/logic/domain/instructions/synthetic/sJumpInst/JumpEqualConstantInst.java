@@ -2,10 +2,13 @@ package logic.domain.instructions.synthetic.sJumpInst;
 
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.instructions.AbstractInstruction;
+import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.data.InstructionData;
 import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
+
+import java.util.Map;
 
 public class JumpEqualConstantInst extends AbstractInstruction {
     private final long constantVal;
@@ -23,20 +26,19 @@ public class JumpEqualConstantInst extends AbstractInstruction {
 
     @Override
     public SLabel executeOperation(CurrentContext context) {
-        long val=context.getVariableValue(getVariable());
-        long constantVal=Math.max(0, this.constantVal);
-
-        for(int i=0;i<constantVal;i++) {
-            if(val==0){
-                return SpecialLabels.EMPTY;
-            }
-            val--;
-        }
-        return (val==0) ? this.jeLabel : SpecialLabels.EMPTY;
+        return (context.getVariableValue(getVariable()) == constantVal) ? jeLabel : SpecialLabels.EMPTY;
     }
 
     public long getConstantValue() { return constantVal; }
 
     @Override
     public SLabel getTargetLabel() { return jeLabel; }
+
+    @Override
+    public SInstruction remap(Map<SVars,SVars> varMap, Map<SLabel,SLabel> labelMap) {
+        SVars newVar = varMap.getOrDefault(getVariable(), getVariable());
+        SLabel newLabel = labelMap.getOrDefault(getLabel(), getLabel());
+        SLabel newTarget = labelMap.getOrDefault(getTargetLabel(), getTargetLabel());
+        return new JumpEqualConstantInst(newVar, newTarget, constantVal, newLabel);
+    }
 }
