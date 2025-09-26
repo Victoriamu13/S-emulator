@@ -56,18 +56,22 @@ public class HistoryChainController {
             protected void updateItem(InstructionDTO item, boolean empty) {
                 super.updateItem(item, empty);
 
-                boolean match = false;
                 if (item != null && !empty && currentHighlight != null && !currentHighlight.isEmpty()) {
                     String search = currentHighlight.trim();
-                    if ((item.command() != null && item.command().trim().equals(search)) ||
-                            (item.label() != null && item.label().trim().equals(search))) {
+                    boolean match = false;
+
+                    if (item.label() != null && item.label().trim().equals(search)) {
+                        match = true;
+                    } else if (item.command() != null && item.command().matches(".*\\b" + search + "\\b.*")) {
                         match = true;
                     }
-                }
 
-                if (match) {
-                    if (!getStyleClass().contains(HIGHLIGHTED)) {
-                        getStyleClass().add(HIGHLIGHTED);
+                    if (match) {
+                        if (!getStyleClass().contains(HIGHLIGHTED)) {
+                            getStyleClass().add(HIGHLIGHTED);
+                        }
+                    } else {
+                        getStyleClass().remove(HIGHLIGHTED);
                     }
                 } else {
                     getStyleClass().remove(HIGHLIGHTED);

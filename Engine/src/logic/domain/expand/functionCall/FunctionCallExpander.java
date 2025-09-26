@@ -48,6 +48,11 @@ public final class FunctionCallExpander {
         Map<SVars, SVars> varMap = new HashMap<>();
         Map<SLabel, SLabel> labelMap = new HashMap<>();
 
+        // --- Map EXIT → Lend ---
+        SLabel lendLabel = ctx.newFreeLabel();
+        labelMap.put(SpecialLabels.EXIT, lendLabel);
+
+        // --- Prepare arguments ---
         for (int i = 0; i < formalParams.size(); i++) {
             if (i >= quoteInst.getArguments().size()) break;
 
@@ -59,15 +64,19 @@ public final class FunctionCallExpander {
             out.add(new AssignmentInst(zFormal, resolved));
         }
 
+        // --- Result variable mapping ---
         SVars funcResult = ctx.lookupFunctionResult(funcName);
         SVars zOut = ctx.newWorkVar();
         varMap.put(funcResult, zOut);
 
+        // --- Copy body with remap ---
         for (SInstruction ins : body) {
             SInstruction cloned = ins.remap(varMap, labelMap);
             out.add(cloned);
         }
-        out.add(new AssignmentInst(quoteInst.getVariable(), zOut));
+
+        // --- Add final assignment with Lend ---
+        out.add(new AssignmentInst(quoteInst.getVariable(), zOut, lendLabel));
         return out;
     }
 
@@ -93,6 +102,7 @@ public final class FunctionCallExpander {
             SVars formal = formalParams.get(i);
             SVars zFormal = ctx.newWorkVar();
             varMap.put(formal, zFormal);
+
             SVars resolved = ctx.resolveArgument(jumpEqInst.getFunctionArgs().get(i), out);
             out.add(new AssignmentInst(zFormal, resolved));
         }

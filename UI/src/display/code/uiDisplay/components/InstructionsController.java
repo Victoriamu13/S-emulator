@@ -66,8 +66,13 @@ public class InstructionsController {
                 super.updateItem(item, empty);
                 if (item != null && !empty && currentHighlight != null && !currentHighlight.isEmpty()) {
                     String search = currentHighlight.trim();
-                    boolean match = (item.command() != null && item.command().trim().equals(search)) ||
-                            (item.label() != null && item.label().trim().equals(search));
+                    boolean match = false;
+
+                    if (item.label() != null && item.label().trim().equals(search)) {
+                        match = true;
+                    } else if (item.command() != null && item.command().matches(".*\\b" + search + "\\b.*")) {
+                        match = true;
+                    }
 
                     if (match) {
                         if (!getStyleClass().contains(HIGHLIGHTED)) {
