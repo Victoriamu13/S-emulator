@@ -90,33 +90,18 @@ public final class FunctionCallExpander {
         }
 
         SVars tempResult = ctx.newWorkVar();
-        String funcName = jumpEqInst.getFunctionName();
-        List<SVars> formalParams = ctx.getFunctionLookup().argsOf(funcName);
-        List<SInstruction> body = ctx.lookupFunctionBody(funcName);
 
-        Map<SVars, SVars> varMap = new HashMap<>();
-        Map<SLabel, SLabel> labelMap = new HashMap<>();
-
-        for (int i = 0; i < formalParams.size(); i++) {
-            if (i >= jumpEqInst.getFunctionArgs().size()) break;
-            SVars formal = formalParams.get(i);
-            SVars zFormal = ctx.newWorkVar();
-            varMap.put(formal, zFormal);
-
-            SVars resolved = ctx.resolveArgument(jumpEqInst.getFunctionArgs().get(i), out);
-            out.add(new AssignmentInst(zFormal, resolved));
-        }
-
-        SVars funcResult = ctx.lookupFunctionResult(funcName);
-        varMap.put(funcResult, tempResult);
-
-        for (SInstruction ins : body) {
-            out.add(ins.remap(varMap, labelMap));
-        }
+        QuoteInst innerQuote = new QuoteInst(
+                tempResult,
+                jumpEqInst.getFunctionName(),
+                jumpEqInst.getFunctionArgs()
+        );
+        out.add(innerQuote);
 
         out.add(new JumpEqualVariableInst(jumpEqInst.getVariable(), tempResult, jumpEqInst.getTargetLabel()));
         return out;
     }
+
 
     // --- Getters for function data ---
     private String getFuncName() {

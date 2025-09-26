@@ -32,7 +32,10 @@ public class EngineFacadeUtils {
         List<SInstruction> expanded = exp.expandToDegree(program.getInstructions(), usedDegree);
 
         SProgramImpl expandedProg = new SProgramImpl(program.getName() + "_deg" + usedDegree);
-        for (SInstruction ins : expanded) expandedProg.addInstruction(ins);
+        for (SInstruction ins : expanded) {
+            expandedProg.addInstruction(ins);
+        }
+        expandedProg.setFunctionLookup(program.getFunctionLookup());
         return expandedProg;
     }
 

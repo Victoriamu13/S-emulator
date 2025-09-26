@@ -108,7 +108,7 @@ public class BuildUtils {
                 : new SVarsImpl(SVarsType.WORK, n);
     }
 
-     static SLabel buildLineLabel(String labelName) {
+     public static SLabel buildLineLabel(String labelName) {
         String s = (labelName == null ? "" : labelName.trim());
         if (s.isEmpty()) return SpecialLabels.EMPTY;
         if (s.equalsIgnoreCase("EXIT")) return SpecialLabels.EXIT;
