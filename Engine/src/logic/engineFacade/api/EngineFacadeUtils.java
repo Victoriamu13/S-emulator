@@ -3,16 +3,17 @@ package logic.engineFacade.api;
 import logic.domain.expand.expandProgram.ExpansionContext;
 import logic.domain.expand.expandProgram.ProgramExpander;
 import logic.domain.instructions.SInstruction;
+import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.program.SProgram;
 import logic.domain.program.SProgramImpl;
 import logic.domain.program.info.ExpandedProgramInfo;
 import logic.domain.program.info.ProgramInfo;
 import logic.domain.program.info.ProgramInfoImpl;
+import logic.engineFacade.model.InstructionDTO;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 public class EngineFacadeUtils {
 
@@ -21,6 +22,31 @@ public class EngineFacadeUtils {
         if (degree < 0) return 0;
         if (degree > maxDegree) return maxDegree;
         return degree;
+    }
+
+    public static InstructionDTO toDto(SProgram program, InstructionInfo ins) {
+        String commandText = ins.getFullCommand();
+        if (program != null && commandText != null) {
+            commandText = findUserStringName(commandText, program);
+        }
+        return new InstructionDTO(
+                ins.getIndex(),
+                ins.isSynthetic() ? "S" : "B",
+                ins.getVariableName(),
+                ins.getLabelName(),
+                commandText,
+                cyclesTextOf(ins.getName(), ins.getCycles())
+        );
+    }
+
+
+    public static String cyclesTextOf(String nameUpper, int numeric) {
+        String n = (nameUpper == null ? "" : nameUpper.trim().toUpperCase(java.util.Locale.ROOT));
+        return switch (n) {
+            case "QUOTE" -> "x+5";
+            case "JUMP_EQUAL_FUNCTION" -> "x+6";
+            default -> Integer.toString(numeric);
+        };
     }
 
     public static  SProgram materializeProgram(SProgram program, int usedDegree) {
@@ -121,5 +147,16 @@ public class EngineFacadeUtils {
         return out;
     }
 
+    public static String findUserStringName(String rawCommand,SProgram program) {
 
+        for (String fnName : program.getFunctionLookup().allFunctionNames()) {
+            String userStr = program.getFunctionLookup().userStringOf(fnName);
+
+            if (!fnName.equals(userStr)) {
+                rawCommand = rawCommand.replaceAll("(?i)\\b" + fnName + "\\b", userStr);
+            }
+        }
+
+        return rawCommand;
+    }
 }

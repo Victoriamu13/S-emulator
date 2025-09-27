@@ -116,6 +116,13 @@ public class HistoryChainController {
         });
     }
 
+    public void bindSelectedProgramName(StringProperty programNameProp) {
+        programNameProp.addListener((obs, oldVal, newVal) -> {
+            lastSelectedFinalIndex = null;
+            clear();
+        });
+    }
+
     // --- internals ---
 
     private void refreshHistoryChain(int degree){
@@ -124,8 +131,9 @@ public class HistoryChainController {
             return;
         }
         var engine=holder.getEngine();
-        var chain=engine.getExpansionHistoryChain(degree,lastSelectedFinalIndex );
 
+
+        var chain=engine.getExpansionHistoryChain(degree,lastSelectedFinalIndex );
         historyChainTable.getItems().setAll(chain);
         historyChainTable.refresh();
     }

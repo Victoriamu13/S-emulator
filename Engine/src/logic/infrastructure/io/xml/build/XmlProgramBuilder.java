@@ -35,6 +35,9 @@ public class XmlProgramBuilder {
 
         for (RawFunction fn : functions) {
             String fnName = (fn.name() == null) ? "" : fn.name().trim();
+            String fnUserString = (fn.userString() == null || fn.userString().isBlank())
+                    ? fnName
+                    : fn.userString().trim();
             List<RawInstructions> bodyRaw = safeList(fn.body());
 
             SProgram tmp = build("[fn] " + fnName, bodyRaw);
@@ -54,7 +57,7 @@ public class XmlProgramBuilder {
             List<SVars> args = inNames.stream()
                     .map(BuildUtils::buildVar)
                     .toList();
-            repo.register(fnName, args, bodyCopy);
+            repo.register(fnName,fnUserString, args, bodyCopy);
         }
     }
 

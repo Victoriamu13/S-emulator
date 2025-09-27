@@ -1,6 +1,7 @@
 package logic.domain.expand.expandProgram;
 
 import logic.domain.instructions.SInstruction;
+import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;
 import logic.domain.expand.functionCall.FunctionCallExpander;

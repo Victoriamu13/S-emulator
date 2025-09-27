@@ -1,6 +1,7 @@
 package uiDisplay.components.execution;
 
 import engineHolder.EngineHolder;
+import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -95,6 +96,16 @@ public class ExecutionController {
         btnResume.setDisable(true);
         btnNewRun.setOnAction(e -> onNewRunClicked());
         btnRun.setOnAction(e -> onRunClicked());
+    }
+
+    public void bindSelectedProgramName(StringProperty programNameProp) {
+        programNameProp.addListener((obs, oldVal, newVal) -> {
+            clearExecutionResults();
+            if (newVal != null && holder != null && holder.hasEngine()) {
+                holder.getEngine().selectProgramOrFunction(newVal);
+                loadInputVars();
+            }
+        });
     }
 
     // === Actions ===

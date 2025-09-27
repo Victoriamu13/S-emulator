@@ -16,6 +16,7 @@ public interface EngineFacade {
     String getLoadedXmlPath();
 
     //---Program info---
+    void selectProgramOrFunction(String name);
     String getProgramName();
 
     //---instructions---
@@ -38,4 +39,7 @@ public interface EngineFacade {
     long[] prepareInputsFields(int degree, List<String> rawValues);
     ExecutionReport runWithReport(int degree,long... inputs);
 
+    //---Functions---
+    List<String> getFunctionNames();
+    List<InstructionDTO> getFunctionInstructionRows(String functionName);
 }

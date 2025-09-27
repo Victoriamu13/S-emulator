@@ -4,6 +4,7 @@ import logic.domain.expand.expandProgram.ExpansionContext;
 import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.basic.bJumpInst.JumpNotZeroInst;
 import logic.domain.instructions.basic.bNoJumpInst.NeutralInst;
+import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.instructions.synthetic.sJumpInst.*;
 import logic.domain.instructions.synthetic.sNoJumpInst.AssignmentInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;

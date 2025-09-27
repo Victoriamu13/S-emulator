@@ -1,7 +1,9 @@
 package logic.engineFacade.api;
 import logic.domain.execution.executer.ProgramExecuterImpl;
 import logic.domain.instructions.info.InstructionInfo;
+import logic.domain.program.SProgramImpl;
 import logic.domain.program.info.ExpandedProgramInfo;
+import logic.domain.program.info.ProgramInfoUtils;
 import logic.domain.variable.SVarsType;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
@@ -21,6 +23,7 @@ import static logic.engineFacade.api.EngineFacadeUtils.*;
 
 public class EngineFacadeImpl implements EngineFacade {
     private SProgram program;
+    private SProgram currentProgram;
     private final LoadService loader = new LoadService();
     private String loadedXmlPath;
 
@@ -30,15 +33,38 @@ public class EngineFacadeImpl implements EngineFacade {
         LoadResult res = loader.loadFromXml(xmlPath, new CurrentAppState());
         if (res.success() && res.program() != null) {
             this.program = res.program();
+            this.currentProgram = program;
             this.loadedXmlPath=xmlPath.toString();
             return LoadOutcome.ok();
         }
        return LoadOutcome.fail(res.errors());
     }
 
+    private SProgram activeProgram() {
+        return (currentProgram != null) ? currentProgram : program;
+    }
+
+    // --- Select program or function ---
+    @Override
+    public void selectProgramOrFunction(String name) {
+        if (program == null) return;
+
+        if (program.getName().equals(name)) {
+            currentProgram = program;
+        } else {
+            String internalName = program.getFunctionLookup().internalNameOf(name);
+            var body = program.getFunctionLookup().bodyOf(internalName);
+            if (body != null && !body.isEmpty()) {
+                currentProgram = new SProgramImpl(internalName);
+                currentProgram.setFunctionLookup(program.getFunctionLookup());
+                body.forEach(currentProgram::addInstruction);
+            }
+        }
+    }
+
     @Override
     public boolean hasProgram() {
-        return program != null;
+        return activeProgram() != null;
     }
 
     @Override
@@ -47,40 +73,39 @@ public class EngineFacadeImpl implements EngineFacade {
     //---Program info---
     @Override
     public String getProgramName() {
-        return program != null ? program.getName() : "";
+        return activeProgram() != null ? activeProgram().getName() : "";
     }
 
     //---instructions---
     @Override
     public List<InstructionDTO>getInstructionRows(int degree){
         int maxDegree=getMaxExpansionDegree();
-        int used=validDegree(degree,maxDegree);
-        ProgramInfo info=getProgramInfo(program,maxDegree,degree);
+        ProgramInfo info=getProgramInfo(activeProgram(),maxDegree,degree);
+
         return info.getInstructions().stream()
-                .map(ins->new InstructionDTO(
-                        ins.getIndex(),ins.isSynthetic() ? "S" : "B", ins.getVariableName(),
-                        ins.getLabelName(),ins.getFullCommand(), cyclesTextOf(ins.getName(), ins.getCycles()))).toList();
+                .map(ins -> toDto(activeProgram(), ins))
+                .toList();
     }
 
 
     @Override
     public int getInstructionBasicCount(int degree) {
         int maxDegree=getMaxExpansionDegree();
-        var info = getProgramInfo(program,maxDegree,degree);
+        var info = getProgramInfo(activeProgram(),maxDegree,degree);
         return (int) info.getInstructions().stream().filter(i -> !i.isSynthetic()).count();
     }
 
     @Override
     public int getInstructionSyntheticCount(int degree) {
         int maxDegree=getMaxExpansionDegree();
-        var info = getProgramInfo(program,maxDegree,degree);
+        var info = getProgramInfo(activeProgram(),maxDegree,degree);
         return (int) info.getInstructions().stream().filter(i -> i.isSynthetic()).count();
     }
 
     @Override
     public int getInstructionTotal(int degree) {
         int maxDegree=getMaxExpansionDegree();
-        var info = getProgramInfo(program,maxDegree,degree);
+        var info = getProgramInfo(activeProgram(),maxDegree,degree);
         return info.getInstructions().size();
     }
 
@@ -89,7 +114,7 @@ public class EngineFacadeImpl implements EngineFacade {
     public List<String> getLabelsUsed(int degree) {
         int maxDegree=getMaxExpansionDegree();
         int used=validDegree(degree,maxDegree);
-        return getProgramInfo(program,getMaxExpansionDegree(),used).getLabelsUsed();
+        return getProgramInfo(activeProgram(),getMaxExpansionDegree(),used).getLabelsUsed();
     }
 
 
@@ -97,7 +122,7 @@ public class EngineFacadeImpl implements EngineFacade {
     public List<String> getAllVariablesUsed(int degree, Integer finalIndex) {
         Set<String> vars = new LinkedHashSet<>();
         int maxDegree=getMaxExpansionDegree();
-        vars.addAll(getProgramInfo(program,maxDegree,degree).getVariablesUsed());
+        vars.addAll(getProgramInfo(activeProgram(),maxDegree,degree).getVariablesUsed());
         vars.add(SVarsType.RESULT.getVarRepresentation(0));
 
         if (finalIndex != null) {
@@ -115,7 +140,7 @@ public class EngineFacadeImpl implements EngineFacade {
     public List<String> getAllLabelsUsed(int degree,Integer finalIndex) {
         Set<String> labels = new LinkedHashSet<>();
         int maxDegree=getMaxExpansionDegree();
-        labels.addAll(getProgramInfo(program,maxDegree,degree).getLabelsUsed());
+        labels.addAll(getProgramInfo(activeProgram(),maxDegree,degree).getLabelsUsed());
 
         if (finalIndex != null) {
             getExpansionHistoryChain(degree, finalIndex).forEach(ii -> {
@@ -127,21 +152,12 @@ public class EngineFacadeImpl implements EngineFacade {
         return labels.stream().sorted(numericAwareComparator()).toList();
     }
 
-    private static String cyclesTextOf(String nameUpper, int numeric) {
-        String n = (nameUpper == null ? "" : nameUpper.trim().toUpperCase(java.util.Locale.ROOT));
-        return switch (n) {
-            case "QUOTE" -> "x+5";
-            case "JUMP_EQUAL_FUNCTION" -> "x+6";
-            default -> Integer.toString(numeric);
-        };
-    }
-
     //Expansion---
     @Override
     public List<InstructionDTO>getExpansionHistoryChain(int degree, int finalIndex){
         int maxDegree=getMaxExpansionDegree();
         int used = validDegree(degree,maxDegree);
-        ProgramInfo info = getProgramInfo(program,maxDegree,degree);
+        ProgramInfo info = getProgramInfo(activeProgram(),maxDegree,degree);
         List<InstructionInfo> chain;
 
         if (info instanceof ExpandedProgramInfo exp) {
@@ -153,19 +169,18 @@ public class EngineFacadeImpl implements EngineFacade {
         }
 
         return chain.stream()
-                .map(ii -> new InstructionDTO(
-                        ii.getIndex(), ii.isSynthetic() ? "S" : "B", ii.getVariableName(),
-                        ii.getLabelName(), ii.getFullCommand(),cyclesTextOf(ii.getName(), ii.getCycles())))
-                .sorted(Comparator.comparing(InstructionDTO::index).reversed()).toList();
+                .map(ii -> toDto(activeProgram(), ii))
+                .sorted(Comparator.comparing(InstructionDTO::index).reversed())
+                .toList();
     }
 
 
     @Override
     public int getMaxExpansionDegree() {
-        ExpansionContext ctx = ExpansionContext.seedFrom(program);
+        ExpansionContext ctx = ExpansionContext.seedFrom(activeProgram());
         ProgramExpander  exp = new ProgramExpander(ctx);
         DegreeCalculator calc = new DegreeCalculator(exp);
-        return calc.maxProgramDegree(program);
+        return calc.maxProgramDegree(activeProgram());
     }
 
     //---Execute program---
@@ -192,15 +207,33 @@ public class EngineFacadeImpl implements EngineFacade {
     public List<String> getInputsUsed(int degree) {
         int maxDegree=getMaxExpansionDegree();
         int used=validDegree(degree,maxDegree);
-        return getProgramInfo(program,maxDegree,used).getInputsUsed();
+        return getProgramInfo(activeProgram(),maxDegree,used).getInputsUsed();
     }
 
     @Override
     public ExecutionReport runWithReport(int degree,long... inputs) {
         int maxDegree=getMaxExpansionDegree();
         int used = validDegree(degree,maxDegree);
-        SProgram materialized = materializeProgram(program,used);
+        SProgram materialized = materializeProgram(activeProgram(),used);
         return new ProgramExecuterImpl(materialized).runWithReport(inputs);
     }
 
+    //---Functions---
+    @Override
+    public List<String> getFunctionNames() {
+        if (program == null) return List.of();
+        return new ArrayList<>(program.getFunctionLookup().allFunctionNames());
+    }
+
+    @Override
+    public List<InstructionDTO> getFunctionInstructionRows(String functionName) {
+        if (activeProgram() == null) return List.of();
+        var body = activeProgram().getFunctionLookup().bodyOf(functionName);
+        if (body == null) return List.of();
+
+        return body.stream()
+                .map(ins -> ProgramInfoUtils.toInfo(ins, -1, null)) // SInstruction → InstructionInfo
+                .map(ii -> toDto(activeProgram(), ii))
+                .toList();
+    }
 }

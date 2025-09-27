@@ -13,6 +13,7 @@ import logic.domain.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;
 import logic.domain.label.SLabel;
 import logic.domain.program.SProgram;
+import logic.domain.program.functions.FunctionLookup;
 import logic.domain.program.functions.FunctionsUtils;
 import logic.domain.variable.SVars;
 
@@ -21,7 +22,6 @@ import java.util.List;
 
 public class ProgramInfoImpl implements ProgramInfo {
     private final SProgram program;
-
     public ProgramInfoImpl(SProgram program) {
         this.program = program;
     }
@@ -47,8 +47,6 @@ public class ProgramInfoImpl implements ProgramInfo {
         }
         return out;
     }
-
-
 
     //Helper functions for getInstructions func
 

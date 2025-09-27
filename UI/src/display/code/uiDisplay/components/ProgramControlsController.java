@@ -1,16 +1,17 @@
 package uiDisplay.components;
 
 import engineHolder.EngineHolder;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import logic.domain.program.SProgram;
+import logic.domain.program.functions.FunctionAsSProgramAdapter;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -28,12 +29,13 @@ public class ProgramControlsController {
     private final IntegerProperty currDegree=new SimpleIntegerProperty(0);
     private final IntegerProperty maxDegree=new SimpleIntegerProperty(0);
     private final StringProperty highlightSelection=new SimpleStringProperty();
+    private final StringProperty selectedProgramNameProperty = new SimpleStringProperty();
 
     public IntegerProperty currentDegreeProperty(){return currDegree;}
-
     public int getCurrentDegree(){return currDegree.get();}
-
     public StringProperty highlightSelectionProperty(){return highlightSelection;}
+    public StringProperty selectedProgramNameProperty() {return selectedProgramNameProperty;}
+
 
     @FXML
     public void initialize(){
@@ -64,12 +66,34 @@ public class ProgramControlsController {
         if(holder.hasEngine()){
             var engine=holder.getEngine();
             this.maxDegree.set(engine.getMaxExpansionDegree());
-            programSelector.getItems().setAll(engine.getProgramName());
 
+            // load program and function names
+            List<String> items = new ArrayList<>();
+            items.add(engine.getProgramName());
+            items.addAll(engine.getFunctionNames());
+            programSelector.getItems().setAll(items);
+
+            // select first
+            programSelector.getSelectionModel().selectFirst();
+            String firstName = programSelector.getSelectionModel().getSelectedItem();
+            selectedProgramNameProperty.set(firstName);
+            engine.selectProgramOrFunction(firstName);
+
+            // update when user changes selection
+            programSelector.getSelectionModel().selectedItemProperty().
+                    addListener((obs, oldV, newV) -> {
+                        engine.selectProgramOrFunction(newV);
+                        selectedProgramNameProperty.set(newV);
+                        currDegree.set(0);
+                        this.maxDegree.set(engine.getMaxExpansionDegree());
+                        refreshHighlightList(currDegree.get());
+
+            });
+
+            // update when degree changes
             currDegree.addListener((obs,oldVal,newVal)->{
                 refreshHighlightList(newVal.intValue());
             });
-            refreshHighlightList(currDegree.get());
         }
     }
 
@@ -78,13 +102,14 @@ public class ProgramControlsController {
         refreshHighlightList(currDegree.get());
     }
 
+
     public void refreshHighlightList(int degree){
         var engine=holder.getEngine();
         Set<String> highlightItems = new LinkedHashSet<>();
 
         highlightItems.addAll(engine.getInputsUsed(degree));
-        highlightItems.addAll(engine.getAllVariablesUsed(degree,selectedFinalIndex));
-        highlightItems.addAll(engine.getAllLabelsUsed(degree,selectedFinalIndex));
+        highlightItems.addAll(engine.getAllVariablesUsed(degree, selectedFinalIndex));
+        highlightItems.addAll(engine.getAllLabelsUsed(degree, selectedFinalIndex));
 
         highlightSelector.getItems().setAll(highlightItems);
         highlightSelector.getSelectionModel().clearSelection();

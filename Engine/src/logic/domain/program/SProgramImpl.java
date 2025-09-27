@@ -10,7 +10,7 @@ import java.util.List;
 public class SProgramImpl implements SProgram {
     private final String name;
     private final List<SInstruction> instructions= new ArrayList<>();
-    private FunctionLookup functions=EmptyFunctionLookup.EMPTY;;
+    private FunctionLookup functions;
 
     public SProgramImpl(String name) {this.name = name;}
 

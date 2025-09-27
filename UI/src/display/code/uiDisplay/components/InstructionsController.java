@@ -16,6 +16,7 @@ import logic.engineFacade.model.InstructionDTO;
 import java.util.List;
 import java.util.function.Consumer;
 
+
 public class InstructionsController {
 
     @FXML private TableView<InstructionDTO> instructionsTable;
@@ -29,9 +30,7 @@ public class InstructionsController {
     private EngineHolder holder;
     private int currDegree=0;
     private String currentHighlight = null;
-
     private Consumer<InstructionDTO> onInstructionSelected =selIn -> {};
-
     private final String HIGHLIGHTED = "highlighted";
 
 
@@ -93,7 +92,6 @@ public class InstructionsController {
     }
 
     // --- API for other controllers ---
-
     public void setOnInstructionSelected(Consumer<InstructionDTO> listener){
         this.onInstructionSelected= (listener!=null) ? listener : selIn->{};
     }
@@ -122,12 +120,17 @@ public class InstructionsController {
        });
    }
 
-    public InstructionDTO getSelectedInstruction() {
-        return instructionsTable.getSelectionModel().getSelectedItem();
+    public void bindSelectedProgramName(StringProperty programNameProp) {
+        programNameProp.addListener((obs, oldVal, newVal) -> {
+            clear();
+            if (newVal != null && holder != null && holder.hasEngine()) {
+                holder.getEngine().selectProgramOrFunction(newVal);
+                refreshInstructions();
+            }
+        });
     }
 
     // --- internals ---
-
     private void refreshInstructions(){
         if(!holder.hasEngine()){
             instructionsTable.getItems().clear();
@@ -136,15 +139,16 @@ public class InstructionsController {
         }
 
         var engine=holder.getEngine();
-        List<InstructionDTO> rows=engine.getInstructionRows(currDegree);
-        instructionsTable.getItems().setAll(rows);
+        List<InstructionDTO> rows = engine.getInstructionRows(currDegree);
 
+        instructionsTable.getItems().setAll(rows);
         int total = engine.getInstructionTotal(currDegree);
         int basic = engine.getInstructionBasicCount(currDegree);
         int synth = engine.getInstructionSyntheticCount(currDegree);
 
         lblSummary.setText(String.format("Total: %d | Basic: %d | Synthetic: %d",total,basic,synth));
     }
+
 
     public void clear() {
         instructionsTable.getItems().clear();

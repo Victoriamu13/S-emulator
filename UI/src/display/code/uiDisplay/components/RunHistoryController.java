@@ -4,6 +4,7 @@ import engineHolder.EngineHolder;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import logic.engineFacade.model.RunRecord;
@@ -66,6 +67,16 @@ public class RunHistoryController {
         var hist = holder.history();
         runHistoryTable.getItems().setAll(hist.records());
         runHistoryTable.refresh();
+    }
+
+    public void bindSelectedProgramName(StringProperty programNameProp) {
+        programNameProp.addListener((obs, oldVal, newVal) -> {
+            clear();
+            if (newVal != null && holder != null && holder.hasEngine()) {
+                runHistoryTable.getItems().setAll(holder.history().records());
+                runHistoryTable.refresh();
+            }
+        });
     }
 
     // === Actions ===

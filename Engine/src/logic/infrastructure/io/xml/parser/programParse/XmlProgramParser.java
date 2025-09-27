@@ -52,11 +52,13 @@ public final class XmlProgramParser {
             for (int f = 0; f < fnNodes.getLength(); f++) {
                 Element fnEl = (Element) fnNodes.item(f);
                 String fnName = fnEl.getAttribute("name");
+                String userString = fnEl.getAttribute("user-string");
+
 
                 Element fnInstEl = first(fnEl, "S-Instructions");
                 List<RawInstructions> fnBody = readInstructions(fnInstEl);
 
-                functions.add(new RawFunction(fnName, fnBody));
+                functions.add(new RawFunction(fnName,userString, fnBody));
             }
         }
         return new ProgramParseResult(programName,raw,functions,errors);
