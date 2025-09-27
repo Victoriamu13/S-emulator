@@ -26,9 +26,13 @@ public class ProgramExpander {
 
             for (SInstruction q : cur) {
                 InstructionExpander ex = ExpanderFactory.forInstruction(q, ctx);
-                if (ex == null) { next.add(q); continue; }  // basic instruction- just add to list
-                allBasic = false;
-                next.addAll(ex.expand(q, ctx)); //expand synthetic instruction and add to list
+                if (ex == null) {
+                    next.add(q);    // basic instruction- just add to list
+                } else {
+                    allBasic = false;
+                    List<SInstruction> expanded = ex.expand(q, ctx);
+                    next.addAll(expanded);  //expand synthetic instruction and add to list
+                }
             }
 
             cur = next;

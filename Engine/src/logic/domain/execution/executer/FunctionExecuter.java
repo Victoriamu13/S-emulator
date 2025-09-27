@@ -23,7 +23,7 @@ public class FunctionExecuter { //Run functions as "Black Box"
     public static long evaluateArgument(ComposeArgument arg, CurrentContext ctx,FunctionLookup fnLookup){
         if(arg instanceof VarArgument var){
             SVars v = BuildUtils.buildVar(var.getName());
-           return ctx.getVariableValue(v);
+            return ctx.getVariableValue(v);
         }
 
         if(arg instanceof FuncCallArgument func) {
@@ -46,6 +46,7 @@ public class FunctionExecuter { //Run functions as "Black Box"
         List<SInstruction> fnBody = fnLookup.bodyOf(fnName);
         return executeFunctionBody(fnBody, argVals, fnLookup);
     }
+
 
 
     public static long executeFunctionBody(List<SInstruction> fnBody, List<Long> args, FunctionLookup fnLookup){

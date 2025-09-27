@@ -82,7 +82,7 @@ public class BuildUtils {
                 String rawArgs  = args.getOrDefault(ArgumentData.FUNCTION_ARGUMENTS, "");
                 CompositionParseResult parsed = CompositionParser.parseTopLevel(rawArgs);
 
-                yield new JumpEqualFuncInst(var, funcName, parsed.args(), target);
+                yield new JumpEqualFuncInst(var, funcName, parsed.args(), target,label);
             }
         };
     }

@@ -2,6 +2,7 @@ package logic.domain.expand.functionCall;
 
 import logic.domain.expand.expandProgram.ExpansionContext;
 import logic.domain.instructions.SInstruction;
+import logic.domain.instructions.basic.bJumpInst.JumpNotZeroInst;
 import logic.domain.instructions.basic.bNoJumpInst.NeutralInst;
 import logic.domain.instructions.synthetic.sJumpInst.*;
 import logic.domain.instructions.synthetic.sNoJumpInst.AssignmentInst;
@@ -47,15 +48,10 @@ public final class FunctionCallExpander {
 
         Map<SVars, SVars> varMap = new HashMap<>();
         Map<SLabel, SLabel> labelMap = new HashMap<>();
+        mapExitLabel(labelMap);
 
-        // --- Map EXIT → Lend ---
-        SLabel lendLabel = ctx.newFreeLabel();
-        labelMap.put(SpecialLabels.EXIT, lendLabel);
-
-        // --- Prepare arguments ---
         for (int i = 0; i < formalParams.size(); i++) {
             if (i >= quoteInst.getArguments().size()) break;
-
             SVars formal = formalParams.get(i);
             SVars zFormal = ctx.newWorkVar();
             varMap.put(formal, zFormal);
@@ -63,20 +59,19 @@ public final class FunctionCallExpander {
             SVars resolved = ctx.resolveArgument(quoteInst.getArguments().get(i), out);
             out.add(new AssignmentInst(zFormal, resolved));
         }
-
-        // --- Result variable mapping ---
         SVars funcResult = ctx.lookupFunctionResult(funcName);
         SVars zOut = ctx.newWorkVar();
         varMap.put(funcResult, zOut);
 
-        // --- Copy body with remap ---
+        mapNumericLabels(body, labelMap);
+        mapWorkVars(body, varMap);
+
         for (SInstruction ins : body) {
             SInstruction cloned = ins.remap(varMap, labelMap);
             out.add(cloned);
         }
 
-        // --- Add final assignment with Lend ---
-        out.add(new AssignmentInst(quoteInst.getVariable(), zOut, lendLabel));
+        out.add(new AssignmentInst(quoteInst.getVariable(), zOut, labelMap.get(SpecialLabels.EXIT)));
         return out;
     }
 
@@ -103,9 +98,63 @@ public final class FunctionCallExpander {
     }
 
 
-    // --- Getters for function data ---
-    private String getFuncName() {
-        return quoteInst != null ? quoteInst.getFunctionName() : jumpEqInst.getFunctionName();
+    private void mapExitLabel(Map<SLabel, SLabel> labelMap) {
+        SLabel lendLabel = ctx.newFreeLabel();
+        labelMap.put(SpecialLabels.EXIT, lendLabel);
+    }
+
+    private void mapNumericLabels(List<SInstruction> body, Map<SLabel, SLabel> labelMap) {
+        Set<SLabel> numericLabels = new HashSet<>();
+        for (SInstruction ins : body) {
+            SLabel lbl = ins.getLabel();
+            if (lbl != null && lbl.isNumberLabel()) {
+                numericLabels.add(lbl);
+            }
+            if (ins instanceof JumpZeroInst jz && jz.getTargetLabel().isNumberLabel())
+                numericLabels.add(jz.getTargetLabel());
+            if (ins instanceof JumpEqualConstantInst jec && jec.getTargetLabel().isNumberLabel())
+                numericLabels.add(jec.getTargetLabel());
+            if (ins instanceof JumpEqualVariableInst jev && jev.getTargetLabel().isNumberLabel())
+                numericLabels.add(jev.getTargetLabel());
+            if (ins instanceof GoToLabelInst go && go.getTargetLabel().isNumberLabel())
+                numericLabels.add(go.getTargetLabel());
+            if (ins instanceof JumpNotZeroInst jnz && jnz.getTargetLabel().isNumberLabel())
+                numericLabels.add(jnz.getTargetLabel());
+            if (ins instanceof JumpEqualFuncInst jef && jef.getTargetLabel().isNumberLabel())
+                numericLabels.add(jef.getTargetLabel());
+        }
+        for (SLabel oldLbl : numericLabels) {
+            if (oldLbl != SpecialLabels.EXIT && !labelMap.containsKey(oldLbl)) {
+                labelMap.put(oldLbl, ctx.newFreeLabel());
+            }
+        }
+    }
+
+    private void mapWorkVars(List<SInstruction> body, Map<SVars, SVars> varMap) {
+        Set<SVars> workVars = new HashSet<>();
+        for (SInstruction ins : body) {
+            SVars tgt = ins.getVariable();
+            if (tgt != null && tgt.getType() == logic.domain.variable.SVarsType.WORK) {
+                workVars.add(tgt);
+            }
+            if (ins instanceof AssignmentInst asg) {
+                SVars src = asg.getSourceVar();
+                if (src != null && src.getType() == logic.domain.variable.SVarsType.WORK) {
+                    workVars.add(src);
+                }
+            }
+            if (ins instanceof JumpEqualVariableInst jev) {
+                SVars other = jev.getOtherVar();
+                if (other != null && other.getType() == logic.domain.variable.SVarsType.WORK) {
+                    workVars.add(other);
+                }
+            }
+        }
+        for (SVars w : workVars) {
+            if (!varMap.containsKey(w)) {
+                varMap.put(w, ctx.newWorkVar());
+            }
+        }
     }
 }
 

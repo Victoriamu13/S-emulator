@@ -24,11 +24,6 @@ public class GoToLabelInst extends AbstractInstruction {
 
     @Override
     public SLabel executeOperation(CurrentContext context){
-        SVars workVar=getVariable();
-        if(workVar!=null){
-            long val= context.getVariableValue(workVar);
-            context.updateVariable(workVar,val+1);
-        }
         return gotoLabel;
     }
 
