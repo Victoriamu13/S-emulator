@@ -12,7 +12,7 @@
 .table-view {
     -fx-border-color: #bdc3c7;
     -fx-border-radius: 4px;
-    -fx-background-color: #fdfdfd;
+    -fx-background-color: #fafafa;
 }
 
 .table-cell{
@@ -26,11 +26,6 @@
     -fx-font-size: 12px;
 }
 
-.footer-label {
-    -fx-text-fill: #7f8c8d;
-    -fx-font-size: 12px;
-    -fx-font-style: italic;
-}
 
 .button {
     -fx-background-color: linear-gradient(#74ebd5, #ACB6E5);
@@ -40,6 +35,23 @@
     -fx-padding: 6px 14px;
     -fx-cursor: hand;
 }
-.button:hover {
-    -fx-background-color: linear-gradient(#ACB6E5, #74ebd5);
+
+.table-row-cell:hover {
+    -fx-background-color: #e3f2fd;
+    -fx-fill: #555555;
 }
+
+.table-row-cell:focused .text,
+.table-row-cell:selected:focused .text,
+.table-row-cell:pressed .text {
+    -fx-fill: #555555;
+}
+
+.dynamic-label {
+    -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+    -fx-padding: 2 4 2 4;
+}
+

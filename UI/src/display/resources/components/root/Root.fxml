@@ -12,7 +12,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="uiDisplay.components.RootController"
-            stylesheets="@../loader/loader.css">
+            stylesheets="@/components/root/Root.css">
     <top>
         <VBox>
             <fx:include source="/components/loader/Loader.fxml" fx:id="loader"/>
@@ -29,15 +29,12 @@
                          <Insets top="10" right="10" bottom="10" left="10"/>
                      </padding>
                       <fx:include source="/components/programControls/ProgramControls.fxml" fx:id="programControls"/>
-                      <Separator prefWidth="200.0" />
                       <fx:include source="/components/instructions/Instructions.fxml" fx:id="instructions"/>
-                     <Separator prefWidth="200.0" />
                      <fx:include source="/components/historyChain/HistoryChain.fxml" fx:id="historyChain"/>
                  </VBox>
 
                 <VBox spacing="8">
                      <fx:include source="/components/execution/ExecutionwDebugger.fxml" fx:id="executionwDebugger"/>
-                     <Separator prefWidth="200.0"/>
                      <fx:include source="/components/runHistory/RunHistory.fxml" fx:id="runHistory"/>
                 </VBox>
             </items>

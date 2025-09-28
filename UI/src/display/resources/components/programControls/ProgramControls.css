@@ -1,8 +1,3 @@
-#highlightSelector .text-field {
-    -fx-prompt-text-fill: black;
-    -fx-font-style: normal;
-    -fx-opacity: 1.0;
-}
 
 .button {
     -fx-background-color: linear-gradient(#74ebd5, #ACB6E5);
@@ -15,3 +10,28 @@
 .button:hover {
     -fx-background-color: linear-gradient(#ACB6E5, #74ebd5);
 }
+
+.dynamic-label {
+    -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+    -fx-padding: 2 4 2 4;
+}
+
+.combo-box .list-cell {
+    -fx-font-style: italic;
+    -fx-font-size: 13px;
+    -fx-text-fill: #2c3e50;
+}
+
+.combo-box .text-field {
+    -fx-font-style: italic;
+    -fx-font-size: 13px;
+    -fx-text-fill: black;
+    -fx-prompt-text-fill: black;
+}
+
+
+
+

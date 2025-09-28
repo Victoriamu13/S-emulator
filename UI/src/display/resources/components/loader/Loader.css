@@ -1,6 +1,10 @@
-.status-label {
-    -fx-font-weight: bold;
-    -fx-wrap-text: true;
+.text-field {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #b0bec5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-prompt-text-fill: #888;
+    -fx-padding: 6px;
 }
 .button {
     -fx-background-color: linear-gradient(#74ebd5, #ACB6E5);

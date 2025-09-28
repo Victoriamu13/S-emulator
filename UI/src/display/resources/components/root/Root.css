@@ -1,0 +1,15 @@
+.root {
+    -fx-background-color: linear-gradient(to bottom, #dfe9f3, #ffffff);
+}
+
+.scroll-pane, .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.split-pane, .split-pane *.split-pane-divider {
+    -fx-background-color: transparent;
+}
+
+.vbox {
+    -fx-background-color: transparent;
+}

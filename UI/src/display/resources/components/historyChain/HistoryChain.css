@@ -12,7 +12,12 @@
 .table-view {
     -fx-border-color: #bdc3c7;
     -fx-border-radius: 4px;
-    -fx-background-color: #fdfdfd;
+    -fx-background-color: #fafafa;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #e3f2fd;
+    -fx-fill: #555555;
 }
 
 .table-view .placeholder,
@@ -20,4 +25,10 @@
     -fx-text-fill: #7f8c8d;
     -fx-font-style: italic;
     -fx-font-size: 12px;
+}
+
+.table-row-cell:focused .text,
+.table-row-cell:selected:focused .text,
+.table-row-cell:pressed .text {
+    -fx-fill: #555555;
 }

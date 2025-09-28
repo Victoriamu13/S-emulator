@@ -36,6 +36,7 @@
         </columns>
       </TableView>
       <Separator prefWidth="200.0" />
-      <Label fx:id="lblSummary" text="Total: 0 | Basic: 0 | Synthetic: 0" styleClass="footer-label"/>
+      <Label fx:id="lblSummary" text="Total: 0 | Basic: 0 | Synthetic: 0" styleClass="dynamic-label"
+             maxWidth="Infinity"   alignment="CENTER"/>
    </children>
 </VBox>

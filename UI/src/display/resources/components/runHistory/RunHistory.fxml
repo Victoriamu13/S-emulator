@@ -43,7 +43,7 @@
       <Separator prefWidth="200.0" />
       <HBox alignment="CENTER" spacing="10.0" styleClass="footer-label">
          <children>
-            <Label text="Statistics Commands:"/>
+            <Label text="Statistics Commands:" styleClass="dynamic-label"/>
             <Button fx:id="btnReRun" text="Re-Run" />
             <Button fx:id="btnShow" text="Show" />
          </children>

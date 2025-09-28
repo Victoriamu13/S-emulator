@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import logic.engineFacade.api.EngineFacade;
 
@@ -18,7 +19,7 @@ import java.io.File;
 public class
 LoaderController {
     @FXML private Button btnLoadFile;
-    @FXML private Label lblStatus;
+    @FXML private TextField filePathField;
     private EngineHolder holder;
 
    private final ObjectProperty<EngineFacade> engineProperty=new SimpleObjectProperty<>();
@@ -40,7 +41,7 @@ LoaderController {
         File f=fc.showOpenDialog(btnLoadFile.getScene().getWindow());
         if(f==null)return;
 
-        lblStatus.setText(f.getAbsolutePath());
+        filePathField.setText(f.getAbsolutePath());
 
         EngineFacade engine = new EngineFacadeImpl();
         LoadOutcome res=engine.loadProgram(f.toPath());
@@ -55,7 +56,7 @@ LoaderController {
             alert.setContentText(String.join("\n", res.errors()));
             alert.showAndWait();
 
-            lblStatus.setText("[Load error]");
+            filePathField.setText("[Load error]");
             holder.set(null);
             engineProperty.set(null);
         }
