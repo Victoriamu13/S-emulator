@@ -4,6 +4,7 @@ import engineHolder.EngineHolder;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
 import logic.engineFacade.api.EngineFacade;
@@ -48,7 +49,13 @@ LoaderController {
             holder.set(engine);
             engineProperty.set(holder.getEngine());
         }else{
-            lblStatus.setText("[Load error] " + String.join(" | ", res.errors()));
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Load Error");
+            alert.setHeaderText("Invalid Program File");
+            alert.setContentText(String.join("\n", res.errors()));
+            alert.showAndWait();
+
+            lblStatus.setText("[Load error]");
             holder.set(null);
             engineProperty.set(null);
         }

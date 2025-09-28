@@ -10,9 +10,13 @@ public class MainUI extends Application {
     @Override
     public void start(Stage stage) throws Exception{
         FXMLLoader loader=new FXMLLoader(getClass().getResource("/components/root/Root.fxml"));
-        Scene scene=new Scene(loader.load(),1000,700);
+        Scene scene=new Scene(loader.load(),1200,800);
         stage.setTitle("S-Emulator");
         stage.setScene(scene);
+
+        stage.setMinWidth(400);
+        stage.setMinHeight(200);
+
         stage.show();
     }
 

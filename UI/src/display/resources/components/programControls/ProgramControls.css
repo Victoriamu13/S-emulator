@@ -3,3 +3,15 @@
     -fx-font-style: normal;
     -fx-opacity: 1.0;
 }
+
+.button {
+    -fx-background-color: linear-gradient(#74ebd5, #ACB6E5);
+    -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8px;
+    -fx-padding: 6px 14px;
+    -fx-cursor: hand;
+}
+.button:hover {
+    -fx-background-color: linear-gradient(#ACB6E5, #74ebd5);
+}

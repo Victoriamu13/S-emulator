@@ -293,7 +293,12 @@ public class EngineFacadeImpl implements EngineFacade {
     @Override
     public List<String> getFunctionNames() {
         if (program == null) return List.of();
-        return new ArrayList<>(program.getFunctionLookup().allFunctionNames());
+
+        var lookup = program.getFunctionLookup();
+
+        return lookup.allFunctionNames().stream()
+                .map(lookup::userStringOf)
+                .toList();
     }
 
     @Override

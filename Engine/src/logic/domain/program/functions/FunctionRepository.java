@@ -43,7 +43,7 @@ public class FunctionRepository implements FunctionLookup {
 
     @Override
     public Set<String> allFunctionNames() {
-        return new LinkedHashSet<>(functionUserStrings.keySet());
+        return new LinkedHashSet<>(functions.keySet());
     }
 
     @Override

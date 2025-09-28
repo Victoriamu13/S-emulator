@@ -11,7 +11,7 @@ public class RootController {
 
     @FXML
     private SplitPane mainSplitPane;
-    private static final double DIVIDER_POSITION = 0.55;
+    private static final double DIVIDER_POSITION = 0.5;
 
     @FXML
     private LoaderController loaderController;

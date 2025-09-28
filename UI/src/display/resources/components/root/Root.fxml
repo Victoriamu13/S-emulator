@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ScrollPane?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="uiDisplay.components.RootController"
@@ -20,6 +21,7 @@
     </top>
 
     <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true">
         <SplitPane fx:id="mainSplitPane" dividerPositions="0.55">
             <items>
                  <VBox spacing="8">
@@ -40,6 +42,7 @@
                 </VBox>
             </items>
         </SplitPane>
+        </ScrollPane>
     </center>
 
  </BorderPane>
