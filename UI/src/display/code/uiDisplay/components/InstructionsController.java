@@ -5,7 +5,6 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -29,9 +28,11 @@ public class InstructionsController {
 
     private EngineHolder holder;
     private int currDegree=0;
+    private int currentPc = -1;
     private String currentHighlight = null;
     private Consumer<InstructionDTO> onInstructionSelected =selIn -> {};
     private final String HIGHLIGHTED = "highlighted";
+    private final String ACTIVE_ROW = "active-row";
 
 
     @FXML
@@ -63,25 +64,27 @@ public class InstructionsController {
             @Override
             protected void updateItem(InstructionDTO item, boolean empty) {
                 super.updateItem(item, empty);
+                boolean match = false;
                 if (item != null && !empty && currentHighlight != null && !currentHighlight.isEmpty()) {
                     String search = currentHighlight.trim();
-                    boolean match = false;
-
                     if (item.label() != null && item.label().trim().equals(search)) {
                         match = true;
                     } else if (item.command() != null && item.command().matches(".*\\b" + search + "\\b.*")) {
                         match = true;
                     }
+                }
 
-                    if (match) {
-                        if (!getStyleClass().contains(HIGHLIGHTED)) {
-                            getStyleClass().add(HIGHLIGHTED);
-                        }
-                    } else {
-                        getStyleClass().remove(HIGHLIGHTED);
-                    }
+                if (match) {
+                    if (!getStyleClass().contains(HIGHLIGHTED)) getStyleClass().add(HIGHLIGHTED);
                 } else {
                     getStyleClass().remove(HIGHLIGHTED);
+                }
+
+                // === highlight row in Debug ===
+                if (item != null && !empty && currentPc >= 0 && item.index() == currentPc) {
+                    if (!getStyleClass().contains(ACTIVE_ROW)) getStyleClass().add(ACTIVE_ROW);
+                } else {
+                    getStyleClass().remove(ACTIVE_ROW);
                 }
             }
         });
@@ -127,6 +130,14 @@ public class InstructionsController {
                 holder.getEngine().selectProgramOrFunction(newVal);
                 refreshInstructions();
             }
+        });
+    }
+
+    public void bindCurrentPc(IntegerProperty pcProperty) {
+        pcProperty.addListener((obs, oldVal, newVal) -> {
+            int pc = newVal.intValue();
+            this.currentPc = pc;
+            instructionsTable.refresh();
         });
     }
 

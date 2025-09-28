@@ -3,3 +3,8 @@
     -fx-font-size: 16px;
     -fx-alignment: center;
 }
+
+.changed-var {
+    -fx-text-fill: red;
+    -fx-font-weight: bold;
+}

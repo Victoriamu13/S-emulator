@@ -1,4 +1,4 @@
-package uiDisplay.components.execution;
+package uiDisplay.components.executionwDebug;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;

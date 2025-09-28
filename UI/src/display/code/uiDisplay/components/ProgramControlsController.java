@@ -122,7 +122,7 @@ public class ProgramControlsController {
         highlightSelector.getItems().clear();
         highlightSelection.set(null);
         highlightSelector.setPromptText("Highlight");
-        lblDegree.setText("0 / 0");
+
     }
 
 }

@@ -13,11 +13,19 @@ import java.util.*;
 
 public class ProgramExecuterImpl implements ProgramExecuter {
     private final SProgram program;
-
+    private CurrentContext externalContext;
+    private int startPc = 0;
+    private long initialCycles = 0;
 
     public ProgramExecuterImpl(SProgram program) {
         this.program = program;
+    }
 
+    public ProgramExecuterImpl(SProgram program, CurrentContext ctx, int startPc,long initialCycles) {
+        this.program = program;
+        this.externalContext = ctx;
+        this.startPc = startPc;
+        this.initialCycles = initialCycles;
     }
 
     @Override
@@ -28,7 +36,17 @@ public class ProgramExecuterImpl implements ProgramExecuter {
 
     @Override
     public ExecutionReport runWithReport(long... inputs) {
-        CurrentContext context = new CurrentContextImpl(inputs,program.getFunctionLookup());
+        CurrentContext context;
+        int instIndex;
+        long totalCycles = initialCycles;
+
+        if (externalContext != null) {
+            context = externalContext;   // continue from debug session
+            instIndex = startPc;
+        } else {
+            context = new CurrentContextImpl(inputs, program.getFunctionLookup());
+            instIndex = 0;
+        }
 
         List<SInstruction> instructions = program.getInstructions();
         Map<String, Integer> labelIndex = new HashMap<>();
@@ -38,9 +56,6 @@ public class ProgramExecuterImpl implements ProgramExecuter {
                 labelIndex.put(lbl.getLabelRepresentation(), i);
             }
         }
-
-        long totalCycles = 0L;
-        int instIndex = 0; // instruction index
 
         while (instIndex >= 0 && instIndex < instructions.size()) {
             SInstruction inst = instructions.get(instIndex);
@@ -57,7 +72,7 @@ public class ProgramExecuterImpl implements ProgramExecuter {
         }
         long yVal = context.getVariableValue(SVars.RESULT);
         Map<String,Long> finalVarsValues=orderVarsForReport(context.snapshot());
-        return new ExecutionReport(yVal, finalVarsValues, totalCycles);
+        return new ExecutionReport(yVal,Set.of(), finalVarsValues, totalCycles);
     }
 
 

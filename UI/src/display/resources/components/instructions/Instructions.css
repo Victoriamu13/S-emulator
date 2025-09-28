@@ -26,3 +26,16 @@
 .table-row-cell.highlighted:selected .table-cell {
     -fx-text-fill: black;
 }
+
+.table-row-cell.active-row {
+    -fx-background-color: lightgreen;
+}
+
+.table-row-cell.active-row .table-cell {
+    -fx-text-fill: black;
+}
+
+.table-row-cell.active-row:selected {
+    -fx-background-color: green;
+    -fx-text-fill: white;
+}

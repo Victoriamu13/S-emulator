@@ -1,10 +1,14 @@
 package logic.engineFacade.api;
+import logic.domain.execution.context.CurrentContext;
+import logic.domain.execution.context.CurrentContextImpl;
 import logic.domain.execution.executer.ProgramExecuterImpl;
+import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.program.SProgramImpl;
 import logic.domain.program.info.ExpandedProgramInfo;
 import logic.domain.program.info.ProgramInfoUtils;
 import logic.domain.variable.SVarsType;
+import logic.engineFacade.model.DebugSession;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
 import logic.domain.expand.expandProgram.DegreeCalculator;
@@ -26,6 +30,7 @@ public class EngineFacadeImpl implements EngineFacade {
     private SProgram currentProgram;
     private final LoadService loader = new LoadService();
     private String loadedXmlPath;
+    private DebugSession activeDebug;
 
     //---Load program---
     @Override
@@ -217,6 +222,72 @@ public class EngineFacadeImpl implements EngineFacade {
         SProgram materialized = materializeProgram(activeProgram(),used);
         return new ProgramExecuterImpl(materialized).runWithReport(inputs);
     }
+
+    @Override
+    public boolean startDebugSession(int degree, long... inputs) {
+        int maxDegree=getMaxExpansionDegree();
+        int used = validDegree(degree,maxDegree);
+        SProgram prog = materializeProgram(activeProgram(),used);
+
+        CurrentContext ctx = new CurrentContextImpl(inputs, prog.getFunctionLookup());
+        List<SInstruction> instructions=prog.getInstructions();
+
+        activeDebug=new DebugSession(instructions,ctx);
+        return true;
+    }
+
+    @Override
+    public ExecutionReport stepOver() {
+        if (activeDebug == null) return null;
+        return activeDebug.step();
+    }
+
+    @Override
+    public ExecutionReport resume() {
+        if (activeDebug == null) return null;
+
+        DebugSession dbg = activeDebug;
+        activeDebug = null;
+
+        SProgram contProg = new SProgramImpl("resume-prog");
+        dbg.getInstructions().forEach(contProg::addInstruction);
+        contProg.setFunctionLookup(program.getFunctionLookup());
+
+        return new ProgramExecuterImpl(
+                contProg,
+                dbg.getContext(),
+                dbg.getPc(),
+                dbg.getTotalCycles()
+        ).runWithReport();
+    }
+
+    @Override
+    public ExecutionReport  stopDebugSession() {
+        if (activeDebug != null) {
+            activeDebug.stop();
+            ExecutionReport report = activeDebug.buildFinalReport();
+            activeDebug = null;
+            return report;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isDebugActive() {
+        return activeDebug != null && !activeDebug.isFinished();
+    }
+
+    @Override
+    public int getCurrentPc() {
+        return (activeDebug != null) ? activeDebug.getPc() : -1;
+    }
+
+    @Override
+    public ExecutionReport buildInitialReport() {
+        return (activeDebug != null) ? activeDebug.buildInitialReport() : null;
+    }
+
+
 
     //---Functions---
     @Override

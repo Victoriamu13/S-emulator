@@ -8,7 +8,8 @@ import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import logic.engineFacade.model.RunRecord;
-import uiDisplay.components.execution.ExecutionController;
+
+import java.util.function.Consumer;
 
 public class RunHistoryController {
 
@@ -22,14 +23,20 @@ public class RunHistoryController {
     @FXML private Button btnShow;
 
     private EngineHolder holder;
-    private ProgramControlsController programControls;
-    private ExecutionController executionController;
+    private Runnable onClearExecution;
+    private Runnable onTriggerRun;
+    private Consumer<long[]> onPrefillInputs;
+    private Consumer<Integer> onSetDegree;
 
-    // === setup helpers ===
+    public void setOnClearExecution(Runnable r) { this.onClearExecution = r; }
+    public void setOnPrefillInputs(Consumer<long[]> c) { this.onPrefillInputs = c; }
+    public void setOnSetDegree(Consumer<Integer> c) { this.onSetDegree = c; }
+    public void setOnTriggerRun(Runnable r) { this.onTriggerRun = r; }
 
-    public void setEngineHolder(EngineHolder holder) { this.holder = holder; }
-    public void setProgramControls(ProgramControlsController pc) { this.programControls = pc; }
-    public void setExecutionController(ExecutionController ec) { this.executionController = ec; }
+    public void setEngineHolder(EngineHolder holder) {
+        this.holder = holder;
+        refreshHistory();
+    }
 
     @FXML
     private void initialize(){
@@ -84,12 +91,11 @@ public class RunHistoryController {
         RunRecord selected = runHistoryTable.getSelectionModel().getSelectedItem();
         if (selected == null || holder == null) return;
 
-        programControls.currentDegreeProperty().set(selected.degree());
+        if (onSetDegree != null) onSetDegree.accept(selected.degree());
+        if (onClearExecution != null) onClearExecution.run();
+        if (onPrefillInputs != null) onPrefillInputs.accept(selected.inputs());
 
-        executionController.clearExecutionResults();
-        executionController.loadInputVars();
-
-        executionController.prefillInputs(selected.inputs());
+        if (onTriggerRun != null) onTriggerRun.run();
     }
 
 

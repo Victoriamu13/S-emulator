@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+
+<?import javafx.scene.control.RadioButton?>
+<VBox xmlns="http://javafx.com/javafx/"
+      spacing="8" VBox.vgrow="ALWAYS"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="uiDisplay.components.executionwDebug.ExecutionwDebuggerController"
+      stylesheets="@/components/execution/ExecutionwDebugger.css">
+
+   <children>
+      <Label text="Debugger / Execution" styleClass="section-title" maxWidth="Infinity"/>
+      <HBox alignment="CENTER"  spacing="10.0">
+         <children>
+
+            <RadioButton fx:id="rbNormal" text="Normal" selected="true"/>
+            <RadioButton fx:id="rbDebug" text="Debug" />
+
+            <Button fx:id="btnNewRun" text="New Run" />
+            <Button fx:id="btnRun" text="Run" />
+            <Button fx:id="btnStepOver" text="Step Over" disable="true"/>
+            <Button fx:id="btnStop" text="Stop" disable="true"/>
+            <Button fx:id="btnResume" text="Resume" disable="true"/>
+
+         </children>
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </HBox>
+
+      <Separator/>
+      <HBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS" spacing="10.0">
+         <children>
+            <VBox spacing="8" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+               <children>
+                  <TableView fx:id="varsTable" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
+                    <columns>
+                      <TableColumn fx:id="colVar" prefWidth="120.0" text="Variable" />
+                      <TableColumn fx:id="colValue" prefWidth="120.0" text="Value" />
+                    </columns>
+                     <placeholder>
+                        <Label text="No results yet."/>
+                     </placeholder>
+                  </TableView>
+                  <Separator prefWidth="200.0" />
+                  <Label fx:id="lblCycles" text="Cycles: 0" />
+               </children>
+            </VBox>
+            <ListView fx:id="inputsList" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
+         </children>
+      </HBox>
+   </children>
+</VBox>

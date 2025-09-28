@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+
+<VBox xmlns="http://javafx.com/javafx/"
+      xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="uiDisplay.components.RunHistoryController">
+
+   <children>
+      <TableView fx:id="runHistoryTable" VBox.vgrow="ALWAYS">
+          <columnResizePolicy>
+              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+          </columnResizePolicy>
+        <columns>
+          <TableColumn fx:id="colRunNo" text="#" />
+          <TableColumn fx:id="colDegree" text="Degree" />
+            <TableColumn fx:id="colYValue" text="Y Value" />
+            <TableColumn fx:id="colCycles" text="Cycles" />
+        </columns>
+      </TableView>
+      <Separator prefWidth="200.0" />
+      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+         <children>
+            <Label text="History Commands:"/>
+            <Button fx:id="btnReRun" text="Re-Run" />
+            <Button fx:id="btnShow" text="Show" />
+         </children>
+         <padding>
+            <Insets top="8.0" bottom="15.0"/>
+         </padding>
+      </HBox>
+   </children>
+</VBox>

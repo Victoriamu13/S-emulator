@@ -1,4 +1,5 @@
 package logic.engineFacade.api;
+import logic.engineFacade.model.DebugSession;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
 import logic.domain.program.info.ProgramInfo;
@@ -38,6 +39,15 @@ public interface EngineFacade {
     public long[] parseInputsCsv(String csv, int degree);
     long[] prepareInputsFields(int degree, List<String> rawValues);
     ExecutionReport runWithReport(int degree,long... inputs);
+
+    //---Debug---
+    boolean startDebugSession(int degree, long[] inputs);
+    ExecutionReport stepOver();
+    ExecutionReport resume();
+    ExecutionReport stopDebugSession();
+    boolean isDebugActive();
+    int getCurrentPc();
+    ExecutionReport buildInitialReport();
 
     //---Functions---
     List<String> getFunctionNames();
