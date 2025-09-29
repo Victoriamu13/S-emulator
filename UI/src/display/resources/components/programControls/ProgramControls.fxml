@@ -9,7 +9,7 @@
 
 <HBox spacing="10.0" xmlns="http://javafx.com/javafx/"
        xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="uiDisplay.components.ProgramControlsController"
+      fx:controller="uiDisplay.components.programFeatures.ProgramControlsController"
       stylesheets="@ProgramControls.css">
 
    <children>

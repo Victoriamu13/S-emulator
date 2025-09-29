@@ -1,4 +1,4 @@
-package uiDisplay.components;
+package uiDisplay.components.expansion;
 
 import engineHolder.EngineHolder;
 import javafx.beans.property.IntegerProperty;
@@ -11,6 +11,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import logic.engineFacade.model.InstructionDTO;
+import uiDisplay.components.instructions.InstructionsController;
+import uiDisplay.components.programFeatures.ProgramControlsController;
 
 
 public class HistoryChainController {

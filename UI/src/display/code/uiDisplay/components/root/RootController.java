@@ -1,4 +1,4 @@
-package uiDisplay.components;
+package uiDisplay.components.root;
 
 import engineHolder.EngineHolder;
 import javafx.beans.property.IntegerProperty;
@@ -6,6 +6,12 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.SplitPane;
 import uiDisplay.components.executionwDebug.ExecutionwDebuggerController;
+import uiDisplay.components.expansion.HistoryChainController;
+import uiDisplay.components.instructions.InstructionsController;
+import uiDisplay.components.load.LoaderController;
+import uiDisplay.components.load.LoadingBarController;
+import uiDisplay.components.programFeatures.ProgramControlsController;
+import uiDisplay.components.runHistory.RunHistoryController;
 
 public class RootController {
 
@@ -25,6 +31,8 @@ public class RootController {
     private ExecutionwDebuggerController executionwDebuggerController;
     @FXML
     private RunHistoryController runHistoryController;
+    @FXML
+    private LoadingBarController loadingBarController;
 
 
     private final EngineHolder holder = new EngineHolder();
@@ -42,6 +50,12 @@ public class RootController {
             }else {
                 reset();
                 programControlsController.clear();
+            }
+        });
+
+        loaderController.loadingProperty().addListener((obs, oldVal, isLoading) -> {
+            if (isLoading != null && isLoading) {
+                loadingBarController.startLoadingSimulation();
             }
         });
     }

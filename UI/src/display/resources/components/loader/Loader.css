@@ -17,3 +17,24 @@
 .button:hover {
     -fx-background-color: linear-gradient(#ACB6E5, #74ebd5);
 }
+
+
+.custom-progress-bar {
+    -fx-accent: linear-gradient(to right, #4facfe, #00f2fe); /* כחול בהיר */
+    -fx-background-color: #ecf0f1;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+}
+
+.custom-progress-bar .bar {
+    -fx-background-color: linear-gradient(#ACB6E5, #74ebd5);
+    -fx-background-radius: 8px;
+}
+
+
+.dynamic-label {
+    -fx-text-fill: #2c3e50;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}

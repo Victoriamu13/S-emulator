@@ -9,9 +9,10 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ProgressBar?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="uiDisplay.components.RootController"
+            fx:controller="uiDisplay.components.root.RootController"
             stylesheets="@/components/root/Root.css">
     <top>
         <VBox>
@@ -41,6 +42,8 @@
         </SplitPane>
         </ScrollPane>
     </center>
-
+    <bottom>
+        <fx:include source="/components/loader/LoadingBar.fxml" fx:id="loadingBar"/>
+    </bottom>
  </BorderPane>
 

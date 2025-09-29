@@ -1,4 +1,4 @@
-package uiDisplay.components;
+package uiDisplay.components.runHistory;
 
 import engineHolder.EngineHolder;
 import javafx.beans.property.SimpleIntegerProperty;

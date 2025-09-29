@@ -8,7 +8,7 @@
 
 <HBox spacing="10.0"
       xmlns:fx="http://javafx.com/javafx"
-      fx:controller="uiDisplay.components.LoaderController"
+      fx:controller="uiDisplay.components.load.LoaderController"
       stylesheets="@/components/loader/Loader.css">
 
    <children>

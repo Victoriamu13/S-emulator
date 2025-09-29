@@ -1,4 +1,4 @@
-package uiDisplay.components;
+package uiDisplay.components.programFeatures;
 
 import engineHolder.EngineHolder;
 import javafx.beans.property.*;
@@ -6,8 +6,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import logic.domain.program.SProgram;
-import logic.domain.program.functions.FunctionAsSProgramAdapter;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

@@ -8,7 +8,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.ExecutionReport;
-import uiDisplay.components.ProgramControlsController;
 
 import java.util.ArrayList;
 import java.util.List;
