@@ -117,7 +117,7 @@ public class ExecutionwDebuggerController {
         List<String> inputs = engine.getInputsUsed(degree);
         inputsList.getItems().clear();
         for (String name : inputs) {
-            inputsList.getItems().add(new VarRow(name, ""));
+            inputsList.getItems().add(new VarRow(name, "0"));
         }
     }
 

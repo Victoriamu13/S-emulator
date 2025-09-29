@@ -1,49 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.control.SplitPane?>
-
-
 <?import javafx.scene.layout.VBox?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.ProgressBar?>
-<BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="uiDisplay.components.root.RootController"
-            stylesheets="@/components/root/Root.css">
-    <top>
-        <VBox>
-            <fx:include source="/components/loader/Loader.fxml" fx:id="loader"/>
-            <Separator prefWidth="200.0" />
-        </VBox>
-    </top>
 
-    <center>
-        <ScrollPane fitToWidth="true" fitToHeight="true">
-        <SplitPane fx:id="mainSplitPane" dividerPositions="0.55">
-            <items>
-                 <VBox spacing="8">
-                     <padding>
-                         <Insets top="10" right="10" bottom="10" left="10"/>
-                     </padding>
-                      <fx:include source="/components/programControls/ProgramControls.fxml" fx:id="programControls"/>
-                      <fx:include source="/components/instructions/Instructions.fxml" fx:id="instructions"/>
-                     <fx:include source="/components/historyChain/HistoryChain.fxml" fx:id="historyChain"/>
-                 </VBox>
 
-                <VBox spacing="8">
-                     <fx:include source="/components/execution/ExecutionwDebugger.fxml" fx:id="executionwDebugger"/>
-                     <fx:include source="/components/runHistory/RunHistory.fxml" fx:id="runHistory"/>
-                </VBox>
-            </items>
-        </SplitPane>
-        </ScrollPane>
-    </center>
-    <bottom>
-        <fx:include source="/components/loader/LoadingBar.fxml" fx:id="loadingBar"/>
-    </bottom>
- </BorderPane>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Label?>
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="uiDisplay.components.root.RootController"
+           stylesheets="@/components/root/Root.css">
+
+
+    <BorderPane fx:id="mainContent">
+        <top>
+            <VBox>
+                <fx:include source="/components/loader/Loader.fxml" fx:id="loader"/>
+                <Separator prefWidth="200.0" />
+            </VBox>
+        </top>
+
+        <center>
+            <ScrollPane fitToWidth="true" fitToHeight="true">
+                <SplitPane fx:id="mainSplitPane" dividerPositions="0.55">
+                    <items>
+                        <VBox spacing="8">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            <fx:include source="/components/programControls/ProgramControls.fxml" fx:id="programControls"/>
+                            <fx:include source="/components/instructions/Instructions.fxml" fx:id="instructions"/>
+                            <fx:include source="/components/historyChain/HistoryChain.fxml" fx:id="historyChain"/>
+                        </VBox>
+
+                        <VBox spacing="8">
+                            <fx:include source="/components/execution/ExecutionwDebugger.fxml" fx:id="executionwDebugger"/>
+                            <fx:include source="/components/runHistory/RunHistory.fxml" fx:id="runHistory"/>
+                        </VBox>
+                    </items>
+                </SplitPane>
+            </ScrollPane>
+        </center>
+
+        <bottom>
+            <fx:include source="/components/loader/LoadingBar.fxml" fx:id="loadingBar"/>
+        </bottom>
+    </BorderPane>
+
+
+    <VBox fx:id="overlay"
+          alignment="CENTER"
+          style="-fx-background-color: rgba(0,0,0,0.3);"
+          visible="false"
+          managed="false">
+        <Label text="Loading... Please wait" styleClass="dynamic-label"/>
+    </VBox>
+</StackPane>
 

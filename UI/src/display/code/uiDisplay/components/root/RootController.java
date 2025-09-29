@@ -5,6 +5,8 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.SplitPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import uiDisplay.components.executionwDebug.ExecutionwDebuggerController;
 import uiDisplay.components.expansion.HistoryChainController;
 import uiDisplay.components.instructions.InstructionsController;
@@ -18,21 +20,15 @@ public class RootController {
     @FXML
     private SplitPane mainSplitPane;
     private static final double DIVIDER_POSITION = 0.5;
-
-    @FXML
-    private LoaderController loaderController;
-    @FXML
-    private InstructionsController instructionsController;
-    @FXML
-    private HistoryChainController historyChainController;
-    @FXML
-    private ProgramControlsController programControlsController;
-    @FXML
-    private ExecutionwDebuggerController executionwDebuggerController;
-    @FXML
-    private RunHistoryController runHistoryController;
-    @FXML
-    private LoadingBarController loadingBarController;
+    @FXML private VBox overlay;
+    @FXML private BorderPane mainContent;
+    @FXML private LoaderController loaderController;
+    @FXML private InstructionsController instructionsController;
+    @FXML private HistoryChainController historyChainController;
+    @FXML private ProgramControlsController programControlsController;
+    @FXML private ExecutionwDebuggerController executionwDebuggerController;
+    @FXML private RunHistoryController runHistoryController;
+    @FXML private LoadingBarController loadingBarController;
 
 
     private final EngineHolder holder = new EngineHolder();
@@ -55,6 +51,11 @@ public class RootController {
 
         loaderController.loadingProperty().addListener((obs, oldVal, isLoading) -> {
             if (isLoading != null && isLoading) {
+                showOverlay();
+                loadingBarController.setOnFinished(() -> {
+                    hideOverlay();
+                    loaderController.loadingProperty().set(false);
+                });
                 loadingBarController.startLoadingSimulation();
             }
         });
@@ -69,6 +70,18 @@ public class RootController {
                 divider.setPosition(RootController.DIVIDER_POSITION);
             }
         });
+    }
+
+    private void showOverlay() {
+        overlay.setVisible(true);
+        overlay.setManaged(true);
+        mainContent.setDisable(true);
+    }
+
+    private void hideOverlay() {
+        overlay.setVisible(false);
+        overlay.setManaged(false);
+        mainContent.setDisable(false);
     }
 
     private void reset() {

@@ -62,6 +62,5 @@ LoaderController {
             holder.set(null);
             engineProperty.set(null);
         }
-        loadingProperty.set(false);
     }
 }
