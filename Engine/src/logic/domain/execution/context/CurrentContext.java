@@ -11,4 +11,6 @@ public interface CurrentContext {
     long getVariableValue(SVars variable);
     Map<SVars, Long> snapshot(); //variables status after run
     FunctionLookup getFunctionLookup();
+    void addCycles(long cycles);
+    long getCycles();
 }

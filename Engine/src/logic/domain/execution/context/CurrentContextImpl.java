@@ -13,6 +13,7 @@ public class CurrentContextImpl implements CurrentContext {
 
     private final Map<SVars,Long> variableState=new HashMap<>();
     private final FunctionLookup functionLookup;
+    private long cycles = 0;
 
     public CurrentContextImpl(long[] inputs,FunctionLookup functionLookup) {
         for (int i = 0; i < inputs.length; i++) {
@@ -42,4 +43,9 @@ public class CurrentContextImpl implements CurrentContext {
         return functionLookup;
     }
 
+    @Override
+    public void addCycles(long c) {cycles += c;}
+
+    @Override
+    public long getCycles() {return cycles;}
 }

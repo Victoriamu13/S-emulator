@@ -2,6 +2,7 @@ package logic.domain.instructions.synthetic.sNoJumpInst;
 
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.execution.executer.FunctionExecuter;
+import logic.domain.execution.executer.FunctionResult;
 import logic.domain.instructions.AbstractInstruction;
 import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.data.InstructionData;
@@ -38,7 +39,9 @@ public class QuoteInst extends AbstractInstruction {
 
     @Override
     public SLabel executeOperation(CurrentContext context){
-        FunctionExecuter.assignFunctionResult(context, getVariable(), functionName, functionArgs);
+        FunctionResult fr = FunctionExecuter.evaluateFunctionCall(context, functionName, functionArgs);
+        context.updateVariable(getVariable(), fr.value());
+        context.addCycles(fr.cycles() + 5);
         return SpecialLabels.EMPTY;
     }
 
@@ -48,4 +51,5 @@ public class QuoteInst extends AbstractInstruction {
         SLabel newLabel = labelMap.getOrDefault(getLabel(), getLabel());
         return new QuoteInst(newTarget, functionName, functionArgs, newLabel);
     }
+
 }

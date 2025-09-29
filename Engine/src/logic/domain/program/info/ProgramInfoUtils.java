@@ -1,5 +1,6 @@
 package logic.domain.program.info;
 
+import logic.domain.execution.context.InputCollector;
 import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.instructions.info.InstructionInfoImpl;
 import logic.domain.instructions.SInstruction;
@@ -65,7 +66,26 @@ public final class ProgramInfoUtils {
                     nums.add(Integer.parseInt(repOt.substring(1)));
                 }
             }
+
+        if (inst instanceof logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst q) {
+            var argsInputs = InputCollector.collectInputs(q.getArguments());
+            for (String in : argsInputs) {
+                if (in.startsWith("x")) {
+                    nums.add(Integer.parseInt(in.substring(1)));
+                }
+            }
         }
+
+        // ⭐ חדש – JumpEqualFuncInst
+        if (inst instanceof logic.domain.instructions.synthetic.sJumpInst.JumpEqualFuncInst jef) {
+            var argsInputs = InputCollector.collectInputs(jef.getFunctionArgs());
+            for (String in : argsInputs) {
+                if (in.startsWith("x")) {
+                    nums.add(Integer.parseInt(in.substring(1)));
+                }
+            }
+        }
+    }
         List<String> out = new ArrayList<>(nums.size());
         for (int n : nums) out.add("x" + n);
         return out;

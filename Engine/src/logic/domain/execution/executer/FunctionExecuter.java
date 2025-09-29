@@ -20,42 +20,58 @@ import java.util.Map;
 
 public class FunctionExecuter { //Run functions as "Black Box"
 
-    public static long evaluateArgument(ComposeArgument arg, CurrentContext ctx,FunctionLookup fnLookup){
+    public static FunctionResult  evaluateArgument(ComposeArgument arg, CurrentContext ctx,FunctionLookup fnLookup){
         if(arg instanceof VarArgument var){
             SVars v = BuildUtils.buildVar(var.getName());
-            return ctx.getVariableValue(v);
+            long val = ctx.getVariableValue(v);
+            return new FunctionResult(val, 0);
         }
 
         if(arg instanceof FuncCallArgument func) {
-            List<SInstruction> funcInstructions = ctx.getFunctionLookup().bodyOf(func.getFunctionName());
-            List<Long> childVals = func.getArguments().stream()
-                    .map(a -> evaluateArgument(a,ctx, fnLookup))
+            long totalCycles = 0;
+            List<FunctionResult> childResults = func.getArguments().stream()
+                    .map(a -> evaluateArgument(a, ctx, fnLookup))
                     .toList();
-            return executeFunctionBody(funcInstructions, childVals, fnLookup);
+
+            totalCycles += childResults.stream().mapToLong(FunctionResult::cycles).sum();
+
+            List<Long> childVals = childResults.stream()
+                    .map(FunctionResult::value)
+                    .toList();
+
+            FunctionResult fr = executeFunctionBody(fnLookup.bodyOf(func.getFunctionName()), childVals, fnLookup);
+            return new FunctionResult(fr.value(), totalCycles + fr.cycles());
         }
-        return 0L;
+        return new FunctionResult(0, 0);
     }
 
-    public static long evaluateFunctionCall(CurrentContext ctx, String fnName, List<ComposeArgument> args) {
+    public static FunctionResult evaluateFunctionCall(CurrentContext ctx, String fnName, List<ComposeArgument> args) {
         FunctionLookup fnLookup = ctx.getFunctionLookup();
 
-        List<Long> argVals = args.stream()
+        long totalCycles = 0;
+        List<FunctionResult> argResults = args.stream()
                 .map(a -> evaluateArgument(a, ctx, fnLookup))
                 .toList();
 
-        List<SInstruction> fnBody = fnLookup.bodyOf(fnName);
-        return executeFunctionBody(fnBody, argVals, fnLookup);
+        totalCycles += argResults.stream().mapToLong(FunctionResult::cycles).sum();
+
+        List<Long> argVals = argResults.stream()
+                .map(FunctionResult::value)
+                .toList();
+
+        FunctionResult fr = executeFunctionBody(fnLookup.bodyOf(fnName), argVals, fnLookup);
+        return new FunctionResult(fr.value(), totalCycles + fr.cycles());
     }
 
 
 
-    public static long executeFunctionBody(List<SInstruction> fnBody, List<Long> args, FunctionLookup fnLookup){
+    public static FunctionResult executeFunctionBody(List<SInstruction> fnBody, List<Long> args, FunctionLookup fnLookup){
         long[] xs = new long[args.size()];
         for (int i = 0; i < args.size(); i++) xs[i] = args.get(i);
 
         CurrentContext local = new CurrentContextImpl(xs,fnLookup);
-
         Map<String,Integer> labelIndex = new HashMap<>();
+
         for (int i = 0; i < fnBody.size(); i++) {
             SLabel lbl = fnBody.get(i).getLabel();
             if (lbl.isNumberLabel()) {
@@ -69,24 +85,37 @@ public class FunctionExecuter { //Run functions as "Black Box"
             SLabel next;
 
             if (inst instanceof QuoteInst q) {
-                List<Long> qArgs = q.getArguments().stream()
+                List<FunctionResult> qArgs = q.getArguments().stream()
                         .map(a -> evaluateArgument(a, local, fnLookup))
                         .toList();
-                List<SInstruction> qBody = fnLookup.bodyOf(q.getFunctionName());
-                long res = executeFunctionBody(qBody, qArgs, fnLookup);
-                local.updateVariable(q.getVariable(), res);
+
+                long argCycles = qArgs.stream().mapToLong(FunctionResult::cycles).sum();
+
+                List<Long> argVals = qArgs.stream().map(FunctionResult::value).toList();
+
+                FunctionResult fr = executeFunctionBody(
+                        fnLookup.bodyOf(q.getFunctionName()), argVals, fnLookup);
+
+                local.updateVariable(q.getVariable(), fr.value());
+                local.addCycles(q.cycles() +argCycles+ fr.cycles());
                 next = SpecialLabels.EMPTY;
             }
             else if (inst instanceof JumpEqualFuncInst jef) {
-                List<Long> jArgs = jef.getFunctionArgs().stream()
+                List<FunctionResult> jArgs = jef.getFunctionArgs().stream()
                         .map(a -> evaluateArgument(a, local, fnLookup))
                         .toList();
-                List<SInstruction> jBody = fnLookup.bodyOf(jef.getFunctionName());
-                long res = executeFunctionBody(jBody, jArgs, fnLookup);
+
+                long argCycles = jArgs.stream().mapToLong(FunctionResult::cycles).sum();
+                List<Long> argVals = jArgs.stream().map(FunctionResult::value).toList();
+                FunctionResult fr = executeFunctionBody(
+                        fnLookup.bodyOf(jef.getFunctionName()), argVals, fnLookup);
+
                 long vVal = local.getVariableValue(jef.getVariable());
-                next = (vVal == res) ? jef.getTargetLabel() : SpecialLabels.EMPTY;
+                local.addCycles(jef.cycles() + argCycles+fr.cycles());
+                next = (vVal == fr.value()) ? jef.getTargetLabel() : SpecialLabels.EMPTY;
             }
             else {
+                local.addCycles(inst.cycles());
                 next = inst.executeOperation(local);
             }
 
@@ -98,19 +127,14 @@ public class FunctionExecuter { //Run functions as "Black Box"
             }
         }
 
-        return local.getVariableValue(SVars.RESULT);
+        return new FunctionResult(local.getVariableValue(SVars.RESULT), local.getCycles());
     }
 
 
     public static void assignFunctionResult(CurrentContext ctx, SVars target, String fnName, List<ComposeArgument> args) {
         FunctionLookup fnLookup = ctx.getFunctionLookup();
-
-        List<Long> argVals = args.stream()
-                .map(a -> evaluateArgument(a, ctx, fnLookup))
-                .toList();
-
-        List<SInstruction> fnBody = fnLookup.bodyOf(fnName);
-        long res = executeFunctionBody(fnBody, argVals, fnLookup);
-        ctx.updateVariable(target, res);
+        FunctionResult fr = evaluateFunctionCall(ctx, fnName, args);
+        ctx.updateVariable(target, fr.value());
     }
+
 }

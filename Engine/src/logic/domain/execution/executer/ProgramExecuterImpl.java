@@ -1,5 +1,7 @@
 package logic.domain.execution.executer;
 
+import logic.domain.instructions.synthetic.sJumpInst.JumpEqualFuncInst;
+import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;
 import logic.engineFacade.model.ExecutionReport;
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.execution.context.CurrentContextImpl;
@@ -60,14 +62,30 @@ public class ProgramExecuterImpl implements ProgramExecuter {
         while (instIndex >= 0 && instIndex < instructions.size()) {
             SInstruction inst = instructions.get(instIndex);
             totalCycles+=inst.cycles();
-            SLabel nextLabel=inst.executeOperation(context);
 
-            if(nextLabel==SpecialLabels.EXIT){
-                break;
-            }else if(nextLabel==SpecialLabels.EMPTY){
+            SLabel next;
+            if (inst instanceof QuoteInst q) {
+                FunctionResult fr = FunctionExecuter.evaluateFunctionCall(
+                        context, q.getFunctionName(), q.getArguments());
+                context.updateVariable(q.getVariable(), fr.value());
+                totalCycles += fr.cycles();
+                next = SpecialLabels.EMPTY;
+            }
+            else if (inst instanceof JumpEqualFuncInst jef) {
+                FunctionResult fr = FunctionExecuter.evaluateFunctionCall(
+                        context, jef.getFunctionName(), jef.getFunctionArgs());
+                long vVal = context.getVariableValue(jef.getVariable());
+                totalCycles += fr.cycles();
+                next = (vVal == fr.value()) ? jef.getTargetLabel() : SpecialLabels.EMPTY;
+            }
+            else {
+                next = inst.executeOperation(context);
+            }
+            if (next == SpecialLabels.EXIT) break;
+            if (next.isNumberLabel()) {
+                instIndex = labelIndex.get(next.getLabelRepresentation());
+            } else {
                 instIndex++;
-            }else{
-                instIndex= labelIndex.get(nextLabel.getLabelRepresentation());
             }
         }
         long yVal = context.getVariableValue(SVars.RESULT);

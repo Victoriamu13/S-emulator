@@ -2,6 +2,7 @@ package logic.domain.instructions.synthetic.sJumpInst;
 
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.execution.executer.FunctionExecuter;
+import logic.domain.execution.executer.FunctionResult;
 import logic.domain.instructions.AbstractInstruction;
 import logic.domain.instructions.SInstruction;
 import logic.domain.label.SLabel;
@@ -34,10 +35,10 @@ public class JumpEqualFuncInst extends AbstractInstruction {
 
     @Override
     public SLabel executeOperation(CurrentContext context){
-        long result = FunctionExecuter.evaluateFunctionCall(context, functionName, functionArgs);
-
+        FunctionResult fr = FunctionExecuter.evaluateFunctionCall(context, functionName, functionArgs);
         long varVal = context.getVariableValue(getVariable());
-        return (varVal == result) ? targetLabel : SpecialLabels.EMPTY;
+        context.addCycles(fr.cycles() + 5);
+        return (varVal == fr.value()) ? targetLabel : SpecialLabels.EMPTY;
     }
 
     @Override
