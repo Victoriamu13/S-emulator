@@ -31,6 +31,8 @@ public class EngineFacadeImpl implements EngineFacade {
     private final LoadService loader = new LoadService();
     private String loadedXmlPath;
     private DebugSession activeDebug;
+    private Map<Integer, List<String>> cachedInputs = new HashMap<>();
+    private Integer cachedMaxDegree = null;
 
     //---Load program---
     @Override
@@ -40,7 +42,7 @@ public class EngineFacadeImpl implements EngineFacade {
             this.program = res.program();
             this.currentProgram = program;
             this.loadedXmlPath=xmlPath.toString();
-            // resetExpansionCache();
+             resetExpansionCache();
             return LoadOutcome.ok();
         }
        return LoadOutcome.fail(res.errors());
@@ -159,6 +161,12 @@ public class EngineFacadeImpl implements EngineFacade {
     }
 
     @Override
+    public void resetExpansionCache() {
+        cachedInputs.clear();
+        cachedMaxDegree = null;
+    }
+
+    @Override
     public List<InstructionDTO>getExpansionHistoryChain(int degree, int finalIndex){
         int maxDegree=getMaxExpansionDegree();
         int used = validDegree(degree,maxDegree);
@@ -182,11 +190,17 @@ public class EngineFacadeImpl implements EngineFacade {
 
 @Override
 public int getMaxExpansionDegree() {
+    if (cachedMaxDegree != null) {
+        return cachedMaxDegree;
+    }
+
+    SProgram freshCopy = EngineFacadeUtils.materializeProgram(activeProgram(), 0);
     ExpansionContext ctx = ExpansionContext.seedFrom(activeProgram());
     ProgramExpander  exp = new ProgramExpander(ctx);
     DegreeCalculator calc = new DegreeCalculator(exp);
-    return calc.maxProgramDegree(activeProgram());
-}
+
+    return calc.maxProgramDegree(freshCopy);
+    }
 
     //---Execute program---
     @Override

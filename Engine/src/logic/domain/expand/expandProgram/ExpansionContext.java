@@ -92,7 +92,17 @@ public final class ExpansionContext {
 
     public SVars resolveArgument(ComposeArgument arg, List<SInstruction> out) {
         if (arg instanceof VarArgument var) {
-            return new SVarsImpl(SVarsType.INPUT, Integer.parseInt(var.getName().substring(1)));
+            String name = var.getName();
+
+            if (name.startsWith("x")) {
+                return new SVarsImpl(SVarsType.INPUT, Integer.parseInt(name.substring(1)));
+            }
+            else if (name.startsWith("z")) {
+                return new SVarsImpl(SVarsType.WORK, Integer.parseInt(name.substring(1)));
+            }
+            else if (name.equals("y")) {
+                return new SVarsImpl(SVarsType.RESULT, 0);
+            }
         }
 
         if (arg instanceof FuncCallArgument func) {
@@ -100,8 +110,8 @@ public final class ExpansionContext {
 
             QuoteInst innerQuote = new QuoteInst(tmp, func.getFunctionName(), func.getArguments());
             FunctionCallExpander innerMapper = new FunctionCallExpander(this, innerQuote);
-
             out.addAll(innerMapper.expandQuote());
+
             return tmp;
         }
         return null;

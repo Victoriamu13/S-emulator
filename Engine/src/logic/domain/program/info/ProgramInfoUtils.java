@@ -47,6 +47,7 @@ public final class ProgramInfoUtils {
             if (var != null && var.getType() == SVarsType.INPUT) {
                 String rep = var.getRepresentation();
                nums.add(Integer.parseInt(rep.substring(1)));
+
             }
 
             //  case AssignmentInst
@@ -76,7 +77,7 @@ public final class ProgramInfoUtils {
             }
         }
 
-        // ⭐ חדש – JumpEqualFuncInst
+
         if (inst instanceof logic.domain.instructions.synthetic.sJumpInst.JumpEqualFuncInst jef) {
             var argsInputs = InputCollector.collectInputs(jef.getFunctionArgs());
             for (String in : argsInputs) {

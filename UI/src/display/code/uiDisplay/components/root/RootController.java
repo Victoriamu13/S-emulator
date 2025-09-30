@@ -58,7 +58,10 @@ public class RootController {
                     loadingBarController.startLoadingSimulation();
                 }
                 case SUCCESS -> {
-                    loadingBarController.markSuccess();
+                    loadingBarController.setOnFinished(() -> {
+                        loadingBarController.markSuccess();
+                        hideOverlay();
+                    });
                 }
                 case ERROR -> {
                     loadingBarController.resetLoading();

@@ -15,7 +15,10 @@ public class InputCollector {
 
         for(ComposeArgument arg : args){
             if(arg instanceof VarArgument varArg){
-                inputs.add(varArg.getName());
+                String name = varArg.getName();
+                if (name != null && name.matches("x\\d+")) {
+                    inputs.add(name);
+                }
             }
             else if(arg instanceof FuncCallArgument funcArg){
                 inputs.addAll(collectInputs(funcArg.getArguments()));

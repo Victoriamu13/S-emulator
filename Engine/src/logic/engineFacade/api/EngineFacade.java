@@ -33,6 +33,7 @@ public interface EngineFacade {
     //---Expansion---
     int getMaxExpansionDegree();
     List<InstructionDTO> getExpansionHistoryChain(int degree, int finalIndex);
+    void resetExpansionCache();
 
     //---Execute program---
     List<String> getInputsUsed(int degree);

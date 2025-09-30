@@ -41,8 +41,6 @@ public final class DegreeCalculator {
             degree++;      // finished one round of expanding
             current = next; // continue to next round with collected instructions
         }
-        System.out.println("[DegreeCalculator] Instruction "
-                + ins.getName() + " → degree " + degree);
         return degree;
     }
 
