@@ -22,13 +22,15 @@ LoaderController {
     private EngineHolder holder;
 
    private final ObjectProperty<EngineFacade> engineProperty=new SimpleObjectProperty<>();
-    private final ObjectProperty<Boolean> loadingProperty = new SimpleObjectProperty<>(false);
+    private final ObjectProperty<LoadState> loadState = new SimpleObjectProperty<>(LoadState.IDLE);;
 
     public void setEngineHolder(EngineHolder holder){this.holder=holder;}
 
     public ObjectProperty<EngineFacade> engineProperty() { return engineProperty; }
-    public ObjectProperty<Boolean> loadingProperty() { return loadingProperty; }
     public EngineFacade getEngine() { return engineProperty.get(); }
+
+    public ObjectProperty<LoadState> loadStateProperty() { return loadState; }
+    public LoadState getLoadState() { return loadState.get(); }
 
 
     @FXML
@@ -43,7 +45,10 @@ LoaderController {
         if(f==null)return;
 
         filePathField.setText(f.getAbsolutePath());
-        loadingProperty.set(true);
+
+        holder.set(null);
+        engineProperty.set(null);
+        loadState.set(LoadState.LOADING);
 
         EngineFacade engine = new EngineFacadeImpl();
         LoadOutcome res=engine.loadProgram(f.toPath());
@@ -51,16 +56,16 @@ LoaderController {
         if(res.success()){
             holder.set(engine);
             engineProperty.set(holder.getEngine());
+            loadState.set(LoadState.SUCCESS);
         }else{
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Load Error");
             alert.setHeaderText("Invalid Program File");
             alert.setContentText(String.join("\n", res.errors()));
             alert.showAndWait();
-
             filePathField.setText("[Load error]");
-            holder.set(null);
-            engineProperty.set(null);
+
+            loadState.set(LoadState.ERROR);
         }
     }
 }

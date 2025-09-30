@@ -10,7 +10,7 @@
 <VBox xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="uiDisplay.components.instructions.InstructionsController"
-      spacing="8" stylesheets="@/components/instructions/Instructions.css">
+      spacing="8"  stylesheets="@/skins/base.css">
 
     <padding>
         <Insets top="10" right="10" bottom="10" left="10"/>

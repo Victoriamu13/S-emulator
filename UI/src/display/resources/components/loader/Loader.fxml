@@ -9,7 +9,7 @@
 <HBox spacing="10.0"
       xmlns:fx="http://javafx.com/javafx"
       fx:controller="uiDisplay.components.load.LoaderController"
-      stylesheets="@/components/loader/Loader.css">
+      stylesheets="@/skins/base.css">
 
    <children>
       <Button fx:id="btnLoadFile" text="Load File"  minWidth="80.0" HBox.hgrow="NEVER">

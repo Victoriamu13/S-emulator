@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import uiDisplay.design.SkinManager;
 
 public class MainUI extends Application {
 
@@ -11,9 +12,10 @@ public class MainUI extends Application {
     public void start(Stage stage) throws Exception{
         FXMLLoader loader=new FXMLLoader(getClass().getResource("/components/root/Root.fxml"));
         Scene scene=new Scene(loader.load(),1200,800);
+        SkinManager.apply(scene, "Default");
+
         stage.setTitle("S-Emulator");
         stage.setScene(scene);
-
         stage.setMinWidth(400);
         stage.setMinHeight(200);
 

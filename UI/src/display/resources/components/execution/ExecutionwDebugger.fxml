@@ -16,7 +16,7 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="uiDisplay.components.executionwDebug.ExecutionwDebuggerController"
       spacing="8" VBox.vgrow="ALWAYS"
-      stylesheets="@/components/execution/ExecutionwDebugger.css">
+      stylesheets="@/skins/base.css">
 
    <padding>
       <Insets top="10" right="15" bottom="10" left="15"/>
@@ -83,9 +83,9 @@
 
                   <ListView fx:id="inputsList"
                             HBox.hgrow="ALWAYS"
-                            VBox.vgrow="ALWAYS">
+                            VBox.vgrow="ALWAYS" styleClass="list-view">
                      <placeholder>
-                        <Label text="No inputs required."/>
+                        <Label text="No inputs required"/>
                      </placeholder>
                   </ListView>
                </children>

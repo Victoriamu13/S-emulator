@@ -49,14 +49,26 @@ public class RootController {
             }
         });
 
-        loaderController.loadingProperty().addListener((obs, oldVal, isLoading) -> {
-            if (isLoading != null && isLoading) {
-                showOverlay();
-                loadingBarController.setOnFinished(() -> {
+        loaderController.loadStateProperty().addListener((obs, oldVal, newVal) -> {
+            switch (newVal) {
+                case LOADING -> {
+                    loadingBarController.resetLoading();
+                    showOverlay();
+                    loadingBarController.setOnFinished(() -> {hideOverlay();});
+                    loadingBarController.startLoadingSimulation();
+                }
+                case SUCCESS -> {
+                    loadingBarController.markSuccess();
                     hideOverlay();
-                    loaderController.loadingProperty().set(false);
-                });
-                loadingBarController.startLoadingSimulation();
+                }
+                case ERROR -> {
+                    loadingBarController.resetLoading();
+                    hideOverlay();
+                }
+                case IDLE -> {
+                    loadingBarController.resetLoading();
+                    hideOverlay();
+                }
             }
         });
     }

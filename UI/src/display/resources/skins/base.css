@@ -1,0 +1,117 @@
+
+.section-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-alignment: center;
+    -fx-background-radius: 6px;
+    -fx-text-alignment: center;
+}
+
+.section-subtitle {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 4px;
+    -fx-background-radius: 4px;
+}
+
+.dynamic-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+    -fx-padding: 2 4 2 4;
+}
+
+
+.table-view {
+    -fx-border-radius: 4px;
+}
+
+
+
+.table-cell {
+    -fx-alignment: CENTER;
+}
+
+.table-row-cell.active-row:selected {
+    -fx-text-fill: white;
+}
+
+
+.table-row-cell.highlighted .table-cell,
+.table-row-cell.active-row .table-cell {
+    -fx-text-fill: black;
+}
+
+
+.button {
+    -fx-font-weight: bold;
+    -fx-background-radius: 8px;
+    -fx-padding: 6px 14px;
+    -fx-cursor: hand;
+}
+
+
+
+.combo-box {
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.combo-box .list-cell,
+.combo-box .text-field {
+    -fx-font-style: italic;
+    -fx-font-size: 13px;
+    -fx-text-fill: black;
+    -fx-prompt-text-fill: black;
+}
+
+.vbox, .hbox, .border-pane, .scroll-pane, .split-pane, .pane {
+    -fx-background-color: inherit;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: inherit;
+}
+
+
+.progress-bar {
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.progress-bar .track {
+    -fx-background-radius: 5px;
+}
+
+.progress-bar .bar {
+    -fx-background-radius: 5px;
+}
+
+.separator:horizontal .line {
+    -fx-pref-height: 2px;
+}
+
+.separator:vertical .line {
+    -fx-pref-width: 2px;
+}
+
+.split-pane {
+    -fx-border-width: 2px;
+}
+
+.split-pane-divider {
+    -fx-padding: 2;
+}
+
+.text-field {
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.scroll-bar:vertical {
+    -fx-pref-width: 12px;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 12px;
+}
