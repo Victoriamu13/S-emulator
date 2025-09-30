@@ -41,7 +41,7 @@ public class LoadingBarController {
                 int steps = 100;
 
                 for(int i=0;i<=steps;i++){
-                    Thread.sleep(10);
+                    Thread.sleep(20);
                     updateProgress(i,100);
                 }
                 return null;
@@ -63,6 +63,9 @@ public class LoadingBarController {
 
     public void markSuccess() {
         lblLoading.setText("File Loaded Successfully!");
+        if (progressBar.progressProperty().isBound()) {
+            progressBar.progressProperty().unbind();
+        }
         progressBar.setProgress(1);
     }
 

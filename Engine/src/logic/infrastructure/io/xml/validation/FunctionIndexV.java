@@ -2,6 +2,7 @@ package logic.infrastructure.io.xml.validation;
 
 import logic.infrastructure.io.xml.dto.RawFunction;
 import logic.infrastructure.io.xml.dto.RawInstructions;
+import logic.infrastructure.io.xml.parser.composition.*;
 
 import java.util.*;
 
@@ -52,27 +53,50 @@ public class FunctionIndexV {
     private static int computeArity(List<RawInstructions> body) {
         if (body == null) return 0;
 
-        Set<Integer> xs = new java.util.HashSet<>();
+        Set<Integer> inputs = new java.util.HashSet<>();
 
         for (RawInstructions r : body) {
             String v = safeString(r.varText());
             if (isValidInputVariable(v)) {
-                xs.add(parseXIndex(v));
+                inputs.add(parseXIndex(v));
             }
 
             var args = r.args();
             if (args != null) {
                 String assigned = getArgIgnoreCase(args, "assignedVariable");
                 if (isValidInputVariable(assigned)) {
-                    xs.add(parseXIndex(assigned));
+                    inputs.add(parseXIndex(assigned));
                 }
 
                 String varName = getArgIgnoreCase(args, "variableName");
                 if (isValidInputVariable(varName)) {
-                    xs.add(parseXIndex(varName));
+                    inputs.add(parseXIndex(varName));
+                }
+
+                String fnArgs = getArgIgnoreCase(args, "functionArguments");
+                if (!fnArgs.isEmpty()) {
+                    CompositionParseResult parsed = CompositionParser.parseTopLevel(fnArgs);
+                    if (parsed.isOk()) {
+                        collectVarsFromArgs(parsed.args(), inputs);
+                    }
                 }
             }
         }
-        return xs.size();
+
+            return inputs.size();
     }
+
+
+        private static void collectVarsFromArgs (List<ComposeArgument>args, Set<Integer>inputs){
+            for (ComposeArgument a : args) {
+                if (a instanceof VarArgument v) {
+                    String name = v.getName();
+                    if (isValidInputVariable(name)) {
+                        inputs.add(parseXIndex(name));
+                    }
+                } else if (a instanceof FuncCallArgument f) {
+                    collectVarsFromArgs(f.getArguments(), inputs);
+                }
+            }
+        }
 }

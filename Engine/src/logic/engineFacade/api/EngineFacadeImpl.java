@@ -40,6 +40,7 @@ public class EngineFacadeImpl implements EngineFacade {
             this.program = res.program();
             this.currentProgram = program;
             this.loadedXmlPath=xmlPath.toString();
+            // resetExpansionCache();
             return LoadOutcome.ok();
         }
        return LoadOutcome.fail(res.errors());
@@ -157,7 +158,6 @@ public class EngineFacadeImpl implements EngineFacade {
         return labels.stream().sorted(numericAwareComparator()).toList();
     }
 
-    //Expansion---
     @Override
     public List<InstructionDTO>getExpansionHistoryChain(int degree, int finalIndex){
         int maxDegree=getMaxExpansionDegree();
@@ -180,13 +180,13 @@ public class EngineFacadeImpl implements EngineFacade {
     }
 
 
-    @Override
-    public int getMaxExpansionDegree() {
-        ExpansionContext ctx = ExpansionContext.seedFrom(activeProgram());
-        ProgramExpander  exp = new ProgramExpander(ctx);
-        DegreeCalculator calc = new DegreeCalculator(exp);
-        return calc.maxProgramDegree(activeProgram());
-    }
+@Override
+public int getMaxExpansionDegree() {
+    ExpansionContext ctx = ExpansionContext.seedFrom(activeProgram());
+    ProgramExpander  exp = new ProgramExpander(ctx);
+    DegreeCalculator calc = new DegreeCalculator(exp);
+    return calc.maxProgramDegree(activeProgram());
+}
 
     //---Execute program---
     @Override

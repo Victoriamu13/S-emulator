@@ -71,8 +71,6 @@ public class ProgramControlsController {
             items.addAll(engine.getFunctionNames());
             programSelector.getItems().setAll(items);
 
-            // select first
-            programSelector.getSelectionModel().selectFirst();
             String firstName = programSelector.getSelectionModel().getSelectedItem();
             selectedProgramNameProperty.set(firstName);
             engine.selectProgramOrFunction(firstName);
@@ -80,12 +78,11 @@ public class ProgramControlsController {
             // update when user changes selection
             programSelector.getSelectionModel().selectedItemProperty().
                     addListener((obs, oldV, newV) -> {
+
                         engine.selectProgramOrFunction(newV);
                         selectedProgramNameProperty.set(newV);
-                        currDegree.set(0);
                         this.maxDegree.set(engine.getMaxExpansionDegree());
                         refreshHighlightList(currDegree.get());
-
             });
 
             // update when degree changes

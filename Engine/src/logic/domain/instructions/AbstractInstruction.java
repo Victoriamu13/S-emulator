@@ -9,7 +9,7 @@ import java.util.Map;
 
 public abstract class AbstractInstruction implements SInstruction {
 
-    private final InstructionData InstructionData;
+    private final InstructionData data;
     private final SLabel label;
     private final SVars variable;
 
@@ -19,20 +19,20 @@ public abstract class AbstractInstruction implements SInstruction {
     }
 
     //with label attached
-    public AbstractInstruction(InstructionData InstructionData, SVars variable,SLabel label) {
-        this.InstructionData = InstructionData;
+    public AbstractInstruction(InstructionData instructionData, SVars variable,SLabel label) {
+        this.data = instructionData;
         this.label = label;
         this.variable=variable;
     }
 
     @Override
     public String getName(){
-        return InstructionData.getName();
+        return data.getName();
     }
 
     @Override
     public int cycles() {
-        return InstructionData.cycles();
+        return data.cycles();
     }
 
 
@@ -42,6 +42,11 @@ public abstract class AbstractInstruction implements SInstruction {
     @Override
     public SVars getVariable() {
         return variable;
+    }
+
+    @Override
+    public InstructionData getData() {
+        return data;
     }
 
     public abstract SInstruction remap(Map<SVars,SVars> varMap, Map<SLabel,SLabel> labelMap);

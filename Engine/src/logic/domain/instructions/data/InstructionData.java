@@ -27,4 +27,5 @@ public enum InstructionData {
 
     public String getName(){return name;}
     public int cycles() {return cycles;}
+    public boolean isBasic() { return basic;}
 }

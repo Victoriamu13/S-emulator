@@ -76,7 +76,7 @@ public class ExpandedProgramInfo implements ProgramInfo {
             List<InstNode> next = new ArrayList<>();
 
             for (InstNode node : layer0) {
-                boolean isBasic = (ExpanderFactory.forInstruction(node.instruction,ctx) == null);
+                boolean isBasic = node.instruction.getData().isBasic();
                 if (isBasic) { // Add basic instruction
                     next.add(node);
                 } else { // Expand synthetic instruction into children and add them

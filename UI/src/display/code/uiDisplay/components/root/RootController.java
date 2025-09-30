@@ -59,7 +59,6 @@ public class RootController {
                 }
                 case SUCCESS -> {
                     loadingBarController.markSuccess();
-                    hideOverlay();
                 }
                 case ERROR -> {
                     loadingBarController.resetLoading();

@@ -1,6 +1,7 @@
 package logic.domain.instructions;
 
 import logic.domain.execution.context.CurrentContext;
+import logic.domain.instructions.data.InstructionData;
 import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
@@ -12,6 +13,7 @@ public interface SInstruction {
     int cycles();
     SLabel getLabel();
     SVars getVariable();
+    InstructionData getData();
     SLabel executeOperation(CurrentContext context);
     default SLabel getTargetLabel() {
         return SpecialLabels.EMPTY;
