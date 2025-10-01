@@ -28,6 +28,7 @@
           </columnResizePolicy>
 
         <columns>
+          <TableColumn fx:id="colBreakpoint" text="●" styleClass="breakpoint-circle"/>
           <TableColumn fx:id="colIdx"    text="#" />
           <TableColumn fx:id="colBS"     text="B/S" />
           <TableColumn fx:id="colLabel"  text="Label" />

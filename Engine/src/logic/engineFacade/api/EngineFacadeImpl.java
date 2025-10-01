@@ -33,6 +33,8 @@ public class EngineFacadeImpl implements EngineFacade {
     private DebugSession activeDebug;
     private Map<Integer, List<String>> cachedInputs = new HashMap<>();
     private Integer cachedMaxDegree = null;
+    private Set<Integer> breakpoints = new HashSet<>();
+
 
     //---Load program---
     @Override
@@ -234,11 +236,16 @@ public int getMaxExpansionDegree() {
         int maxDegree=getMaxExpansionDegree();
         int used = validDegree(degree,maxDegree);
         SProgram materialized = materializeProgram(activeProgram(),used);
-        return new ProgramExecuterImpl(materialized).runWithReport(inputs);
+        return new ProgramExecuterImpl(materialized).runWithReport(breakpoints,inputs);
     }
+
+
+    // --- Debug ---
 
     @Override
     public boolean startDebugSession(int degree, long... inputs) {
+        activeDebug = null;
+
         int maxDegree=getMaxExpansionDegree();
         int used = validDegree(degree,maxDegree);
         SProgram prog = materializeProgram(activeProgram(),used);
@@ -247,38 +254,29 @@ public int getMaxExpansionDegree() {
         List<SInstruction> instructions=prog.getInstructions();
 
         activeDebug=new DebugSession(instructions,ctx);
+        activeDebug.setBreakpoints(new HashSet<>(this.breakpoints));
+
         return true;
     }
 
     @Override
     public ExecutionReport stepOver() {
-        if (activeDebug == null) return null;
-        return activeDebug.step();
+        return (activeDebug != null) ? activeDebug.step() : null;
     }
 
     @Override
     public ExecutionReport stepBack() {
-        if (activeDebug == null) return null;
-        return activeDebug.stepBack();
+        return (activeDebug != null) ? activeDebug.stepBack() : null;
     }
 
     @Override
     public ExecutionReport resume() {
         if (activeDebug == null) return null;
-
-        DebugSession dbg = activeDebug;
-        activeDebug = null;
-
-        SProgram contProg = new SProgramImpl("resume-prog");
-        dbg.getInstructions().forEach(contProg::addInstruction);
-        contProg.setFunctionLookup(program.getFunctionLookup());
-
-        return new ProgramExecuterImpl(
-                contProg,
-                dbg.getContext(),
-                dbg.getPc(),
-                dbg.getTotalCycles()
-        ).runWithReport();
+        ExecutionReport report = activeDebug.resumeUntilBreakpoint();
+        if (activeDebug.isFinished()) {
+            activeDebug = null;
+        }
+        return report;
     }
 
     @Override
@@ -307,6 +305,51 @@ public int getMaxExpansionDegree() {
         return (activeDebug != null) ? activeDebug.buildInitialReport() : null;
     }
 
+    // --- Breakpoints ---
+
+    @Override
+    public Set<Integer> getBreakpoints() {
+        if (activeDebug != null) {
+            return new HashSet<>(activeDebug.getBreakpoints());
+        }
+        return new HashSet<>(breakpoints);
+    }
+
+    @Override
+    public void toggleBreakpoint(int idx) {
+        if (activeDebug != null) {
+
+            if (activeDebug.getBreakpoints().contains(idx)) {
+                activeDebug.toggleBreakpoint(idx);
+                breakpoints.remove(idx);
+            } else {
+                activeDebug.toggleBreakpoint(idx);
+                breakpoints.add(idx);
+            }
+        } else {
+            if (breakpoints.contains(idx)) breakpoints.remove(idx);
+            else breakpoints.add(idx);
+        }
+    }
+
+
+
+    @Override
+    public void clearAllBreakpoints() {
+        if (activeDebug != null) {
+            activeDebug.clearBreakpoints();
+        }
+    }
+
+    @Override
+    public void setBreakpoints(Set<Integer> bps) {
+        if (activeDebug != null) {
+            activeDebug.setBreakpoints(bps);
+        } else {
+            this.breakpoints = new HashSet<>(bps);
+            if (bps != null) this.breakpoints.addAll(bps);
+        }
+    }
 
 
     //---Functions---

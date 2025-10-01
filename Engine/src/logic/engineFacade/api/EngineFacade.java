@@ -5,6 +5,7 @@ import logic.engineFacade.model.InstructionDTO;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 public interface EngineFacade {
 
@@ -47,6 +48,10 @@ public interface EngineFacade {
     boolean isDebugActive();
     int getCurrentPc();
     ExecutionReport buildInitialReport();
+    void clearAllBreakpoints();
+    void setBreakpoints(Set<Integer> breakpoints);
+    Set<Integer> getBreakpoints();
+    void toggleBreakpoint(int idx);
 
     //---Functions---
     List<String> getFunctionNames();

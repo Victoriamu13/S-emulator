@@ -2,7 +2,8 @@ package logic.domain.execution.executer;
 
 import logic.engineFacade.model.ExecutionReport;
 
+import java.util.Set;
+
 public interface ProgramExecuter {
-    long run(long... input);
-    ExecutionReport runWithReport(long... input);
+    ExecutionReport runWithReport(Set<Integer> breakpoints,long... input);
 }

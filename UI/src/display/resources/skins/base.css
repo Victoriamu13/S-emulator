@@ -50,6 +50,15 @@
     -fx-cursor: hand;
 }
 
+.breakpoint-circle {
+    -fx-text-fill: transparent;
+    -fx-font-size: 14px;
+}
+
+.breakpoint-circle.active {
+    -fx-text-fill: red;
+}
+
 
 
 .combo-box {

@@ -32,7 +32,6 @@ public class RootController {
 
     private final EngineHolder holder = new EngineHolder();
     private final IntegerProperty currentPc = new SimpleIntegerProperty(-1);
-
     public IntegerProperty currentPcProperty() {return currentPc;}
 
     @FXML
@@ -81,7 +80,11 @@ public class RootController {
         historyChainController.clear();
         runHistoryController.clear();
         executionwDebuggerController.clearExecutionResults();
-}
+
+        if (holder != null && holder.hasEngine()) {
+            holder.getEngine().clearAllBreakpoints();
+        }
+    }
 
     private void onEngineReady(){
         reset();

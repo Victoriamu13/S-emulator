@@ -4,23 +4,21 @@ import engineHolder.EngineHolder;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import logic.engineFacade.model.InstructionDTO;
 import uiDisplay.design.AnimationManager;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 
@@ -32,20 +30,26 @@ public class InstructionsController {
     @FXML private TableColumn<InstructionDTO, String> colLabel;
     @FXML private TableColumn<InstructionDTO, String> colInstr;
     @FXML private TableColumn<InstructionDTO, String> colCycles;
+    @FXML private TableColumn<InstructionDTO, Void> colBreakpoint;
+
     @FXML private Label lblSummary;
 
     private EngineHolder holder;
     private int currDegree=0;
     private int currentPc = -1;
     private String currentHighlight = null;
+
     private Consumer<InstructionDTO> onInstructionSelected =selIn -> {};
+
     private final String HIGHLIGHTED = "highlighted";
     private final String ACTIVE_ROW = "active-row";
+    private final String BREAKPOINT_ROW = "breakpoint-row";
 
 
     @FXML
     private void initialize(){
         setupColumns();
+        setupBreakpoints();
         setupSelectionListener();
         setupRowHighlighting();
         setupPlaceholder();
@@ -61,6 +65,7 @@ public class InstructionsController {
         colCycles.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().cyclesText()));
     }
 
+
     private void setupSelectionListener() {
         instructionsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldV, sel) -> {
             if (sel != null) onInstructionSelected.accept(sel);
@@ -69,12 +74,15 @@ public class InstructionsController {
 
     private void setupRowHighlighting() {
         instructionsTable.setRowFactory(tv -> new TableRow<>() {
+
             @Override
             protected void updateItem(InstructionDTO item, boolean empty) {
                 super.updateItem(item, empty);
                 boolean match = false;
+
                 if (item != null && !empty && currentHighlight != null && !currentHighlight.isEmpty()) {
                     String search = currentHighlight.trim();
+
                     if (item.label() != null && item.label().trim().equals(search)) {
                         match = true;
                     } else if (item.command() != null && item.command().matches(".*\\b" + search + "\\b.*")) {
@@ -89,7 +97,8 @@ public class InstructionsController {
                 }
 
                 // === highlight row in Debug ===
-                if (item != null && !empty && currentPc >= 0 && item.index() == currentPc) {
+                int rowIndex = getIndex();
+                if (item != null && !empty && currentPc >= 0 && rowIndex == currentPc) {
                     if (!getStyleClass().contains(ACTIVE_ROW)) {
                         getStyleClass().add(ACTIVE_ROW);
                         playActiveRowEffect(this);
@@ -100,6 +109,56 @@ public class InstructionsController {
             }
         });
     }
+
+    private void setupBreakpoints() {
+        colBreakpoint.setCellFactory(col -> {
+            TableCell<InstructionDTO, Void> cell = new TableCell<>() {
+                @Override
+                protected void updateItem(Void item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                        setText(null);
+                        setStyle("");
+                        return;
+                    }
+                    int modelIdx = modelIndexOf(getTableRow());
+                    boolean hasBp = false;
+                    if (holder != null && holder.hasEngine() && modelIdx >= 0) {
+                        hasBp = holder.getEngine().getBreakpoints().contains(modelIdx);
+                    }
+
+                    if (hasBp) {
+                        setText("●");
+                        setStyle("-fx-text-fill: #d32f2f; -fx-font-weight: bold; -fx-alignment: center;");                    } else {
+                        setText("");
+                        setStyle("");
+                    }
+                }
+            };
+
+            cell.setOnMouseClicked(e -> {
+                if (holder != null && holder.hasEngine() && cell.getTableRow() != null) {
+                    int modelIdx = modelIndexOf(cell.getTableRow());
+                    if (modelIdx >= 0) {
+                        if (e.isControlDown()) {
+                            holder.getEngine().toggleBreakpoint(modelIdx);
+                        } else {
+                            holder.getEngine().setBreakpoints(java.util.Set.of(modelIdx)); // נקודה יחידה כברירת מחדל
+                        }
+                        instructionsTable.refresh();
+                    }
+                }
+            });
+            return cell;
+        });
+    }
+
+    private int modelIndexOf(TableRow<InstructionDTO> row) {
+        InstructionDTO item = row.getItem();
+        if (item == null) return -1;
+        return instructionsTable.getItems().indexOf(item);
+    }
+
 
     private void setupPlaceholder() {
         instructionsTable.setPlaceholder(new Label("No program loaded"));
@@ -138,8 +197,12 @@ public class InstructionsController {
         programNameProp.addListener((obs, oldVal, newVal) -> {
             clear();
             if (newVal != null && holder != null && holder.hasEngine()) {
-                holder.getEngine().selectProgramOrFunction(newVal);
-                refreshInstructions();
+                holder.getEngine().clearAllBreakpoints();
+
+                if(newVal!=null) {
+                    holder.getEngine().selectProgramOrFunction(newVal);
+                    refreshInstructions();
+                }
             }
         });
     }
@@ -181,7 +244,6 @@ public class InstructionsController {
 
         lblSummary.setText(String.format("Total: %d | Basic: %d | Synthetic: %d",total,basic,synth));
     }
-
 
     public void clear() {
         instructionsTable.getItems().clear();

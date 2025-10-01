@@ -18,6 +18,7 @@ public class DebugSession {
     private boolean finished;
     private Map<SVars, Long> lastSnapshot = new HashMap<>();
     private final Deque<DebugState> debugHistory = new ArrayDeque<>();
+    private  Set<Integer> breakpoints = new HashSet<>();
 
 
     public DebugSession(List<SInstruction> instructions, CurrentContext ctx) {
@@ -119,7 +120,47 @@ public class DebugSession {
         return new ExecutionReport(yVal, Set.of(), finalVars, totalCycles);
     }
 
+    // --- Breakpoints API ---
+
+    public void toggleBreakpoint(int index) {
+        if (breakpoints.contains(index)) breakpoints.remove(index);
+        else breakpoints.add(index);
+    }
+
+    public void clearBreakpoints() { breakpoints.clear(); }
+
+    public void setBreakpoints(Set<Integer> bps) {
+        breakpoints.clear();
+        if (bps != null) breakpoints.addAll(bps);
+    }
+
+    public Set<Integer> getBreakpoints() {
+        return Collections.unmodifiableSet(breakpoints);
+    }
+
+
+    // --- Resume/Stop ---
+    public ExecutionReport resumeUntilBreakpoint() {
+        final boolean skipFirst = breakpoints.contains(pc);
+        boolean skipped = false;
+        while (!finished && pc < instructions.size()) {
+            ExecutionReport report = step();
+
+            if (breakpoints.contains(pc)) {
+                if (skipFirst && !skipped) {
+
+                    skipped = true;
+                } else {
+                    return report;
+                }
+            }
+        }
+        return buildFinalReport();
+    }
+
     public void stop() {this.finished = true;}
+
+    // --- Getters ---
     public boolean isFinished() {return finished;}
     public CurrentContext getContext() {return ctx;}
     public int getPc() {return pc;}

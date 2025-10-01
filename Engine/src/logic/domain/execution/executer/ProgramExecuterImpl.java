@@ -30,14 +30,9 @@ public class ProgramExecuterImpl implements ProgramExecuter {
         this.initialCycles = initialCycles;
     }
 
-    @Override
-    public long run(long... inputs) {
-        return runWithReport(inputs).yValue();
-    }
-
 
     @Override
-    public ExecutionReport runWithReport(long... inputs) {
+    public ExecutionReport runWithReport(Set<Integer>breakpoints,long... inputs) {
         CurrentContext context;
         int instIndex;
         long totalCycles = initialCycles;
@@ -60,6 +55,15 @@ public class ProgramExecuterImpl implements ProgramExecuter {
         }
 
         while (instIndex >= 0 && instIndex < instructions.size()) {
+
+            if (breakpoints.contains(instIndex)) {
+                long yVal = context.getVariableValue(SVars.RESULT);
+                Map<String, Long> finalVarsValues = orderVarsForReport(context.snapshot());
+                this.startPc = instIndex;
+                this.externalContext = context;
+                return new ExecutionReport(yVal, Set.of(), finalVarsValues, totalCycles);
+            }
+
             SInstruction inst = instructions.get(instIndex);
             totalCycles+=inst.cycles();
 

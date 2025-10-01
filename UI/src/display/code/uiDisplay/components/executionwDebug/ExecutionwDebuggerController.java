@@ -47,6 +47,7 @@ public class ExecutionwDebuggerController {
     public void setDegreeSupplier(Supplier<Integer> supplier) {this.degreeSupplier = (supplier != null) ? supplier : () -> 0;}
     public void setOnHistoryChanged(Runnable r) { this.onHistoryChanged = r; }
 
+
     @FXML
     private void initialize() {
         setupVarsTable();
@@ -191,7 +192,7 @@ public class ExecutionwDebuggerController {
     }
 
     @FXML
-    private void onRunClicked(){
+    private void onRunClicked() {
         if (holder == null || !holder.hasEngine()) {
             showError("No program loaded.");
             return;
@@ -222,15 +223,36 @@ public class ExecutionwDebuggerController {
                     lblCycles.setText("Cycles: " + initReport.totalCycles());
                 }
                 disableDebugButtons(false);
-           }
-        } else {
-            ExecutionReport report = engine.runWithReport(degree, inputs);
-            if (report != null) {
-                updateVarsTable(report);
-                lblCycles.setText("Cycles: " + report.totalCycles());
+            }
+        } else { // NORMAL mode
+            Set<Integer> bps = holder.getEngine().getBreakpoints();
+            if (bps != null && !bps.isEmpty()) {
 
-                saveToHistory(report);
-                if (onHistoryChanged != null) onHistoryChanged.run();
+                if (engine.startDebugSession(degree, inputs)) {
+                    lastInputsUsed = inputs;
+                    ExecutionReport report = engine.resume();
+
+                    if (report != null) {
+                        rbDebug.setSelected(true);
+                        debugMode = true;
+                        disableDebugButtons(false);
+
+                        updateVarsTable(report);
+                        lblCycles.setText("Cycles: " + report.totalCycles());
+                        if (currentPc != null) {
+                            currentPc.set(engine.getCurrentPc());
+                        }
+                    }
+                }
+            } else {
+                ExecutionReport report = engine.runWithReport(degree, inputs);
+
+                if (report != null) {
+                    updateVarsTable(report);
+                    lblCycles.setText("Cycles: " + report.totalCycles());
+                    saveToHistory(report);
+                    if (onHistoryChanged != null) onHistoryChanged.run();
+                }
             }
         }
     }
