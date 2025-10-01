@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.CheckBox?>
 <VBox xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml/"
       fx:controller="uiDisplay.components.load.LoadingBarController"
@@ -24,6 +25,9 @@
     <HBox spacing="10" alignment="CENTER">
     <children>
         <ComboBox fx:id="skinSelector" promptText="Select Skin" prefWidth="150.0"/>
+        <Region prefWidth="30"/>
+        <Label text="Animations:" styleClass="dynamic-label"/>
+        <CheckBox fx:id="wthAnimations" text="Enable" selected="true"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Label fx:id="lblLoading"
                text="Load Progress : 0%"

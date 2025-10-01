@@ -8,7 +8,7 @@ import logic.domain.program.SProgramImpl;
 import logic.domain.program.info.ExpandedProgramInfo;
 import logic.domain.program.info.ProgramInfoUtils;
 import logic.domain.variable.SVarsType;
-import logic.engineFacade.model.DebugSession;
+import logic.engineFacade.model.debug.DebugSession;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
 import logic.domain.expand.expandProgram.DegreeCalculator;
@@ -254,6 +254,12 @@ public int getMaxExpansionDegree() {
     public ExecutionReport stepOver() {
         if (activeDebug == null) return null;
         return activeDebug.step();
+    }
+
+    @Override
+    public ExecutionReport stepBack() {
+        if (activeDebug == null) return null;
+        return activeDebug.stepBack();
     }
 
     @Override

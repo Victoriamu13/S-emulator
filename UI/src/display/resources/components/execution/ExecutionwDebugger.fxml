@@ -38,6 +38,7 @@
             <Button fx:id="btnNewRun" text="New Run"/>
             <Button fx:id="btnRun" text="Run"/>
             <Button fx:id="btnStepOver" text="Step Over" disable="true"/>
+            <Button fx:id="btnStepBack" text="Step Back" disable="true"/>
             <Button fx:id="btnStop" text="Stop" disable="true"/>
             <Button fx:id="btnResume" text="Resume" disable="true"/>
          </children>

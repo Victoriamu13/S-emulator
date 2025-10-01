@@ -18,6 +18,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import logic.engineFacade.model.InstructionDTO;
+import uiDisplay.design.AnimationManager;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -191,6 +192,7 @@ public class InstructionsController {
 
 
     private void playActiveRowEffect(TableRow<InstructionDTO> row) {
+        if (!AnimationManager.isAnimationsEnabled()) return;
         ScaleTransition st = new ScaleTransition(Duration.millis(300), row);
         st.setFromX(1.0);
         st.setFromY(1.0);

@@ -4,16 +4,19 @@ import javafx.animation.Animation;
 import javafx.animation.ScaleTransition;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.util.Duration;
+import uiDisplay.design.AnimationManager;
 import uiDisplay.design.SkinManager;
 
 public class LoadingBarController {
     @FXML private ProgressBar progressBar;
     @FXML private Label lblLoading;
     @FXML private ComboBox<String> skinSelector;
+    @FXML private CheckBox wthAnimations;
 
     private Runnable onFinished;
     private Runnable onStart;
@@ -30,6 +33,11 @@ public class LoadingBarController {
         skinSelector.setOnAction(e -> {
             String chosen = skinSelector.getValue();
             SkinManager.apply(skinSelector.getScene(), chosen);
+        });
+
+        wthAnimations.setSelected(AnimationManager.isAnimationsEnabled());
+        wthAnimations.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            AnimationManager.setAnimationsEnabled(newVal);
         });
     }
 
@@ -93,6 +101,7 @@ public class LoadingBarController {
     }
 
     private void startPulseAnimation() {
+        if (!AnimationManager.isAnimationsEnabled()) return;
         pulseAnim = new ScaleTransition(Duration.millis(400), progressBar);
         pulseAnim.setFromX(1.0);
         pulseAnim.setToX(1.05);

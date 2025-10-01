@@ -24,6 +24,7 @@ public class ExecutionwDebuggerController {
     @FXML private Button btnStop;
     @FXML private Button btnRun;
     @FXML private Button btnStepOver;
+    @FXML private Button btnStepBack;
     @FXML private TableView<VarRow>varsTable;
     @FXML private TableColumn<VarRow, String> colVar;
     @FXML private TableColumn<VarRow, String>  colValue;
@@ -125,6 +126,7 @@ public class ExecutionwDebuggerController {
         btnStop.setOnAction(e->onStopClicked());
         btnResume.setOnAction(e->onResumeClicked());
         btnStepOver.setOnAction(e->onStepOverClicked());
+        btnStepBack.setOnAction(e -> onStepBackClicked());
         btnNewRun.setOnAction(e -> onNewRunClicked());
         btnRun.setOnAction(e -> onRunClicked());
     }
@@ -252,6 +254,18 @@ public class ExecutionwDebuggerController {
         }
     }
 
+    @FXML
+    private void onStepBackClicked(){
+
+        ExecutionReport report= holder.getEngine().stepBack();
+        if(report!=null){
+            updateVarsTable(report);
+            lblCycles.setText("Cycles: " + report.totalCycles());
+            if(currentPc!=null){
+                currentPc.set(holder.getEngine().getCurrentPc());
+            }
+        }
+    }
 
 
     @FXML
@@ -345,6 +359,7 @@ public class ExecutionwDebuggerController {
 
     private void disableDebugButtons(boolean enable) {
         btnStepOver.setDisable(enable);
+        btnStepBack.setDisable(enable);
         btnStop.setDisable(enable);
         btnResume.setDisable(enable);
     }

@@ -1,10 +1,11 @@
-package logic.engineFacade.model;
+package logic.engineFacade.model.debug;
 
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.instructions.SInstruction;
 import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
+import logic.engineFacade.model.ExecutionReport;
 
 import java.util.*;
 
@@ -16,6 +17,7 @@ public class DebugSession {
     private long totalCycles;
     private boolean finished;
     private Map<SVars, Long> lastSnapshot = new HashMap<>();
+    private final Deque<DebugState> debugHistory = new ArrayDeque<>();
 
 
     public DebugSession(List<SInstruction> instructions, CurrentContext ctx) {
@@ -25,6 +27,8 @@ public class DebugSession {
         this.totalCycles = 0;
         this.finished = false;
         this.lastSnapshot = new HashMap<>(ctx.snapshot());
+
+        debugHistory.push(new DebugState(pc,totalCycles,new HashMap<>(lastSnapshot)));
     }
 
     public ExecutionReport step(){
@@ -32,6 +36,7 @@ public class DebugSession {
             finished = true;
             return buildReport(Set.of());
         }
+        debugHistory.push(new DebugState(pc, totalCycles, new HashMap<>(lastSnapshot)));
 
         SInstruction inst=instructions.get(pc);
         totalCycles+=inst.cycles();
@@ -41,7 +46,8 @@ public class DebugSession {
             finished=true;
         }else if(next==SpecialLabels.EMPTY){
             pc++;
-        }else{  //find label
+        }
+        else{  //find label
             String target=next.getLabelRepresentation();;
             int newPc=-1;
             for(int i=0;i<instructions.size();i++){
@@ -72,6 +78,21 @@ public class DebugSession {
         return buildReport(changedVars);
     }
 
+    public ExecutionReport stepBack(){
+        if (debugHistory.isEmpty()){
+            return buildReport(Set.of());
+        }
+
+        DebugState prevState = debugHistory.pop();
+        this.pc = prevState.pc();
+        this.totalCycles = prevState.totalCycles();
+
+        ctx.restoreSnapshot(prevState.snapshot());
+
+        lastSnapshot=new HashMap<>(prevState.snapshot());
+
+        return buildReport(Set.of());
+    }
 
 
     private ExecutionReport buildReport(Set<String> changedVars) {

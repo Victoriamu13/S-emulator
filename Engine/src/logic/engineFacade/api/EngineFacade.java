@@ -1,13 +1,10 @@
 package logic.engineFacade.api;
-import logic.engineFacade.model.DebugSession;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
-import logic.domain.program.info.ProgramInfo;
 import logic.engineFacade.model.InstructionDTO;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 public interface EngineFacade {
 
@@ -44,6 +41,7 @@ public interface EngineFacade {
     //---Debug---
     boolean startDebugSession(int degree, long[] inputs);
     ExecutionReport stepOver();
+    ExecutionReport stepBack();
     ExecutionReport resume();
     ExecutionReport stopDebugSession();
     boolean isDebugActive();

@@ -39,6 +39,12 @@ public class CurrentContextImpl implements CurrentContext {
     }
 
     @Override
+    public void restoreSnapshot(Map<SVars, Long> snapshot) {
+        variableState.clear();
+        variableState.putAll(snapshot);
+    }
+
+    @Override
     public FunctionLookup getFunctionLookup() {
         return functionLookup;
     }

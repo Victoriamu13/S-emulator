@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.util.Duration;
+import uiDisplay.design.AnimationManager;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -144,6 +145,7 @@ public class ProgramControlsController {
     }
 
     private void playDegreeChangeAnimation() {
+        if (!AnimationManager.isAnimationsEnabled()) return;
         ScaleTransition st = new ScaleTransition(Duration.millis(250), lblDegree);
         st.setFromX(1.0);
         st.setFromY(1.0);
