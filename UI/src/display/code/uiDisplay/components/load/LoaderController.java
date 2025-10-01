@@ -48,12 +48,12 @@ LoaderController {
 
         holder.set(null);
         engineProperty.set(null);
-        loadState.set(LoadState.LOADING);
 
         EngineFacade engine = new EngineFacadeImpl();
         LoadOutcome res=engine.loadProgram(f.toPath());
 
         if(res.success()){
+            loadState.set(LoadState.LOADING);
             holder.set(engine);
             engineProperty.set(holder.getEngine());
             loadState.set(LoadState.SUCCESS);

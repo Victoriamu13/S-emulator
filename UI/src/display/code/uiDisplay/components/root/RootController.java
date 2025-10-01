@@ -20,7 +20,6 @@ public class RootController {
     @FXML
     private SplitPane mainSplitPane;
     private static final double DIVIDER_POSITION = 0.5;
-    @FXML private VBox overlay;
     @FXML private BorderPane mainContent;
     @FXML private LoaderController loaderController;
     @FXML private InstructionsController instructionsController;
@@ -53,23 +52,13 @@ public class RootController {
             switch (newVal) {
                 case LOADING -> {
                     loadingBarController.resetLoading();
-                    showOverlay();
-                    loadingBarController.setOnFinished(() -> {hideOverlay();});
                     loadingBarController.startLoadingSimulation();
                 }
                 case SUCCESS -> {
-                    loadingBarController.setOnFinished(() -> {
-                        loadingBarController.markSuccess();
-                        hideOverlay();
-                    });
+                    loadingBarController.setOnFinished(loadingBarController::finishLoading);
                 }
-                case ERROR -> {
+                case ERROR,IDLE -> {
                     loadingBarController.resetLoading();
-                    hideOverlay();
-                }
-                case IDLE -> {
-                    loadingBarController.resetLoading();
-                    hideOverlay();
                 }
             }
         });
@@ -86,17 +75,6 @@ public class RootController {
         });
     }
 
-    private void showOverlay() {
-        overlay.setVisible(true);
-        overlay.setManaged(true);
-        mainContent.setDisable(true);
-    }
-
-    private void hideOverlay() {
-        overlay.setVisible(false);
-        overlay.setManaged(false);
-        mainContent.setDisable(false);
-    }
 
     private void reset() {
         instructionsController.clear();

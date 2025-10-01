@@ -1,15 +1,22 @@
 package uiDisplay.components.instructions;
 
 import engineHolder.EngineHolder;
+import javafx.animation.FadeTransition;
+import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import logic.engineFacade.model.InstructionDTO;
 
 import java.util.List;
@@ -82,7 +89,10 @@ public class InstructionsController {
 
                 // === highlight row in Debug ===
                 if (item != null && !empty && currentPc >= 0 && item.index() == currentPc) {
-                    if (!getStyleClass().contains(ACTIVE_ROW)) getStyleClass().add(ACTIVE_ROW);
+                    if (!getStyleClass().contains(ACTIVE_ROW)) {
+                        getStyleClass().add(ACTIVE_ROW);
+                        playActiveRowEffect(this);
+                    }
                 } else {
                     getStyleClass().remove(ACTIVE_ROW);
                 }
@@ -138,6 +148,17 @@ public class InstructionsController {
             int pc = newVal.intValue();
             this.currentPc = pc;
             instructionsTable.refresh();
+
+                    if (pc >= 0) {
+                        instructionsTable.getItems().stream()
+                                .filter(row -> row.index() == pc)
+                                .findFirst()
+                                .ifPresent(row -> {
+                                    int rowIndex = instructionsTable.getItems().indexOf(row);
+                                    instructionsTable.scrollTo(rowIndex);
+                                });
+                    }
+
         });
     }
 
@@ -167,4 +188,19 @@ public class InstructionsController {
         lblSummary.setText("Total: 0 | Basic: 0 | Synthetic: 0");
     }
 
+
+
+    private void playActiveRowEffect(TableRow<InstructionDTO> row) {
+        ScaleTransition st = new ScaleTransition(Duration.millis(300), row);
+        st.setFromX(1.0);
+        st.setFromY(1.0);
+        st.setToX(1.05);
+        st.setToY(1.05);
+        st.setCycleCount(2);
+        st.setAutoReverse(true);
+
+        st.setOnFinished(e -> row.setEffect(null));
+
+        st.play();
+    }
 }

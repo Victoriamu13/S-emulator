@@ -1,10 +1,13 @@
 package uiDisplay.components.load;
 
+import javafx.animation.Animation;
+import javafx.animation.ScaleTransition;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.util.Duration;
 import uiDisplay.design.SkinManager;
 
 public class LoadingBarController {
@@ -14,9 +17,10 @@ public class LoadingBarController {
 
     private Runnable onFinished;
     private Runnable onStart;
+    private boolean animationsEnabled = true;
+    private ScaleTransition pulseAnim;
 
     public void setOnFinished(Runnable r) {this.onFinished = r;}
-    public void setOnStart(Runnable r) { this.onStart = r; }
 
     @FXML
     private void initialize() {
@@ -29,10 +33,14 @@ public class LoadingBarController {
         });
     }
 
+    public void setAnimationsEnabled(boolean enabled) {
+        this.animationsEnabled = enabled;
+    }
+
     public void startLoadingSimulation(){
         progressBar.progressProperty().unbind();
         progressBar.setProgress(0);
-        lblLoading.setText("Loading...");
+        lblLoading.setText("Load Progress : 0%");
 
         if (onStart != null) onStart.run();
 
@@ -43,11 +51,17 @@ public class LoadingBarController {
                 for(int i=0;i<=steps;i++){
                     Thread.sleep(20);
                     updateProgress(i,100);
+                    updateMessage("Load Progress : " + i + "%");
                 }
                 return null;
             }
         };
         progressBar.progressProperty().bind(task.progressProperty());
+        lblLoading.textProperty().bind(task.messageProperty());
+
+        task.setOnRunning(e -> {
+            if (animationsEnabled) startPulseAnimation();
+        });
 
         task.setOnSucceeded(e->{
             progressBar.progressProperty().unbind();
@@ -61,17 +75,39 @@ public class LoadingBarController {
         t.start();;
     }
 
-    public void markSuccess() {
-        lblLoading.setText("File Loaded Successfully!");
-        if (progressBar.progressProperty().isBound()) {
-            progressBar.progressProperty().unbind();
-        }
-        progressBar.setProgress(1);
-    }
 
     public void resetLoading() {
         lblLoading.setText("Load Progress : 0%");
         progressBar.progressProperty().unbind();
         progressBar.setProgress(0);
+    }
+
+    public void finishLoading() {
+        stopPulseAnimation();
+
+        lblLoading.textProperty().unbind();
+        lblLoading.setText("Load Progress : 100%");
+
+        progressBar.progressProperty().unbind();
+        progressBar.setProgress(1);
+    }
+
+    private void startPulseAnimation() {
+        pulseAnim = new ScaleTransition(Duration.millis(400), progressBar);
+        pulseAnim.setFromX(1.0);
+        pulseAnim.setToX(1.05);
+        pulseAnim.setFromY(1.0);
+        pulseAnim.setToY(1.05);
+        pulseAnim.setAutoReverse(true);
+        pulseAnim.setCycleCount(Animation.INDEFINITE);
+        pulseAnim.play();
+    }
+
+    private void stopPulseAnimation() {
+        if (pulseAnim != null) {
+            pulseAnim.stop();
+            progressBar.setScaleX(1);
+            progressBar.setScaleY(1);
+        }
     }
 }

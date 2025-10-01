@@ -1,12 +1,14 @@
 package uiDisplay.components.programFeatures;
 
 import engineHolder.EngineHolder;
+import javafx.animation.ScaleTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -49,12 +51,14 @@ public class ProgramControlsController {
             if(holder.hasEngine()&& currDegree.get()<maxDegree.get()){
                 currDegree.set(currDegree.get()+1);
                 refreshHighlightList(currDegree.get());
+                playDegreeChangeAnimation();
             }
         });
         btnCollapse.setOnAction(e->{
             if(holder.hasEngine() && currDegree.get() > 0){
                 currDegree.set(currDegree.get() - 1);
                 refreshHighlightList(currDegree.get());
+                playDegreeChangeAnimation();
             }
         });
         highlightSelector.getSelectionModel().selectedItemProperty()
@@ -139,4 +143,14 @@ public class ProgramControlsController {
 
     }
 
+    private void playDegreeChangeAnimation() {
+        ScaleTransition st = new ScaleTransition(Duration.millis(250), lblDegree);
+        st.setFromX(1.0);
+        st.setFromY(1.0);
+        st.setToX(1.2);
+        st.setToY(1.2);
+        st.setAutoReverse(true);
+        st.setCycleCount(2);
+        st.play();
+    }
 }
