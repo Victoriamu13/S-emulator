@@ -9,7 +9,6 @@
 
 
 <?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.Label?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="uiDisplay.components.root.RootController"
@@ -32,7 +31,7 @@
                             <padding>
                                 <Insets top="10" right="10" bottom="10" left="10"/>
                             </padding>
-                            <fx:include source="/components/programControls/ProgramControls.fxml" fx:id="programControls"/>
+                            <fx:include source="/components/programFeatures/ProgUpperControls.fxml" fx:id="progUpperControls"/>
                             <fx:include source="/components/instructions/Instructions.fxml" fx:id="instructions"/>
                             <fx:include source="/components/historyChain/HistoryChain.fxml" fx:id="historyChain"/>
                         </VBox>
@@ -47,7 +46,7 @@
         </center>
 
         <bottom>
-            <fx:include source="/components/loader/LoadingBar.fxml" fx:id="loadingBar"/>
+            <fx:include source="/components/programFeatures/ProgBottomControls.fxml" fx:id="progBottomControls"/>
         </bottom>
     </BorderPane>
 </StackPane>

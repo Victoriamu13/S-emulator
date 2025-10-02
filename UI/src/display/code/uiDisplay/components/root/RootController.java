@@ -6,13 +6,12 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
 import uiDisplay.components.executionwDebug.ExecutionwDebuggerController;
 import uiDisplay.components.expansion.HistoryChainController;
 import uiDisplay.components.instructions.InstructionsController;
 import uiDisplay.components.load.LoaderController;
-import uiDisplay.components.load.LoadingBarController;
-import uiDisplay.components.programFeatures.ProgramControlsController;
+import uiDisplay.components.programFeatures.ProgBottomControlsController;
+import uiDisplay.components.programFeatures.ProgUpperControlsController;
 import uiDisplay.components.runHistory.RunHistoryController;
 
 import static engineHolder.EngineHolder.hasEngine;
@@ -26,10 +25,10 @@ public class RootController {
     @FXML private LoaderController loaderController;
     @FXML private InstructionsController instructionsController;
     @FXML private HistoryChainController historyChainController;
-    @FXML private ProgramControlsController programControlsController;
+    @FXML private ProgUpperControlsController progUpperControlsController;
     @FXML private ExecutionwDebuggerController executionwDebuggerController;
     @FXML private RunHistoryController runHistoryController;
-    @FXML private LoadingBarController loadingBarController;
+    @FXML private ProgBottomControlsController progBottomControlsController;
 
 
     private final EngineHolder holder = new EngineHolder();
@@ -41,25 +40,27 @@ public class RootController {
         lockDivider(mainSplitPane);
         loaderController.setEngineHolder(holder);
         loaderController.engineProperty().addListener((obs, oldVal, newEngine) -> {
-            if (newEngine != null) {
+            // listener: when a new Engine is loaded -> initialize all UI controllers
+           if (newEngine != null) {
                 onEngineReady();
             }else {
                 reset();
-                programControlsController.clear();
+                progUpperControlsController.clear();
             }
         });
 
         loaderController.loadStateProperty().addListener((obs, oldVal, newVal) -> {
+            // listener: update loading bar UI based on state
             switch (newVal) {
                 case LOADING -> {
-                    loadingBarController.resetLoading();
-                    loadingBarController.startLoadingSimulation();
+                    progBottomControlsController.resetLoading();
+                    progBottomControlsController.startLoadingSimulation();
                 }
                 case SUCCESS -> {
-                    loadingBarController.setOnFinished(loadingBarController::finishLoading);
+                    progBottomControlsController.setOnFinished(progBottomControlsController::finishLoading);
                 }
                 case ERROR,IDLE -> {
-                    loadingBarController.resetLoading();
+                    progBottomControlsController.resetLoading();
                 }
             }
         });
@@ -91,29 +92,29 @@ public class RootController {
     private void onEngineReady(){
         reset();
 
-        programControlsController.setEngineHolder(holder);
+        progUpperControlsController.setEngineHolder(holder);
         instructionsController.setEngineHolder(holder);
         historyChainController.setEngineHolder(holder);
         executionwDebuggerController.setEngineHolder(holder);
         runHistoryController.setEngineHolder(holder);
 
 
-        instructionsController.bindSelectedProgramName(programControlsController.selectedProgramNameProperty());
-        historyChainController.bindSelectedProgramName(programControlsController.selectedProgramNameProperty());
-        executionwDebuggerController.bindSelectedProgramName(programControlsController.selectedProgramNameProperty());
-        runHistoryController.bindSelectedProgramName(programControlsController.selectedProgramNameProperty());
+        instructionsController.bindSelectedProgramName(progUpperControlsController.selectedProgramNameProperty());
+        historyChainController.bindSelectedProgramName(progUpperControlsController.selectedProgramNameProperty());
+        executionwDebuggerController.bindSelectedProgramName(progUpperControlsController.selectedProgramNameProperty());
+        runHistoryController.bindSelectedProgramName(progUpperControlsController.selectedProgramNameProperty());
 
-        instructionsController.bindDegree(programControlsController.currentDegreeProperty());
-        executionwDebuggerController.setDegreeSupplier(() -> programControlsController.getCurrentDegree());
-        instructionsController.bindHighlight(programControlsController.highlightSelectionProperty());
-        historyChainController.bindHighlight(programControlsController.highlightSelectionProperty());
+        instructionsController.bindDegree(progUpperControlsController.currentDegreeProperty());
+        executionwDebuggerController.setDegreeSupplier(() -> progUpperControlsController.getCurrentDegree());
+        instructionsController.bindHighlight(progUpperControlsController.highlightSelectionProperty());
+        historyChainController.bindHighlight(progUpperControlsController.highlightSelectionProperty());
         historyChainController.attachHistoryChain(
                 instructionsController,
-                programControlsController.currentDegreeProperty(),
-                programControlsController
+                progUpperControlsController.currentDegreeProperty(),
+                progUpperControlsController
         );
 
-        runHistoryController.setOnSetDegree(deg -> programControlsController.currentDegreeProperty().set(deg));
+        runHistoryController.setOnSetDegree(deg -> progUpperControlsController.currentDegreeProperty().set(deg));
         runHistoryController.setOnClearExecution(() -> executionwDebuggerController.clearAndReloadInputs());
         runHistoryController.setOnPrefillInputs(inputs -> executionwDebuggerController.prefillInputs(inputs));
         runHistoryController.setOnTriggerRun(() -> executionwDebuggerController.triggerRun());
@@ -122,8 +123,8 @@ public class RootController {
         instructionsController.bindCurrentPc(currentPcProperty());
 
 
-        programControlsController.refreshHighlightList(0);
-        instructionsController.setDegree(programControlsController.getCurrentDegree());
+        progUpperControlsController.refreshHighlightList(0);
+        instructionsController.setDegree(progUpperControlsController.getCurrentDegree());
         executionwDebuggerController.clearExecutionResults();
     }
 

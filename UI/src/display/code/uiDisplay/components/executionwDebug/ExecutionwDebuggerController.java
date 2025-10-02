@@ -146,6 +146,7 @@ public class ExecutionwDebuggerController {
         debugMode = false;
 
         runModeGroup.selectedToggleProperty().addListener((obs, old, nw) -> {
+            // listener: switch between Normal and Debug mode
             if (nw == rbDebug) {
                 debugMode = true;
                 disableDebugButtons(true);

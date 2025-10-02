@@ -55,7 +55,7 @@ public class InstructionsController {
         colCycles.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().cyclesText()));
     }
 
-
+    // listener that notifies when a new instruction row is selected
     private void setupSelectionListener() {
         instructionsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldV, sel) -> {
             if (sel != null) onInstructionSelected.accept(sel);
@@ -112,7 +112,8 @@ public class InstructionsController {
                         return;
                     }
                     int modelIdx = modelIndexOf(getTableRow());
-                    boolean hasBp = hasEngine(holder) && holder.getEngine().getBreakpoints().contains(modelIdx);
+                    boolean hasBp = hasEngine(holder) &&
+                            holder.getEngine().getBreakpoints().contains(modelIdx);
 
                     setText(hasBp ? "●" : "");
                     setStyle(hasBp ? "-fx-text-fill: #d32f2f; -fx-font-weight: bold; -fx-alignment: center;" : "");
@@ -193,6 +194,7 @@ public class InstructionsController {
     }
 
     public void bindCurrentPc(IntegerProperty pcProperty) {
+        // listener: refresh table + scroll when PC changes in debug mode
         pcProperty.addListener((obs, oldVal, newVal) -> {
             int pc = newVal.intValue();
             this.currentPc = pc;
@@ -211,7 +213,7 @@ public class InstructionsController {
         });
     }
 
-    // --- internals ---
+    // ==== Internals ==
     private void refreshInstructions(){
         if(!holder.hasEngine()){
             instructionsTable.getItems().clear();

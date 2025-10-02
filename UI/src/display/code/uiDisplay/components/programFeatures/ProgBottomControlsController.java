@@ -1,4 +1,4 @@
-package uiDisplay.components.load;
+package uiDisplay.components.programFeatures;
 
 import javafx.animation.Animation;
 import javafx.animation.ScaleTransition;
@@ -12,7 +12,7 @@ import javafx.util.Duration;
 import uiDisplay.design.AnimationManager;
 import uiDisplay.design.SkinManager;
 
-public class LoadingBarController {
+public class ProgBottomControlsController {
     @FXML private ProgressBar progressBar;
     @FXML private Label lblLoading;
     @FXML private ComboBox<String> skinSelector;

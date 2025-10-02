@@ -12,7 +12,7 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import logic.engineFacade.model.InstructionDTO;
 import uiDisplay.components.instructions.InstructionsController;
-import uiDisplay.components.programFeatures.ProgramControlsController;
+import uiDisplay.components.programFeatures.ProgUpperControlsController;
 
 
 public class HistoryChainController {
@@ -85,7 +85,7 @@ public class HistoryChainController {
     // ==== API for other controllers ====
 
     public void attachHistoryChain(InstructionsController instCtrl, IntegerProperty degreeProp,
-                                   ProgramControlsController programCtrl){
+                                   ProgUpperControlsController programCtrl){
 
         instCtrl.setOnInstructionSelected(sel->{
             if(sel!=null) {

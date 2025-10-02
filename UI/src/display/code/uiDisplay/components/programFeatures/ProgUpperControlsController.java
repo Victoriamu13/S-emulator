@@ -19,7 +19,7 @@ import java.util.Set;
 import static engineHolder.EngineHolder.hasEngine;
 
 
-public class ProgramControlsController {
+public class ProgUpperControlsController {
 
     @FXML private ComboBox<String> programSelector;
     @FXML private Button btnCollapse;
@@ -57,6 +57,7 @@ public class ProgramControlsController {
                 playDegreeChangeAnimation();
             }
         });
+        // button expands program one degree forward
         btnCollapse.setOnAction(e->{
             if(holder.hasEngine() && currDegree.get() > 0){
                 currDegree.set(currDegree.get() - 1);
@@ -94,7 +95,7 @@ public class ProgramControlsController {
 
             }
 
-            // update when user changes selection
+            // listener: when user picks another program/function
             programSelector.getSelectionModel().selectedItemProperty()
                     .addListener((obs, oldV, newV) -> {
                         if (newV == null) return;
@@ -106,7 +107,7 @@ public class ProgramControlsController {
                         refreshHighlightList(currDegree.get());
                     });
 
-            // update when degree changes
+            // listener: refresh highlight list when degree changes
             currDegree.addListener((obs, oldVal, newVal) -> {
                 refreshHighlightList(newVal.intValue());
             });
@@ -120,7 +121,7 @@ public class ProgramControlsController {
 
 
     public void refreshHighlightList(int degree){
-        if(hasEngine(holder)) {
+        if(!hasEngine(holder)) {
             highlightSelector.getItems().clear();
             highlightSelector.setPromptText("Highlight");
             return;

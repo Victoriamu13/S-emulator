@@ -11,7 +11,7 @@
 <?import javafx.scene.control.CheckBox?>
 <VBox xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml/"
-      fx:controller="uiDisplay.components.load.LoadingBarController"
+      fx:controller="uiDisplay.components.programFeatures.ProgBottomControlsController"
       spacing="8"
       alignment="CENTER"
       stylesheets="@/skins/base.css">

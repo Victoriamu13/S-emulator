@@ -158,7 +158,7 @@ public class DebugSession {
     public void stop() {this.finished = true;}
 
     // ==== Getters ====
-    
+
     public boolean isFinished() {return finished;}
     public CurrentContext getContext() {return ctx;}
     public int getPc() {return pc;}
