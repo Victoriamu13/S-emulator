@@ -7,6 +7,7 @@ import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.basic.bJumpInst.JumpNotZeroInst;
 import logic.domain.instructions.synthetic.sJumpInst.*;
 import logic.domain.instructions.synthetic.sNoJumpInst.AssignmentInst;
+import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;
 import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
@@ -19,7 +20,7 @@ import java.util.TreeSet;
 public final class ProgramInfoUtils {
     private ProgramInfoUtils() {}
 
-    // Build InstructionInfo for a single instruction.
+    // Build InstructionInfo for a single instruction
     public static InstructionInfo toInfo(SInstruction inst, int index,String fullCommandOrNull) {
 
         boolean synthetic = ProgramInfoImpl.isSynthetic(inst);
@@ -27,30 +28,29 @@ public final class ProgramInfoUtils {
         String command = (fullCommandOrNull != null) ? fullCommandOrNull : ProgramInfoImpl.toCommandText(inst);
         int cycles = inst.cycles();
 
-        String varName = null;
-        if (inst.getVariable() != null) {
-            varName = inst.getVariable().getRepresentation();
-        }
+        String varName = (inst.getVariable() != null)
+                ? inst.getVariable().getRepresentation()
+                : null;
 
         return new InstructionInfoImpl(inst.getName(),index, synthetic,varName, labelText, command, cycles);
     }
 
 
-    // ---- Instruction set aggregations ----
-
+    // Collect all xN inputs used in program
     public static List<String> inputsUsed(Iterable<SInstruction> instrs) {
         TreeSet<Integer> nums = new TreeSet<>();
 
         for (SInstruction inst : instrs) {
             SVars var = inst.getVariable();
 
+            // case: instruction has INPUT target
             if (var != null && var.getType() == SVarsType.INPUT) {
                 String rep = var.getRepresentation();
                nums.add(Integer.parseInt(rep.substring(1)));
 
             }
 
-            //  case AssignmentInst
+            // case: Assignment from INPUT
             if (inst instanceof AssignmentInst asg) {
                 SVars src = asg.getSourceVar();
                 if (src != null && src.getType() == SVarsType.INPUT) {
@@ -59,7 +59,7 @@ public final class ProgramInfoUtils {
                 }
             }
 
-            //  case JumpEqualVariableInst
+            // case: JumpEqualVariable with INPUT
             if (inst instanceof JumpEqualVariableInst jev) {
                 SVars other = jev.getOtherVar();
                 if (other != null && other.getType() == SVarsType.INPUT) {
@@ -68,22 +68,19 @@ public final class ProgramInfoUtils {
                 }
             }
 
-        if (inst instanceof logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst q) {
-            var argsInputs = InputCollector.collectInputs(q.getArguments());
+            // case: QUOTE args
+        if (inst instanceof QuoteInst quote) {
+            var argsInputs = InputCollector.collectInputs(quote.getArguments());
             for (String in : argsInputs) {
-                if (in.startsWith("x")) {
-                    nums.add(Integer.parseInt(in.substring(1)));
-                }
+                if (in.startsWith("x")) nums.add(Integer.parseInt(in.substring(1)));
             }
         }
 
-
+            // case: JumpEqualFunc args
         if (inst instanceof logic.domain.instructions.synthetic.sJumpInst.JumpEqualFuncInst jef) {
             var argsInputs = InputCollector.collectInputs(jef.getFunctionArgs());
             for (String in : argsInputs) {
-                if (in.startsWith("x")) {
-                    nums.add(Integer.parseInt(in.substring(1)));
-                }
+                if (in.startsWith("x")) nums.add(Integer.parseInt(in.substring(1)));
             }
         }
     }
@@ -92,7 +89,7 @@ public final class ProgramInfoUtils {
         return out;
     }
 
-
+    // Collect all labels used
     public static List<String> labelsUsed(Iterable<SInstruction> instrs) {
         boolean hasExit = false;
         TreeSet<Integer> nums = new TreeSet<>();
@@ -101,14 +98,9 @@ public final class ProgramInfoUtils {
             SLabel lbl = inst.getLabel();
 
             if (lbl.isNumberLabel()) {
-                String rep = lbl.getLabelRepresentation();
-                int n = Integer.parseInt(rep.substring(1));
-                nums.add(n);
+                nums.add(Integer.parseInt(lbl.getLabelRepresentation().substring(1)));
             }
-
-            if (isExitTarget(inst)) {
-                hasExit = true;
-            }
+            if (isExitTarget(inst)) hasExit = true;
         }
         List<String> out = new ArrayList<>(nums.size() + (hasExit ? 1 : 0));
         for (int n : nums) out.add("L" + n);
@@ -116,46 +108,31 @@ public final class ProgramInfoUtils {
         return out;
     }
 
+    // Collect variables (y + zN)
     public static List<String> variablesUsed(Iterable<SInstruction> instrs) {
         TreeSet<String> vars = new TreeSet<>();
 
         for (SInstruction inst : instrs) {
-            if (inst instanceof GoToLabelInst) {
-                continue;
-            }else {
-                SVars var = inst.getVariable();
-                if (var != null) {
-                    if (var.getType() == SVarsType.RESULT) {
-                        vars.add("y");
-                    } else if (var.getType() == SVarsType.WORK) {
-                        vars.add(var.getRepresentation()); // zN
-                    }
-                }
+            if (inst instanceof GoToLabelInst) continue;  // goto has no variable
+            if (inst.getVariable() != null) {
+                if (inst.getVariable().getType() == SVarsType.RESULT) vars.add("y");
+                if (inst.getVariable().getType() == SVarsType.WORK) vars.add(inst.getVariable().getRepresentation());
             }
         }
         return new ArrayList<>(vars);
     }
 
+    // Helper: check if instruction jumps to EXIT
     private static boolean isExitTarget(SInstruction inst) {
-        if (inst instanceof JumpNotZeroInst jnz) {
-            return jnz.getTargetLabel() == SpecialLabels.EXIT;
-        }
-        if (inst instanceof JumpZeroInst jz) {
-            return jz.getTargetLabel() == SpecialLabels.EXIT;
-        }
-        if (inst instanceof JumpEqualConstantInst jec) {
-            return jec.getTargetLabel() == SpecialLabels.EXIT;
-        }
-        if (inst instanceof JumpEqualVariableInst jev) {
-            return jev.getTargetLabel() == SpecialLabels.EXIT;
-        }
-        if (inst instanceof GoToLabelInst go) {
-            return go.getTargetLabel() == SpecialLabels.EXIT;
-        }
-        if(inst instanceof JumpEqualFuncInst jef){
-            return jef.getTargetLabel() == SpecialLabels.EXIT;
-        }
-        return false;
+        return switch (inst) {
+            case JumpNotZeroInst jnz -> jnz.getTargetLabel() == SpecialLabels.EXIT;
+            case JumpZeroInst jz -> jz.getTargetLabel() == SpecialLabels.EXIT;
+            case JumpEqualConstantInst jec -> jec.getTargetLabel() == SpecialLabels.EXIT;
+            case JumpEqualVariableInst jev -> jev.getTargetLabel() == SpecialLabels.EXIT;
+            case GoToLabelInst go -> go.getTargetLabel() == SpecialLabels.EXIT;
+            case JumpEqualFuncInst jef -> jef.getTargetLabel() == SpecialLabels.EXIT;
+            default -> false;
+        };
     }
 
 }

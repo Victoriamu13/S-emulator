@@ -11,6 +11,8 @@ import logic.engineFacade.model.RunRecord;
 
 import java.util.function.Consumer;
 
+import static engineHolder.EngineHolder.hasEngine;
+
 public class RunHistoryController {
 
     @FXML
@@ -79,7 +81,7 @@ public class RunHistoryController {
     public void bindSelectedProgramName(StringProperty programNameProp) {
         programNameProp.addListener((obs, oldVal, newVal) -> {
             clear();
-            if (newVal != null && holder != null && holder.hasEngine()) {
+            if (newVal != null && hasEngine(holder)) {
                 runHistoryTable.getItems().setAll(holder.history().records());
                 runHistoryTable.refresh();
             }

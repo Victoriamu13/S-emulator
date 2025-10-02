@@ -15,8 +15,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static java.util.Arrays.copyOf;
+
 public class EngineFacadeUtils {
 
+    // ==== Validation helpers ====
 
     public static int validDegree(int degree, int maxDegree) {
         if (degree < 0) return 0;
@@ -39,6 +42,7 @@ public class EngineFacadeUtils {
         );
     }
 
+    // ==== Cycles text formatting for synthetic instructions ====
 
     public static String cyclesTextOf(String nameUpper, int numeric) {
         String n = (nameUpper == null ? "" : nameUpper.trim().toUpperCase(java.util.Locale.ROOT));
@@ -49,6 +53,8 @@ public class EngineFacadeUtils {
         };
     }
 
+    // ==== Expand program up to degree and return new SProgram ====
+
     public static  SProgram materializeProgram(SProgram program, int usedDegree) {
         if (usedDegree == 0) return program; // regular program - no expansion
 
@@ -58,27 +64,27 @@ public class EngineFacadeUtils {
         List<SInstruction> expanded = exp.expandToDegree(program.getInstructions(), usedDegree);
 
         SProgramImpl expandedProg = new SProgramImpl(program.getName() + "_deg" + usedDegree);
-        for (SInstruction ins : expanded) {
-            expandedProg.addInstruction(ins);
-        }
+        for (SInstruction ins : expanded) expandedProg.addInstruction(ins);
         expandedProg.setFunctionLookup(program.getFunctionLookup());
         return expandedProg;
     }
 
+    // ==== ProgramInfo (basic / expanded) ====
+
     public static ProgramInfo getProgramInfo(SProgram program,int maxDegree,int degree) {
         int used = validDegree(degree,maxDegree);
         if (used == 0) {
-            return new ProgramInfoImpl(program);
+            return new ProgramInfoImpl(program); // basic info
         }
         ExpansionContext ctx = ExpansionContext.seedFrom(program);
         ProgramExpander  exp = new ProgramExpander(ctx);
-        return new ExpandedProgramInfo(program, used, exp, ctx);
+        return new ExpandedProgramInfo(program, used, exp, ctx); // expanded info
     }
 
 
+    // ==== Comparator ====
     public static Comparator<String> numericAwareComparator() {
         return (a, b) -> {
-            try {
                 String prefixA = a.replaceAll("\\d", "");
                 String prefixB = b.replaceAll("\\d", "");
                 if (prefixA.equals(prefixB)) {
@@ -86,12 +92,12 @@ public class EngineFacadeUtils {
                     int numB = Integer.parseInt(b.replaceAll("\\D", ""));
                     return Integer.compare(numA, numB);
                 }
-            } catch (Exception ignored) {}
-            return a.compareTo(b);
+            return a.compareTo(b); //default
         };
     }
 
 
+    // ==== Input helpers ====
     public static long[] normalizeInputsForProgram(long[] userInputs,  List<String> inputsUsed) {
 
         int requiredLen = 0;
@@ -99,23 +105,18 @@ public class EngineFacadeUtils {
             s = s.trim();
             if (s.matches("x\\d+")) {
                 int idx = Integer.parseInt(s.substring(1));
-                if (idx > requiredLen) {
-                    requiredLen = idx;
-                }
+                if (idx > requiredLen) requiredLen = idx;
             }
         }
-        return java.util.Arrays.copyOf(userInputs, requiredLen);
+        return copyOf(userInputs, requiredLen);
     }
 
     public static int getRequiredInputsCount(List<String> inputs) {
-        List<String> inputsUsed = inputs;
         int required = 0;
-        for (String var : inputsUsed) {
+        for (String var : inputs) {
             if (var.matches("x\\d+")) {
                 int idx = Integer.parseInt(var.substring(1));
-                if (idx > required) {
-                    required = idx;
-                }
+                if (idx > required) required = idx;
             }
         }
         return required;
@@ -128,7 +129,7 @@ public class EngineFacadeUtils {
         for (int i = 0; i < required; i++) {
             String val = (i < values.size()) ? values.get(i).trim() : "";
             if (val.isEmpty()) {
-                out[i] = 0;
+                out[i] = 0; //default input is 0
             } else {
                 try {
                     out[i] = Long.parseLong(val);
@@ -141,22 +142,20 @@ public class EngineFacadeUtils {
             }
         }
 
-        if (!errors.isEmpty()) {
-            throw new IllegalArgumentException(String.join("\n", errors));
-        }
+        if (!errors.isEmpty()) throw new IllegalArgumentException(String.join("\n", errors));
         return out;
     }
+
+    // ==== Replace raw internal names with user-strings names ====
 
     public static String findUserStringName(String rawCommand,SProgram program) {
 
         for (String fnName : program.getFunctionLookup().allFunctionNames()) {
             String userStr = program.getFunctionLookup().userStringOf(fnName);
-
             if (!fnName.equals(userStr)) {
                 rawCommand = rawCommand.replaceAll("(?i)\\b" + fnName + "\\b", userStr);
             }
         }
-
         return rawCommand;
     }
 }

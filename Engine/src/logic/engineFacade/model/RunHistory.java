@@ -5,8 +5,8 @@ import java.util.*;
 
 public final class RunHistory implements Serializable {
     private final List<RunRecord> records = new ArrayList<>();
-    private static final long serialVersionUID = 1L;
 
+    // ========== add new record ==========
     public RunRecord add(int degree, long[] inputs, long yValue, long cycles, Map<String, Long> finalVars) {
         int nextNo = records.size() + 1;
         long[] inputsCopy = (inputs == null) ? new long[0] : Arrays.copyOf(inputs, inputs.length);
@@ -18,7 +18,7 @@ public final class RunHistory implements Serializable {
     }
 
 
-    //read only mode
+    // ==== Read only mode ====
     public List<RunRecord> records() {
         return Collections.unmodifiableList(records);
     }

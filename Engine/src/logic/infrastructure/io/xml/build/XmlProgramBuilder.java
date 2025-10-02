@@ -21,6 +21,7 @@ import static logic.infrastructure.io.xml.validation.ValidationUtils.safeList;
 
 public class XmlProgramBuilder {
 
+    // ================ Build Program ====================
     public SProgram build(String programName, List<RawInstructions> raw) {
         SProgramImpl program = new SProgramImpl(programName.trim());
         for (RawInstructions r : raw) {
@@ -30,6 +31,7 @@ public class XmlProgramBuilder {
         return program;
     }
 
+    // ================ Register Functions ====================
     public void registerFunctions(List<RawFunction> functions, FunctionRepository repo) {
         if (functions == null || functions.isEmpty()) return;
 
@@ -40,12 +42,14 @@ public class XmlProgramBuilder {
                     : fn.userString().trim();
             List<RawInstructions> bodyRaw = safeList(fn.body());
 
+            // Temporary build to extract args
             SProgram tmp = build("[fn] " + fnName, bodyRaw);
-
             List<SInstruction> bodyCopy = new ArrayList<>(tmp.getInstructions());
 
+            // Collect input variable names
             Set<String> inNames = new LinkedHashSet<>(ProgramInfoUtils.inputsUsed(bodyCopy));
 
+            // Also collect from QuoteInst and JumpEqualFuncInst
             for (SInstruction ins : bodyCopy) {
                 if (ins instanceof QuoteInst q) {
                     inNames.addAll(collectVarsFromArgs(q.getArguments()));
@@ -54,21 +58,20 @@ public class XmlProgramBuilder {
                     inNames.addAll(collectVarsFromArgs(jef.getFunctionArgs()));
                 }
             }
+            // Build SVars for each input name
             List<SVars> args = inNames.stream()
                     .map(BuildUtils::buildVar)
                     .toList();
-            repo.register(fnName,fnUserString, args, bodyCopy);
+            repo.register(fnName,fnUserString, args, bodyCopy);  // Register func in repo
         }
     }
 
+    // =============== Helpers ====================
     private Set<String> collectVarsFromArgs(List<ComposeArgument> args) {
         Set<String> out = new LinkedHashSet<>();
         for (ComposeArgument a : args) {
-            if (a instanceof VarArgument v) {
-                out.add(v.getName());
-            } else if (a instanceof FuncCallArgument f) {
-                out.addAll(collectVarsFromArgs(f.getArguments()));
-            }
+            if (a instanceof VarArgument v) out.add(v.getName());
+            else if (a instanceof FuncCallArgument f) out.addAll(collectVarsFromArgs(f.getArguments()));
         }
         return out;
     }

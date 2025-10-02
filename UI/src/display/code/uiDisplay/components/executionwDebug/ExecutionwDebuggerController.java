@@ -14,31 +14,33 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static engineHolder.EngineHolder.hasEngine;
+
 
 public class ExecutionwDebuggerController {
 
-    @FXML private RadioButton rbNormal;
-    @FXML private RadioButton rbDebug;
-    @FXML private Button btnNewRun;
-    @FXML private Button btnResume;
-    @FXML private Button btnStop;
-    @FXML private Button btnRun;
-    @FXML private Button btnStepOver;
-    @FXML private Button btnStepBack;
-    @FXML private TableView<VarRow>varsTable;
-    @FXML private TableColumn<VarRow, String> colVar;
-    @FXML private TableColumn<VarRow, String>  colValue;
-    @FXML private  ListView<VarRow> inputsList;
-    @FXML private Label lblCycles;
+    @FXML private RadioButton rbNormal;     // Normal run mode
+    @FXML private RadioButton rbDebug;      // Debug run mode
+    @FXML private Button btnNewRun;         // Start new run
+    @FXML private Button btnResume;         // Resume execution (debug mode)
+    @FXML private Button btnStop;           // Stop execution (debug mode)
+    @FXML private Button btnRun;            // Run with current inputs
+    @FXML private Button btnStepOver;       // Step over (debug mode)
+    @FXML private Button btnStepBack;       // Step back (debug mode)
+    @FXML private TableView<VarRow>varsTable;             // Table of variables and their values
+    @FXML private TableColumn<VarRow, String> colVar;     // Variable name column
+    @FXML private TableColumn<VarRow, String>  colValue;  // Variable value column
+    @FXML private  ListView<VarRow> inputsList;           // List of input variables
+    @FXML private Label lblCycles;                        // Label showing total cycles
 
     private ToggleGroup runModeGroup;
-    private boolean debugMode = false;
-    private EngineHolder holder;
-    private IntegerProperty currentPc;
-    private Supplier<Integer> degreeSupplier = () -> 0;
-    private Set<String> lastChangedVars = Set.of();
-    private Runnable onHistoryChanged;
-    private long[] lastInputsUsed = new long[0];
+    private boolean debugMode = false;                           // Flag for current run mode
+    private EngineHolder holder;                                 // Holds EngineFacade instance
+    private IntegerProperty currentPc;                           // Program counter binding
+    private Supplier<Integer> degreeSupplier = () -> 0;          // Provides current expansion degree
+    private Set<String> lastChangedVars = Set.of();             // Variables changed in last step
+    private Runnable onHistoryChanged;                           // Callback when history updates
+    private long[] lastInputsUsed = new long[0];                 // Last run inputs
 
     // === setup helpers ===
     public void setEngineHolder(EngineHolder holder) {
@@ -59,10 +61,11 @@ public class ExecutionwDebuggerController {
 
     // === Initialize helper funcs ===
     private void setupVarsTable() {
+        // Map table columns to VarRow properties
         colVar.setCellValueFactory(c -> c.getValue().varNameProperty());
         colValue.setCellValueFactory(c -> c.getValue().varValueProperty());
 
-        // Custom cell with style class for changed vars
+        // Custom cell renderer: highlights changed variables
         colVar.setCellFactory(col -> createChangedAwareCell());
         colValue.setCellFactory(col -> createChangedAwareCell());
     }
@@ -109,7 +112,7 @@ public class ExecutionwDebuggerController {
     }
 
     public void loadInputVars(){
-        if (holder == null || !holder.hasEngine()) {
+        if (!hasEngine(holder)) {
             inputsList.getItems().clear();
             return;
         }
@@ -159,7 +162,7 @@ public class ExecutionwDebuggerController {
     public void bindSelectedProgramName(StringProperty programNameProp) {
         programNameProp.addListener((obs, oldVal, newVal) -> {
             clearExecutionResults();
-            if (newVal != null && holder != null && holder.hasEngine()) {
+            if (newVal != null && holder.hasEngine()) {
                 holder.getEngine().selectProgramOrFunction(newVal);
                 loadInputVars();
             }
@@ -193,7 +196,7 @@ public class ExecutionwDebuggerController {
 
     @FXML
     private void onRunClicked() {
-        if (holder == null || !holder.hasEngine()) {
+        if (!hasEngine(holder)) {
             showError("No program loaded.");
             return;
         }
@@ -213,9 +216,7 @@ public class ExecutionwDebuggerController {
             if (engine.startDebugSession(degree, inputs)) {
                 clearExecutionResults();
                 lastInputsUsed = inputs;
-                if (currentPc != null) {
-                    currentPc.set(engine.getCurrentPc());
-                }
+                if (currentPc != null)currentPc.set(engine.getCurrentPc());
 
                 ExecutionReport initReport = engine.buildInitialReport();
                 if (initReport != null) {
@@ -278,7 +279,6 @@ public class ExecutionwDebuggerController {
 
     @FXML
     private void onStepBackClicked(){
-
         ExecutionReport report= holder.getEngine().stepBack();
         if(report!=null){
             updateVarsTable(report);
@@ -292,7 +292,7 @@ public class ExecutionwDebuggerController {
 
     @FXML
     private void onResumeClicked() {
-        if (holder == null || !holder.hasEngine()) {
+        if (!hasEngine(holder)) {
             showError("No program loaded.");
             return;
         }
@@ -314,7 +314,7 @@ public class ExecutionwDebuggerController {
 
     @FXML
     private void onStopClicked() {
-        if (holder != null && holder.hasEngine()) {
+        if (hasEngine(holder)) {
             EngineFacade engine = holder.getEngine();
             ExecutionReport report = engine.stopDebugSession();
             if (report != null) {
@@ -337,7 +337,7 @@ public class ExecutionwDebuggerController {
     }
 
     private void updateVarsTable(ExecutionReport report) {
-        lastChangedVars = report.changedVars(); // זה בא מה־ExecutionReport
+        lastChangedVars = report.changedVars();
         List<VarRow> rows = report.finalVars().entrySet().stream()
                 .map(e -> new VarRow(e.getKey(), String.valueOf(e.getValue())))
                 .toList();
@@ -358,20 +358,12 @@ public class ExecutionwDebuggerController {
     }
 
     private void saveToHistory(ExecutionReport report) {
-        if (report == null || holder == null || !holder.hasEngine()) return;
+        if (report == null || !hasEngine(holder)) return;
         EngineFacade engine = holder.getEngine();
         int degree = degreeSupplier.get();
 
         long[] inputs = getInputsForHistory(engine, degree);
-
-        holder.history().add(
-                degree,
-                inputs,
-                report.yValue(),
-                report.totalCycles(),
-                report.finalVars()
-        );
-
+        holder.history().add(degree, inputs, report.yValue(), report.totalCycles(), report.finalVars());
         if (onHistoryChanged != null) onHistoryChanged.run();
     }
 

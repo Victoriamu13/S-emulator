@@ -90,40 +90,6 @@ public final class ValidationUtils {
         return "Instruction #" + r.line() + ": " + text;
     }
 
-    public static int countParenGroups(String s) {
-        s = safeString(s);
-        if (s.isEmpty()) return 0;
-
-        int depth = 0;
-        int count = 0;
-        StringBuilder token = new StringBuilder();
-
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-
-            if (c == '(') {
-                depth++;
-                token.append(c);
-            } else if (c == ')') {
-                depth--;
-                if (depth < 0) {
-                    return -1;
-                }
-                token.append(c);
-            } else if (c == ',' && depth == 0) {
-                if (!token.toString().trim().isEmpty()) count++;
-                token.setLength(0);
-            } else {
-                token.append(c);
-            }
-        }
-        if (depth != 0) return -1;
-
-        if (!token.toString().trim().isEmpty()) count++;
-
-        return count;
-    }
-
     public static void addPrefixed(List<String> src, String prefix, List<String> dst) {
         for (String m : src) dst.add(prefix + m);
     }

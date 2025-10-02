@@ -16,13 +16,13 @@ public class FunctionAsSProgramAdapter {
     }
 
     public SProgram asProgram() {
-        // --- build a program ---
+        //build a program
         String progName =lookup.userStringOf(functionName);
 
         SProgramImpl program = new SProgramImpl(progName);
         program.setFunctionLookup(lookup);
 
-        // copy body
+        //copy body
         List<SInstruction> body = lookup.bodyOf(functionName);
         if (body != null) {
             body.forEach(program::addInstruction);

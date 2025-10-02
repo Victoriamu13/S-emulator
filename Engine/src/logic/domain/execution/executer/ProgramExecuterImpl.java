@@ -1,5 +1,7 @@
 package logic.domain.execution.executer;
 
+import logic.domain.execution.utils.ExecutionUtils;
+import logic.domain.execution.utils.LabelUtils;
 import logic.domain.instructions.synthetic.sJumpInst.JumpEqualFuncInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;
 import logic.engineFacade.model.ExecutionReport;
@@ -13,126 +15,82 @@ import logic.domain.variable.SVars;
 
 import java.util.*;
 
+import static logic.domain.execution.utils.ExecutionUtils.orderVarsForReport;
+
 public class ProgramExecuterImpl implements ProgramExecuter {
-    private final SProgram program;
-    private CurrentContext externalContext;
-    private int startPc = 0;
-    private long initialCycles = 0;
+    private final SProgram program;           // program to run
+    private CurrentContext externalContext;   // resume debugging from context
+    private int startPc = 0;                 // resume from pc
+    private long initialCycles = 0;          // resume cycles
 
     public ProgramExecuterImpl(SProgram program) {
         this.program = program;
     }
 
-    public ProgramExecuterImpl(SProgram program, CurrentContext ctx, int startPc,long initialCycles) {
-        this.program = program;
-        this.externalContext = ctx;
-        this.startPc = startPc;
-        this.initialCycles = initialCycles;
+    public ProgramExecuterImpl(SProgram program, CurrentContext ctx, int startPc, long initialCycles) {
+        this.program = program;                 // program
+        this.externalContext = ctx;             // injected context
+        this.startPc = startPc;                 // injected pc
+        this.initialCycles = initialCycles;     // injected cycles
     }
-
 
     @Override
     public ExecutionReport runWithReport(Set<Integer>breakpoints,long... inputs) {
-        CurrentContext context;
-        int instIndex;
-        long totalCycles = initialCycles;
+        // Decide context/pc based on resume vs fresh run
 
-        if (externalContext != null) {
-            context = externalContext;   // continue from debug session
-            instIndex = startPc;
-        } else {
-            context = new CurrentContextImpl(inputs, program.getFunctionLookup());
-            instIndex = 0;
-        }
+        final CurrentContext context = (externalContext != null)
+                ? externalContext
+                : new CurrentContextImpl(inputs, program.getFunctionLookup());
+
+        int instIndex = (externalContext != null) ? startPc : 0;       // start location
+        long totalCycles = initialCycles;                       // cycles so far
 
         List<SInstruction> instructions = program.getInstructions();
-        Map<String, Integer> labelIndex = new HashMap<>();
-        for (int i = 0; i < instructions.size(); i++) {
-            SLabel lbl = instructions.get(i).getLabel();
-            if (lbl.isNumberLabel()) {
-                labelIndex.put(lbl.getLabelRepresentation(), i);
-            }
-        }
+        Map<String, Integer> labelIndex = LabelUtils.indexNumericLabels(instructions);
 
         while (instIndex >= 0 && instIndex < instructions.size()) {
 
             if (breakpoints.contains(instIndex)) {
+                // Pause & snapshot
                 long yVal = context.getVariableValue(SVars.RESULT);
                 Map<String, Long> finalVarsValues = orderVarsForReport(context.snapshot());
-                this.startPc = instIndex;
-                this.externalContext = context;
+                this.startPc = instIndex;         // remember pc for next step
+                this.externalContext = context;  // keep context alive
                 return new ExecutionReport(yVal, Set.of(), finalVarsValues, totalCycles);
             }
 
-            SInstruction inst = instructions.get(instIndex);
-            totalCycles+=inst.cycles();
-
+            SInstruction inst = instructions.get(instIndex);   // current instruction
+            totalCycles+=inst.cycles();                        // add instr cycles
             SLabel next;
+
             if (inst instanceof QuoteInst q) {
                 FunctionResult fr = FunctionExecuter.evaluateFunctionCall(
-                        context, q.getFunctionName(), q.getArguments());
-                context.updateVariable(q.getVariable(), fr.value());
-                totalCycles += fr.cycles();
-                next = SpecialLabels.EMPTY;
+                        context, q.getFunctionName(), q.getArguments());          // run quote
+                context.updateVariable(q.getVariable(), fr.value());              // assign
+                totalCycles += fr.cycles();                                       // add nested cycles
+                next = SpecialLabels.EMPTY;                                       // continue
             }
             else if (inst instanceof JumpEqualFuncInst jef) {
-                FunctionResult fr = FunctionExecuter.evaluateFunctionCall(
+                FunctionResult fr = FunctionExecuter.evaluateFunctionCall(        // run func
                         context, jef.getFunctionName(), jef.getFunctionArgs());
-                long vVal = context.getVariableValue(jef.getVariable());
+                long vVal = context.getVariableValue(jef.getVariable());         // compare
                 totalCycles += fr.cycles();
                 next = (vVal == fr.value()) ? jef.getTargetLabel() : SpecialLabels.EMPTY;
             }
             else {
                 next = inst.executeOperation(context);
             }
-            if (next == SpecialLabels.EXIT) break;
-            if (next.isNumberLabel()) {
-                instIndex = labelIndex.get(next.getLabelRepresentation());
-            } else {
-                instIndex++;
-            }
+            // next pc
+            int newPc = ExecutionUtils.safeJump(instIndex, next, labelIndex);
+            if (newPc == Integer.MIN_VALUE) break;                              // EXIT
+            instIndex = newPc;
         }
-        long yVal = context.getVariableValue(SVars.RESULT);
-        Map<String,Long> finalVarsValues=orderVarsForReport(context.snapshot());
+        long yVal = context.getVariableValue(SVars.RESULT);    //final Y
+        Map<String,Long> finalVarsValues=orderVarsForReport(context.snapshot());   //final vars
         return new ExecutionReport(yVal,Set.of(), finalVarsValues, totalCycles);
     }
 
 
-    //-----helper funcs-----
-    private static Map<String, Long> orderVarsForReport(Map<SVars, Long> snap) {
-        LinkedHashMap<String,Long> out=new LinkedHashMap<>();
-
-        out.put("y", snap.getOrDefault(SVars.RESULT, 0L));
-
-        TreeMap<Integer,Long> xMap=new TreeMap<>();
-        TreeMap<Integer,Long> zMap=new TreeMap<>();
-
-        for(Map.Entry<SVars,Long> e:snap.entrySet()) {
-            SVars v = e.getKey();    //x,z
-            long val = e.getValue();
-
-            switch(v.getType()){
-                case INPUT->{
-                    String rep=v.getRepresentation();
-                    int n=Integer.parseInt(rep.substring(1));
-                    xMap.put(n,val);
-                }
-                case WORK->{
-                    String rep=v.getRepresentation();
-                    int n=Integer.parseInt(rep.substring(1));
-                    zMap.put(n,val);
-                }
-                default -> {}
-            }
-        }
-        for(Map.Entry<Integer,Long> e:xMap.entrySet()) {
-            out.put("x"+e.getKey(),e.getValue());
-        }
-        for(Map.Entry<Integer,Long> e:zMap.entrySet()) {
-            out.put("z"+e.getKey(),e.getValue());
-        }
-        return out;
-    }
 
 }
 

@@ -16,6 +16,7 @@ import static logic.infrastructure.io.xml.parser.utils.DomUtils.readInstructions
 
 public final class XmlProgramParser {
 
+    // ==== Parse xml file ====
     public ProgramParseResult parse(Path xmlPath){
         List<String> errors = new ArrayList<>();
 
@@ -44,7 +45,8 @@ public final class XmlProgramParser {
             return new ProgramParseResult(null,List.of(),List.of(),errors);
         }
 
-        // --- functions ---
+
+        // ==== Parse functions ====
         List<RawFunction> functions = new ArrayList<>();
         Element funcsEl = first(progEl, "S-Functions");
         if (funcsEl != null) {
@@ -53,7 +55,6 @@ public final class XmlProgramParser {
                 Element fnEl = (Element) fnNodes.item(f);
                 String fnName = fnEl.getAttribute("name");
                 String userString = fnEl.getAttribute("user-string");
-
 
                 Element fnInstEl = first(fnEl, "S-Instructions");
                 List<RawInstructions> fnBody = readInstructions(fnInstEl);

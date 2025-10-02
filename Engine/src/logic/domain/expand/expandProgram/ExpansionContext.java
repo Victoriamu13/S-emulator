@@ -1,10 +1,8 @@
 package logic.domain.expand.expandProgram;
 
 import logic.domain.instructions.SInstruction;
-import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.instructions.synthetic.sJumpInst.GoToLabelInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;
-import logic.domain.expand.functionCall.FunctionCallExpander;
 import logic.domain.label.SLabel;
 import logic.domain.label.SLabelImpl;
 import logic.domain.program.SProgram;
@@ -21,24 +19,22 @@ import java.util.List;
 import java.util.Set;
 
 public final class ExpansionContext {
-    private int workVarCounter   = 1;
-    private int freeLabelCounter = 1;
-
-    private final Set<String> usedWorkNames  = new HashSet<>();
-    private final Set<String> usedLabelNames = new HashSet<>();
-
-    private FunctionLookup functions;
+    private int workVarCounter   = 1;    // next z index to allocate
+    private int freeLabelCounter = 1;    // next L index to allocate
+    private final Set<String> usedWorkNames  = new HashSet<>();  // existing zN set
+    private final Set<String> usedLabelNames = new HashSet<>();  // existing L# set
+    private FunctionLookup functions;   // function lookup
 
     public static ExpansionContext seedFrom(SProgram program) {
         ExpansionContext ctx = new ExpansionContext();
-        ctx.markUsedFromProgram(program.getInstructions());
-        ctx.withFunctionLookup(program.getFunctionLookup());
+        ctx.markUsedFromProgram(program.getInstructions());    // scan used names
+        ctx.withFunctionLookup(program.getFunctionLookup());   // link lookup
         return ctx;
     }
 
     public void markUsedFromProgram(List<SInstruction> program) {
         for (SInstruction ins : program) {
-
+            // collect labels
             String lblRep = ins.getLabel().getLabelRepresentation();
             if (lblRep!=null && !lblRep.equals("EXIT") && !lblRep.isEmpty()) {
                 usedLabelNames.add(lblRep);
@@ -46,9 +42,7 @@ public final class ExpansionContext {
                 if (n >= freeLabelCounter) freeLabelCounter = n + 1;
             }
 
-            if (ins instanceof GoToLabelInst) { //Avoid dummy variable
-              continue;
-            } else {
+            if (!(ins instanceof GoToLabelInst)) { // skip dummy var of goto
                 SVars var = ins.getVariable();
                 if (var != null) {
                     String varRep = var.getRepresentation();
@@ -66,7 +60,7 @@ public final class ExpansionContext {
         while (true) {
             SVars v = new SVarsImpl(SVarsType.WORK, workVarCounter++);
             String rep = v.getRepresentation();  // "zN"
-            if (usedWorkNames.add(rep)) return v;
+            if (usedWorkNames.add(rep)) return v;   // first free zN
         }
     }
 
@@ -78,42 +72,42 @@ public final class ExpansionContext {
         }
     }
 
-    public ExpansionContext withFunctionLookup(FunctionLookup f) { this.functions = f; return this; }
+    public ExpansionContext withFunctionLookup(FunctionLookup f) {
+        this.functions = f != null ? f : this.functions;       // set if provided
+        return this;
+    }
+
     public FunctionLookup getFunctionLookup() { return functions; }
 
     public List<SInstruction> lookupFunctionBody(String fnName) {
-        return functions.bodyOf(fnName);
+        return functions.bodyOf(fnName);     // body of fn
     }
 
     public SVars lookupFunctionResult(String fnName) {
-        return SVars.RESULT;
+        return SVars.RESULT;      // y of function
     }
 
 
+    // Resolve ComposeArgument into SVars; expand nested function calls inline
     public SVars resolveArgument(ComposeArgument arg, List<SInstruction> out) {
         if (arg instanceof VarArgument var) {
             String name = var.getName();
-
-            if (name.startsWith("x")) {
-                return new SVarsImpl(SVarsType.INPUT, Integer.parseInt(name.substring(1)));
-            }
-            else if (name.startsWith("z")) {
-                return new SVarsImpl(SVarsType.WORK, Integer.parseInt(name.substring(1)));
-            }
-            else if (name.equals("y")) {
-                return new SVarsImpl(SVarsType.RESULT, 0);
-            }
+            if (name.startsWith("x")) return new SVarsImpl(SVarsType.INPUT, Integer.parseInt(name.substring(1)));
+            if (name.startsWith("z")) return new SVarsImpl(SVarsType.WORK, Integer.parseInt(name.substring(1)));
+            if (name.equals("y"))   return new SVarsImpl(SVarsType.RESULT, 0);
         }
 
         if (arg instanceof FuncCallArgument func) {
-            SVars tmp = newWorkVar();
-
+            SVars tmp = newWorkVar();  // temp zN
             QuoteInst innerQuote = new QuoteInst(tmp, func.getFunctionName(), func.getArguments());
-            FunctionCallExpander innerMapper = new FunctionCallExpander(this, innerQuote);
-            out.addAll(innerMapper.expandQuote());
 
-            return tmp;
+            // Inline-expand inner call into out
+            new logic.domain.expand.functionCall.FunctionCallExpander(this, innerQuote)
+                    .expandQuote()
+                    .forEach(out::add);
+
+            return tmp;     // return zN with result
         }
-        return null;
+        return null;       // should not happen
     }
 }

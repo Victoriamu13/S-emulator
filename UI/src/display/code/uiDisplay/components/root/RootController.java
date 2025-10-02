@@ -15,6 +15,8 @@ import uiDisplay.components.load.LoadingBarController;
 import uiDisplay.components.programFeatures.ProgramControlsController;
 import uiDisplay.components.runHistory.RunHistoryController;
 
+import static engineHolder.EngineHolder.hasEngine;
+
 public class RootController {
 
     @FXML
@@ -81,7 +83,7 @@ public class RootController {
         runHistoryController.clear();
         executionwDebuggerController.clearExecutionResults();
 
-        if (holder != null && holder.hasEngine()) {
+        if (hasEngine(holder)) {
             holder.getEngine().clearAllBreakpoints();
         }
     }

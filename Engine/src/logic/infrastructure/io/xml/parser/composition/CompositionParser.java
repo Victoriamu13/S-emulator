@@ -9,26 +9,24 @@ public final class CompositionParser {
 
     private CompositionParser(){}
 
+    // ==== Parses a top-level composition string into a list of ComposeArgument ====
     public static CompositionParseResult parseTopLevel(String str){
         str=safeString(str);
-
         if(str.isEmpty()){return CompositionParseResult.success(List.of());}
 
+        // Split by top-level commas
         List<String> tokens = splitTopLevelByComma(str);
         if (tokens == null) {
             return CompositionParseResult.fail("Unbalanced parentheses in functionArguments.");
         }
+
         List<ComposeArgument> out = new ArrayList<>();
         for (String t : tokens) {
             String tok = t.trim();
-            if (tok.isEmpty()) {
-                return CompositionParseResult.fail("Empty argument between commas.");
-            }
+            if (tok.isEmpty()) return CompositionParseResult.fail("Empty argument between commas.");
             if (tok.startsWith("(")) {
                 FuncCallArgument call = parseCall(tok);
-                if (call == null) {
-                    return CompositionParseResult.fail("Invalid nested call: expected '(Name,arg1,...)', got: " + tok);
-                }
+                if (call == null) return CompositionParseResult.fail("Invalid nested call: " + tok);
                 out.add(call);
             } else {
                 out.add(new VarArgument(tok));
@@ -37,6 +35,8 @@ public final class CompositionParser {
         return CompositionParseResult.success(out);
     }
 
+
+    // ==== Helper methods ====
     static List<String> splitTopLevelByComma(String s) {
         List<String> parts = new ArrayList<>();
         StringBuilder cur = new StringBuilder();

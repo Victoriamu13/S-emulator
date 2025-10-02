@@ -13,7 +13,6 @@ import logic.domain.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;
 import logic.domain.label.SLabel;
 import logic.domain.program.SProgram;
-import logic.domain.program.functions.FunctionLookup;
 import logic.domain.program.functions.FunctionsUtils;
 import logic.domain.variable.SVars;
 

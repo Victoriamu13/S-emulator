@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class  FunctionsUtils {
+
+    // Convert args to string representation
     public static String argsToString(List<ComposeArgument> args) {
         if (args == null || args.isEmpty()) return "";
         return args.stream()
@@ -15,6 +17,7 @@ public class  FunctionsUtils {
                 .collect(Collectors.joining(","));
     }
 
+    // One arg to string
     private static String argToString(ComposeArgument a) {
         if (a instanceof VarArgument v) {
             return v.getName();
@@ -23,6 +26,6 @@ public class  FunctionsUtils {
             String inner = argsToString(f.getArguments());
             return "(" + f.getFunctionName() + (inner.isEmpty() ? "" : "," + inner) + ")";
         }
-        return a.toString(); // fallback
+        return a.toString();
     }
 }

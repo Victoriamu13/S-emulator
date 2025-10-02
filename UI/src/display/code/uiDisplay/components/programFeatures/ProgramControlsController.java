@@ -16,6 +16,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static engineHolder.EngineHolder.hasEngine;
+
 
 public class ProgramControlsController {
 
@@ -118,7 +120,7 @@ public class ProgramControlsController {
 
 
     public void refreshHighlightList(int degree){
-        if(holder == null || !holder.hasEngine()) {
+        if(hasEngine(holder)) {
             highlightSelector.getItems().clear();
             highlightSelector.setPromptText("Highlight");
             return;

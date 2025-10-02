@@ -19,9 +19,8 @@ private BasicFileChecks() {}
             return errors;
         }
         String name = xmlPath.getFileName().toString().toLowerCase().trim();
-        if (!name.endsWith(".xml")) {
-            errors.add("File must have .xml extension.");
-        }
+        if (!name.endsWith(".xml")) errors.add("File must have .xml extension.");
+
         return errors;
     }
 }

@@ -41,9 +41,6 @@ public class LoadingBarController {
         });
     }
 
-    public void setAnimationsEnabled(boolean enabled) {
-        this.animationsEnabled = enabled;
-    }
 
     public void startLoadingSimulation(){
         progressBar.progressProperty().unbind();

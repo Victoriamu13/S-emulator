@@ -11,14 +11,18 @@ import logic.domain.variable.SVarsType;
 
 public class CurrentContextImpl implements CurrentContext {
 
+    // Holds current variable values (x_i, z_i, y) → value
     private final Map<SVars,Long> variableState=new HashMap<>();
+
+    // Function repository for nested calls
     private final FunctionLookup functionLookup;
+
     private long cycles = 0;
 
     public CurrentContextImpl(long[] inputs,FunctionLookup functionLookup) {
         for (int i = 0; i < inputs.length; i++) {
             SVars xi = new SVarsImpl(SVarsType.INPUT, i + 1); // "x" + (i+1)
-            variableState.put(xi, inputs[i]);
+            variableState.put(xi, inputs[i]);  // set xi = input[i]
         }
         this.functionLookup = functionLookup;
     }
@@ -36,7 +40,7 @@ public class CurrentContextImpl implements CurrentContext {
     @Override
     public Map<SVars, Long> snapshot() {
         return new HashMap<>(variableState);
-    }
+    }  // defensive copy for reports
 
     @Override
     public void restoreSnapshot(Map<SVars, Long> snapshot) {

@@ -10,10 +10,11 @@ import static logic.infrastructure.io.xml.validation.ValidationUtils.*;
 
 public class FunctionIndexV {
 
-    //Arity = number of parameters received in function
+    // Map from uppercase function name → arity (numer of input parameters)
     private final Map<String, Integer> funcNameToArity = new LinkedHashMap<>();
     private final List<String> errors = new ArrayList<>();
 
+    // ==== build an index of functions ====
     static FunctionIndexV build(List<RawFunction> functions) {
         FunctionIndexV idx = new FunctionIndexV();
         if (functions == null) return idx;
@@ -50,6 +51,7 @@ public class FunctionIndexV {
     List<String> errors() { return errors; }
 
 
+    // ==== Calculate arity by scanning function body for xN variables ====
     private static int computeArity(List<RawInstructions> body) {
         if (body == null) return 0;
 
@@ -57,36 +59,28 @@ public class FunctionIndexV {
 
         for (RawInstructions r : body) {
             String v = safeString(r.varText());
-            if (isValidInputVariable(v)) {
-                inputs.add(parseXIndex(v));
-            }
+            if (isValidInputVariable(v)) inputs.add(parseXIndex(v));
 
             var args = r.args();
             if (args != null) {
                 String assigned = getArgIgnoreCase(args, "assignedVariable");
-                if (isValidInputVariable(assigned)) {
-                    inputs.add(parseXIndex(assigned));
-                }
+                if (isValidInputVariable(assigned)) inputs.add(parseXIndex(assigned));
 
                 String varName = getArgIgnoreCase(args, "variableName");
-                if (isValidInputVariable(varName)) {
-                    inputs.add(parseXIndex(varName));
-                }
+                if (isValidInputVariable(varName)) inputs.add(parseXIndex(varName));
 
                 String fnArgs = getArgIgnoreCase(args, "functionArguments");
                 if (!fnArgs.isEmpty()) {
                     CompositionParseResult parsed = CompositionParser.parseTopLevel(fnArgs);
-                    if (parsed.isOk()) {
-                        collectVarsFromArgs(parsed.args(), inputs);
-                    }
+                    if (parsed.isOk()) collectVarsFromArgs(parsed.args(), inputs);
                 }
             }
         }
-
             return inputs.size();
     }
 
 
+    // ==== Collect xN variables recursively from ComposeArguments ====
         private static void collectVarsFromArgs (List<ComposeArgument>args, Set<Integer>inputs){
             for (ComposeArgument a : args) {
                 if (a instanceof VarArgument v) {

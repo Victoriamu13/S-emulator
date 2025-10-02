@@ -6,7 +6,6 @@ import consoleDisplay.instructions.InstructionListPrinter;
 
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.ExecutionReport;
-import logic.domain.program.info.ProgramInfo;
 import consoleDisplay.validation.Validators;
 import logic.engineFacade.model.InstructionDTO;
 

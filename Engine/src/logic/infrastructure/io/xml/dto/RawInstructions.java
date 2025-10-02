@@ -8,8 +8,8 @@ public record RawInstructions(int line, String typeAttr, String name, String var
 -------
 Holds:
 -------
-int line → the line number in the XML file (useful for error reporting).
-String typeAttr → the type attribute from <S-Instruction> (e.g., "basic").
+int line → the line number in the XML file
+String typeAttr → the type attribute from <S-Instruction>
 String name → the instruction name (e.g., "INCREASE", "JUMP_NOT_ZERO").
 String varText → the variable name text inside <S-Variable> (e.g., "x1", "y").
 String labelText → the label attached to the instruction, if any (<S-Label>).

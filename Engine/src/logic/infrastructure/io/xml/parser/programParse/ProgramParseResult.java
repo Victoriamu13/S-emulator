@@ -12,6 +12,6 @@ public record ProgramParseResult(String programName, List<RawInstructions> raw,
 -------
 Holds:
 -------
-String programName → the name of the program from the XML attribute.
+String programName → the name of the program from the XML file.
 List<RawInst> rawInstructions → all the raw instructions parsed.
-List<String> errors → parsing errors (e.g., malformed XML, missing fields).*/
+List<String> errors → parsing errors (e.g.,missing fields).*/

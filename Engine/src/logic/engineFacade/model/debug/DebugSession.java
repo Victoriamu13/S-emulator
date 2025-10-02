@@ -9,7 +9,6 @@ import logic.engineFacade.model.ExecutionReport;
 
 import java.util.*;
 
-
 public class DebugSession {
     private final List<SInstruction> instructions;
     private final CurrentContext ctx;
@@ -21,32 +20,34 @@ public class DebugSession {
     private  Set<Integer> breakpoints = new HashSet<>();
 
 
-    public DebugSession(List<SInstruction> instructions, CurrentContext ctx) {
-        this.instructions = instructions;
-        this.ctx = ctx;
-        this.pc = 0;
-        this.totalCycles = 0;
-        this.finished = false;
-        this.lastSnapshot = new HashMap<>(ctx.snapshot());
+    // ==== Constructors ====
 
-        debugHistory.push(new DebugState(pc,totalCycles,new HashMap<>(lastSnapshot)));
+    public DebugSession(List<SInstruction> instructions, CurrentContext ctx) {
+        this.instructions = instructions;    //instructions
+        this.ctx = ctx;                      //variables context
+        this.pc = 0;                         //program counter
+        this.totalCycles = 0;                //total cycles
+        this.finished = false;               //finished flag
+        this.lastSnapshot = new HashMap<>(ctx.snapshot());  //initial snapshot
+        debugHistory.push(new DebugState(pc,totalCycles,new HashMap<>(lastSnapshot)));  //initial state in history
     }
 
+    // ==== Main API ====
     public ExecutionReport step(){
         if( finished || (pc >= instructions.size())){
             finished = true;
             return buildReport(Set.of());
         }
-        debugHistory.push(new DebugState(pc, totalCycles, new HashMap<>(lastSnapshot)));
+        debugHistory.push(new DebugState(pc, totalCycles, new HashMap<>(lastSnapshot)));  //save state before step
 
-        SInstruction inst=instructions.get(pc);
-        totalCycles+=inst.cycles();
+        SInstruction inst=instructions.get(pc);  //fetch instruction
+        totalCycles+=inst.cycles();               //update cycles
 
-        SLabel next=inst.executeOperation(ctx);
+        SLabel next=inst.executeOperation(ctx);  //execute instruction
         if(next== SpecialLabels.EXIT){
             finished=true;
         }else if(next==SpecialLabels.EMPTY){
-            pc++;
+            pc++;                                //move to next instruction
         }
         else{  //find label
             String target=next.getLabelRepresentation();;
@@ -60,46 +61,52 @@ public class DebugSession {
             pc = (newPc != -1) ? newPc : pc + 1;
         }
 
-        if (pc >= instructions.size()) {
-            finished = true;
-        }
+        if (pc >= instructions.size()) finished = true;  //check if finished
 
+        // Compare snapshots to find changed variables
         Map<SVars, Long> currentSnap = ctx.snapshot();
         Set<String> changedVars = new HashSet<>();
         for (var entry : currentSnap.entrySet()) {
             SVars var = entry.getKey();
             long newVal = entry.getValue();
             long oldVal = lastSnapshot.getOrDefault(var, Long.MIN_VALUE);
+            if (newVal != oldVal) changedVars.add(var.getRepresentation());
 
-            if (newVal != oldVal) {
-                changedVars.add(var.getRepresentation());
-            }
         }
-        lastSnapshot = new HashMap<>(currentSnap);
+        lastSnapshot = new HashMap<>(currentSnap);  //update last snapshot
         return buildReport(changedVars);
     }
 
+
     public ExecutionReport stepBack(){
         if (debugHistory.isEmpty()){
-            return buildReport(Set.of());
+            return buildReport(Set.of());  //no history to step back to
         }
 
+        //pop last state
         DebugState prevState = debugHistory.pop();
         this.pc = prevState.pc();
         this.totalCycles = prevState.totalCycles();
-
         ctx.restoreSnapshot(prevState.snapshot());
-
         lastSnapshot=new HashMap<>(prevState.snapshot());
-
         return buildReport(Set.of());
     }
 
+
+    // ==== Debug report builders ====
 
     private ExecutionReport buildReport(Set<String> changedVars) {
         long yVal = ctx.getVariableValue(SVars.RESULT);
         Map<String, Long> finalVars = snapshotAsStrings(ctx.snapshot());
         return new ExecutionReport(yVal,changedVars, finalVars, totalCycles);
+    }
+
+    public ExecutionReport buildInitialReport() {
+        return buildReport(Set.of());
+    }
+
+    public ExecutionReport buildFinalReport() {
+        return buildReport(Set.of());
     }
 
     private Map<String, Long> snapshotAsStrings(Map<SVars, Long> snap) {
@@ -108,19 +115,8 @@ public class DebugSession {
         return out;
     }
 
-    public ExecutionReport buildInitialReport() {
-        long yVal = ctx.getVariableValue(SVars.RESULT);
-        Map<String, Long> finalVars = snapshotAsStrings(ctx.snapshot());
-        return new ExecutionReport(yVal, Set.of(), finalVars, totalCycles);
-    }
 
-    public ExecutionReport buildFinalReport() {
-        long yVal = ctx.getVariableValue(SVars.RESULT);
-        Map<String, Long> finalVars = snapshotAsStrings(ctx.snapshot());
-        return new ExecutionReport(yVal, Set.of(), finalVars, totalCycles);
-    }
-
-    // --- Breakpoints API ---
+    // ==== Breakpoints API ====
 
     public void toggleBreakpoint(int index) {
         if (breakpoints.contains(index)) breakpoints.remove(index);
@@ -139,17 +135,18 @@ public class DebugSession {
     }
 
 
-    // --- Resume/Stop ---
+    // ==== Resume/Stop ====
+
     public ExecutionReport resumeUntilBreakpoint() {
         final boolean skipFirst = breakpoints.contains(pc);
         boolean skipped = false;
+
         while (!finished && pc < instructions.size()) {
             ExecutionReport report = step();
 
             if (breakpoints.contains(pc)) {
                 if (skipFirst && !skipped) {
-
-                    skipped = true;
+                    skipped = true;   // Skip the first breakpoint hit
                 } else {
                     return report;
                 }
@@ -160,10 +157,10 @@ public class DebugSession {
 
     public void stop() {this.finished = true;}
 
-    // --- Getters ---
+    // ==== Getters ====
+    
     public boolean isFinished() {return finished;}
     public CurrentContext getContext() {return ctx;}
     public int getPc() {return pc;}
-    public long getTotalCycles(){return totalCycles;}
     public List<SInstruction> getInstructions(){return instructions;}
 }

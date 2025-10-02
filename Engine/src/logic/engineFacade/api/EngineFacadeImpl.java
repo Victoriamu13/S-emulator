@@ -6,7 +6,6 @@ import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.program.SProgramImpl;
 import logic.domain.program.info.ExpandedProgramInfo;
-import logic.domain.program.info.ProgramInfoUtils;
 import logic.domain.variable.SVarsType;
 import logic.engineFacade.model.debug.DebugSession;
 import logic.engineFacade.model.LoadOutcome;
@@ -24,6 +23,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 import static logic.engineFacade.api.EngineFacadeUtils.*;
+import static logic.engineFacade.api.EngineFacadeUtils.toDto;
 
 public class EngineFacadeImpl implements EngineFacade {
     private SProgram program;
@@ -36,7 +36,12 @@ public class EngineFacadeImpl implements EngineFacade {
     private Set<Integer> breakpoints = new HashSet<>();
 
 
-    //---Load program---
+    private SProgram activeProgram() {
+        return (currentProgram != null) ? currentProgram : program;
+    }
+
+
+    // ==== Load ====
     @Override
     public LoadOutcome loadProgram(Path xmlPath) {
         LoadResult res = loader.loadFromXml(xmlPath, new CurrentAppState());
@@ -44,17 +49,17 @@ public class EngineFacadeImpl implements EngineFacade {
             this.program = res.program();
             this.currentProgram = program;
             this.loadedXmlPath=xmlPath.toString();
-             resetExpansionCache();
+            resetExpansionCache();
             return LoadOutcome.ok();
         }
-       return LoadOutcome.fail(res.errors());
+        return LoadOutcome.fail(res.errors());
     }
 
-    private SProgram activeProgram() {
-        return (currentProgram != null) ? currentProgram : program;
-    }
+    @Override
+    public String getLoadedXmlPath() {  return loadedXmlPath;}
 
-    // --- Select program or function ---
+
+    // === Program / Function selection ===
     @Override
     public void selectProgramOrFunction(String name) {
         if (program == null) return;
@@ -72,21 +77,12 @@ public class EngineFacadeImpl implements EngineFacade {
         }
     }
 
-    @Override
-    public boolean hasProgram() {
-        return activeProgram() != null;
-    }
 
     @Override
-    public String getLoadedXmlPath() {  return loadedXmlPath;}
+    public String getProgramName() {return activeProgram() != null ? activeProgram().getName() : "";}
 
-    //---Program info---
-    @Override
-    public String getProgramName() {
-        return activeProgram() != null ? activeProgram().getName() : "";
-    }
 
-    //---instructions---
+    // ==== Instruction Info ===
     @Override
     public List<InstructionDTO>getInstructionRows(int degree){
         int maxDegree=getMaxExpansionDegree();
@@ -146,6 +142,7 @@ public class EngineFacadeImpl implements EngineFacade {
         return vars.stream().sorted(numericAwareComparator()).toList();
     }
 
+
     @Override
     public List<String> getAllLabelsUsed(int degree,Integer finalIndex) {
         Set<String> labels = new LinkedHashSet<>();
@@ -154,12 +151,23 @@ public class EngineFacadeImpl implements EngineFacade {
 
         if (finalIndex != null) {
             getExpansionHistoryChain(degree, finalIndex).forEach(ii -> {
-                if (ii.label() != null && !ii.label().isBlank()) {
-                    labels.add(ii.label());
-                }
+                if (ii.label() != null && !ii.label().isBlank()) labels.add(ii.label());
             });
         }
         return labels.stream().sorted(numericAwareComparator()).toList();
+    }
+
+
+    // ==== Expansion ====
+    @Override
+    public int getMaxExpansionDegree() {
+        if (cachedMaxDegree != null) return cachedMaxDegree;
+        SProgram freshCopy = EngineFacadeUtils.materializeProgram(activeProgram(), 0);
+        ExpansionContext ctx = ExpansionContext.seedFrom(activeProgram());
+        ProgramExpander  exp = new ProgramExpander(ctx);
+        DegreeCalculator calc = new DegreeCalculator(exp);
+
+        return calc.maxProgramDegree(freshCopy);
     }
 
     @Override
@@ -190,21 +198,7 @@ public class EngineFacadeImpl implements EngineFacade {
     }
 
 
-@Override
-public int getMaxExpansionDegree() {
-    if (cachedMaxDegree != null) {
-        return cachedMaxDegree;
-    }
-
-    SProgram freshCopy = EngineFacadeUtils.materializeProgram(activeProgram(), 0);
-    ExpansionContext ctx = ExpansionContext.seedFrom(activeProgram());
-    ProgramExpander  exp = new ProgramExpander(ctx);
-    DegreeCalculator calc = new DegreeCalculator(exp);
-
-    return calc.maxProgramDegree(freshCopy);
-    }
-
-    //---Execute program---
+    // ==== Execution ====
     @Override
     public long[] parseInputsCsv(String csv, int degree) {
         List<String> inputsUsed = getInputsUsed(degree);
@@ -223,7 +217,6 @@ public int getMaxExpansionDegree() {
         return parseInputValues(rawValues, required,inputsUsed);
     }
 
-
     @Override
     public List<String> getInputsUsed(int degree) {
         int maxDegree=getMaxExpansionDegree();
@@ -240,7 +233,7 @@ public int getMaxExpansionDegree() {
     }
 
 
-    // --- Debug ---
+    // ==== Debug =====
 
     @Override
     public boolean startDebugSession(int degree, long... inputs) {
@@ -260,22 +253,16 @@ public int getMaxExpansionDegree() {
     }
 
     @Override
-    public ExecutionReport stepOver() {
-        return (activeDebug != null) ? activeDebug.step() : null;
-    }
+    public ExecutionReport stepOver() {return (activeDebug != null) ? activeDebug.step() : null;}
 
     @Override
-    public ExecutionReport stepBack() {
-        return (activeDebug != null) ? activeDebug.stepBack() : null;
-    }
+    public ExecutionReport stepBack() {return (activeDebug != null) ? activeDebug.stepBack() : null;}
 
     @Override
     public ExecutionReport resume() {
         if (activeDebug == null) return null;
         ExecutionReport report = activeDebug.resumeUntilBreakpoint();
-        if (activeDebug.isFinished()) {
-            activeDebug = null;
-        }
+        if (activeDebug.isFinished()) activeDebug = null;
         return report;
     }
 
@@ -291,54 +278,38 @@ public int getMaxExpansionDegree() {
     }
 
     @Override
-    public boolean isDebugActive() {
-        return activeDebug != null && !activeDebug.isFinished();
-    }
+    public boolean isDebugActive() {return activeDebug != null && !activeDebug.isFinished();}
 
     @Override
-    public int getCurrentPc() {
-        return (activeDebug != null) ? activeDebug.getPc() : -1;
-    }
+    public int getCurrentPc() {return (activeDebug != null) ? activeDebug.getPc() : -1;}
 
     @Override
-    public ExecutionReport buildInitialReport() {
-        return (activeDebug != null) ? activeDebug.buildInitialReport() : null;
-    }
+    public ExecutionReport buildInitialReport() {return (activeDebug != null) ? activeDebug.buildInitialReport() : null;}
 
-    // --- Breakpoints ---
 
+    // ==== Breakpoints ====
     @Override
     public Set<Integer> getBreakpoints() {
-        if (activeDebug != null) {
-            return new HashSet<>(activeDebug.getBreakpoints());
-        }
+        if (activeDebug != null) return new HashSet<>(activeDebug.getBreakpoints());
         return new HashSet<>(breakpoints);
     }
 
     @Override
     public void toggleBreakpoint(int idx) {
         if (activeDebug != null) {
-
-            if (activeDebug.getBreakpoints().contains(idx)) {
-                activeDebug.toggleBreakpoint(idx);
-                breakpoints.remove(idx);
-            } else {
-                activeDebug.toggleBreakpoint(idx);
-                breakpoints.add(idx);
-            }
+            activeDebug.toggleBreakpoint(idx);
+        }
+        if (breakpoints.contains(idx)) {
+            breakpoints.remove(idx);
         } else {
-            if (breakpoints.contains(idx)) breakpoints.remove(idx);
-            else breakpoints.add(idx);
+            breakpoints.add(idx);
         }
     }
 
 
-
     @Override
     public void clearAllBreakpoints() {
-        if (activeDebug != null) {
-            activeDebug.clearBreakpoints();
-        }
+        if (activeDebug != null) activeDebug.clearBreakpoints();
     }
 
     @Override
@@ -352,27 +323,14 @@ public int getMaxExpansionDegree() {
     }
 
 
-    //---Functions---
+    // ==== Functions ===
     @Override
     public List<String> getFunctionNames() {
         if (program == null) return List.of();
-
         var lookup = program.getFunctionLookup();
-
         return lookup.allFunctionNames().stream()
                 .map(lookup::userStringOf)
                 .toList();
     }
 
-    @Override
-    public List<InstructionDTO> getFunctionInstructionRows(String functionName) {
-        if (activeProgram() == null) return List.of();
-        var body = activeProgram().getFunctionLookup().bodyOf(functionName);
-        if (body == null) return List.of();
-
-        return body.stream()
-                .map(ins -> ProgramInfoUtils.toInfo(ins, -1, null)) // SInstruction → InstructionInfo
-                .map(ii -> toDto(activeProgram(), ii))
-                .toList();
-    }
 }

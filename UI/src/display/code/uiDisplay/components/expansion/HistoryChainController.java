@@ -38,7 +38,7 @@ public class HistoryChainController {
         setupRowHighlighting();
     }
 
-    // --- setup helpers ---
+    // ==== setup helpers ====
 
     private void setupColumns() {
         colIdx.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().index()));
@@ -82,7 +82,7 @@ public class HistoryChainController {
         });
     }
 
-    // --- API for other controllers ---
+    // ==== API for other controllers ====
 
     public void attachHistoryChain(InstructionsController instCtrl, IntegerProperty degreeProp,
                                    ProgramControlsController programCtrl){

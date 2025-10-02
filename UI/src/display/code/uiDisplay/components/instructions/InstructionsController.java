@@ -1,38 +1,30 @@
 package uiDisplay.components.instructions;
 
 import engineHolder.EngineHolder;
-import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import logic.engineFacade.model.InstructionDTO;
 import uiDisplay.design.AnimationManager;
-
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import static engineHolder.EngineHolder.hasEngine;
 
 
 public class InstructionsController {
 
     @FXML private TableView<InstructionDTO> instructionsTable;
-    @FXML private TableColumn<InstructionDTO,Number> colIdx;
-    @FXML private TableColumn<InstructionDTO, String> colBS;
-    @FXML private TableColumn<InstructionDTO, String> colLabel;
-    @FXML private TableColumn<InstructionDTO, String> colInstr;
-    @FXML private TableColumn<InstructionDTO, String> colCycles;
-    @FXML private TableColumn<InstructionDTO, Void> colBreakpoint;
-
-    @FXML private Label lblSummary;
+    @FXML private TableColumn<InstructionDTO,Number> colIdx;      // index
+    @FXML private TableColumn<InstructionDTO, String> colBS;      // basic/synthetic
+    @FXML private TableColumn<InstructionDTO, String> colLabel;   // label
+    @FXML private TableColumn<InstructionDTO, String> colInstr;   // full command
+    @FXML private TableColumn<InstructionDTO, String> colCycles;  // cycles
+    @FXML private TableColumn<InstructionDTO, Void> colBreakpoint;  // breakpoint
+    @FXML private Label lblSummary;   // summary of instruction types
 
     private EngineHolder holder;
     private int currDegree=0;
@@ -43,8 +35,6 @@ public class InstructionsController {
 
     private final String HIGHLIGHTED = "highlighted";
     private final String ACTIVE_ROW = "active-row";
-    private final String BREAKPOINT_ROW = "breakpoint-row";
-
 
     @FXML
     private void initialize(){
@@ -55,7 +45,7 @@ public class InstructionsController {
         setupPlaceholder();
     }
 
-    // --- setup helpers ---
+    // ==== Setup helpers ====
 
     private void setupColumns() {
         colIdx.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().index()));
@@ -122,28 +112,23 @@ public class InstructionsController {
                         return;
                     }
                     int modelIdx = modelIndexOf(getTableRow());
-                    boolean hasBp = false;
-                    if (holder != null && holder.hasEngine() && modelIdx >= 0) {
-                        hasBp = holder.getEngine().getBreakpoints().contains(modelIdx);
-                    }
+                    boolean hasBp = hasEngine(holder) && holder.getEngine().getBreakpoints().contains(modelIdx);
 
-                    if (hasBp) {
-                        setText("●");
-                        setStyle("-fx-text-fill: #d32f2f; -fx-font-weight: bold; -fx-alignment: center;");                    } else {
-                        setText("");
-                        setStyle("");
-                    }
+                    setText(hasBp ? "●" : "");
+                    setStyle(hasBp ? "-fx-text-fill: #d32f2f; -fx-font-weight: bold; -fx-alignment: center;" : "");
                 }
             };
 
+            // toggle breakpoint on click
             cell.setOnMouseClicked(e -> {
-                if (holder != null && holder.hasEngine() && cell.getTableRow() != null) {
+                if (hasEngine(holder) && cell.getTableRow() != null) {
                     int modelIdx = modelIndexOf(cell.getTableRow());
                     if (modelIdx >= 0) {
                         if (e.isControlDown()) {
-                            holder.getEngine().toggleBreakpoint(modelIdx);
+                            holder.getEngine().setBreakpoints(Set.of(modelIdx));
                         } else {
-                            holder.getEngine().setBreakpoints(java.util.Set.of(modelIdx)); // נקודה יחידה כברירת מחדל
+                            // toggle add/remove
+                            holder.getEngine().toggleBreakpoint(modelIdx);
                         }
                         instructionsTable.refresh();
                     }

@@ -27,23 +27,26 @@ public final class DomUtils {
             return null;
         }
     }
-//Get first Element in Document
+
+    // ==== Get first Element in Document ====
     public static Element first(Document doc, String tag) {
         NodeList nl = doc.getElementsByTagName(tag);
         return nl.getLength() == 0 ? null : (Element) nl.item(0);
     }
 
-//Get first Element in Section
+    // ==== Get first Element in Section ====
     public static Element first(Element parent, String tag) {
         NodeList nl = parent.getElementsByTagName(tag);
         return nl.getLength() == 0 ? null : (Element) nl.item(0);
     }
 
+    // ==== Get text content of first Element in Section ====
     public static String childText(Element parent, String tag) {
         Element e = first(parent, tag);
         return e == null ? "" : e.getTextContent().trim();
     }
 
+    // ==== Get all arguments of an instruction ====
     public static Map<String,String> allArgs(Element instEl) {
         Map<String,String> out = new LinkedHashMap<>();
         NodeList args = instEl.getElementsByTagName("S-Instruction-Argument");
@@ -59,6 +62,7 @@ public final class DomUtils {
         return out;
     }
 
+    // ==== Build RawInstructions from Element ====
     public static RawInstructions rawOf(Element instEl, int line) {
         return new RawInstructions(
                 line,
@@ -70,6 +74,7 @@ public final class DomUtils {
         );
     }
 
+    // ==== Read all instructions from <S-Instructions> section ====
     public static List<RawInstructions> readInstructions(Element sInstructionsEl) {
         if (sInstructionsEl == null) return List.of();
         NodeList nodes = sInstructionsEl.getElementsByTagName("S-Instruction");

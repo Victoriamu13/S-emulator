@@ -26,6 +26,7 @@ import java.util.*;
 
 public class BuildUtils {
 
+    //build instruction from components
     public static SInstruction constructInstruction(
             InstructionData type,
             SVars var,
@@ -87,6 +88,7 @@ public class BuildUtils {
         };
     }
 
+    // ==== Build from RawInstructions ====
     public static SInstruction buildInstruction(RawInstructions raw){
 
         InstructionData instName=InstructionData.valueOf(raw.name().trim().toUpperCase(Locale.ROOT));
@@ -96,18 +98,19 @@ public class BuildUtils {
         return constructInstruction(instName, var, lineLabel, args);
     }
 
+    // ==== Build SVars from text ====
      public static SVars buildVar(String variableName) {
         String s = variableName.trim();
-        if (s.equalsIgnoreCase("y")) {
-            return SVars.RESULT;
-        }
-        char head = Character.toLowerCase(s.charAt(0));   // x / z
+         if (s.equalsIgnoreCase("y")) return SVars.RESULT;
+
+         char head = Character.toLowerCase(s.charAt(0));   // x / z
         int n = Integer.parseInt(s.substring(1));
         return (head == 'x')
                 ? new SVarsImpl(SVarsType.INPUT, n)
                 : new SVarsImpl(SVarsType.WORK, n);
     }
 
+    // ==== Build SLabel from text ====
      public static SLabel buildLineLabel(String labelName) {
         String s = (labelName == null ? "" : labelName.trim());
         if (s.isEmpty()) return SpecialLabels.EMPTY;
@@ -116,6 +119,7 @@ public class BuildUtils {
         return new SLabelImpl(num);
     }
 
+    // ==== Build args map from raw map ====
      static Map<ArgumentData, String> buildArgs(Map<String, String> raw) {
         if (raw == null || raw.isEmpty()) return Map.of();
         EnumMap<ArgumentData, String> out = new EnumMap<>(ArgumentData.class);
@@ -126,15 +130,14 @@ public class BuildUtils {
             switch (key) {
                 case JNZ_LABEL, GOTO_LABEL, JZ_LABEL, JE_CONSTANT_LABEL, JE_VARIABLE_LABEL ->
                     out.put(key, normalizeLabelValue(val));   // EXIT / L..
-
                 case ASSIGNED_VARIABLE, VARIABLE_NAME -> out.put(key, normalizeVarText(val));      // y / xN / zN
-
                 default -> out.put(key, val);
             }
         }
         return out;
     }
 
+    // ==== Helpers functions ====
     private static String normalizeLabelValue(String v) {
         return v.equalsIgnoreCase("EXIT") ? "EXIT" : v.toUpperCase(Locale.ROOT);
     }

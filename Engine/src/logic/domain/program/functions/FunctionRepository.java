@@ -4,26 +4,32 @@ import logic.domain.instructions.SInstruction;
 import logic.domain.variable.SVars;
 import java.util.*;
 
-import static java.util.LinkedHashMap.newLinkedHashMap;
 
 public class FunctionRepository implements FunctionLookup {
+    // functionName → body
     private final Map<String, List<SInstruction>> functions = new LinkedHashMap<>();
+
+    // functionName → formal args (x1..xK)
     private final Map<String, List<SVars>> functionArgs = new LinkedHashMap<>();
+
+    // functionName → user-facing display string
     private final Map<String, String> functionUserStrings = new LinkedHashMap();
+
+    // userString → functionName
     private final Map<String, String> userStringToName = new LinkedHashMap<>();
 
     private static String key(String name) {
         return name == null ? "" : name.trim().toUpperCase(Locale.ROOT);
-    }
+}  // normalize
 
     public void register(String name,String userString, List<SVars> args, List<SInstruction> body){
-        String internalKey = key(name);
-        String userKey = key(userString);
+        String internalKey = key(name);   // normalized internal
+        String userKey = key(userString);  // normalized user-facing
 
-        functions.put(internalKey, body);
-        functionArgs.put(internalKey, args);
-        functionUserStrings.put(internalKey, userString);
-        userStringToName.put(userKey, internalKey);
+        functions.put(internalKey, body);      // store function body
+        functionArgs.put(internalKey, args);  // store formal args
+        functionUserStrings.put(internalKey, userString);  // store UI name
+        userStringToName.put(userKey, internalKey);        // reverse lookup
     }
 
     @Override
