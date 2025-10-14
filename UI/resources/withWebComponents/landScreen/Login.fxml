@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Button?>
+
+
+<VBox spacing="20" alignment="CENTER"
+      xmlns="http://javafx.com/javafx/"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.components.root.LoginController">
+
+   <children>
+      <Label text="WELCOME" />
+      <Label text="Please log in first." />
+      <Label text="User Name:" />
+      <TextField fx:id="userNameField" promptText="Enter your username" prefWidth="200" />
+      <Button text="Login" onAction="#onLoginClicked" prefWidth="100"/>
+   </children>
+</VBox>

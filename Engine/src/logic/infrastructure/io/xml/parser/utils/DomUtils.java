@@ -6,7 +6,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -16,12 +18,17 @@ import java.util.Map;
 public final class DomUtils {
     private DomUtils() {}
 
-    public static Document safeParse(Path xmlPath, List<String> errors) {
+    public static Document safeParse(InputStream inputStream, List<String> errors) {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             dbf.setExpandEntityReferences(false);
-            return dbf.newDocumentBuilder().parse(xmlPath.toFile());
+            dbf.setXIncludeAware(false);
+            dbf.setNamespaceAware(true);
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(inputStream);
+            doc.getDocumentElement().normalize();
+            return doc;
         } catch (Exception e) {
             errors.add("Failed to parse XML: " + e.getMessage());
             return null;

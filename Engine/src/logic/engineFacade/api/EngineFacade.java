@@ -3,6 +3,7 @@ import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
 import logic.engineFacade.model.InstructionDTO;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -10,8 +11,7 @@ import java.util.Set;
 public interface EngineFacade {
 
     // ==== Load ====
-    LoadOutcome loadProgram(Path xmlPath);
-    String getLoadedXmlPath();
+    LoadOutcome loadProgram(InputStream inputStream);
 
 
     // === Program / Function selection ===

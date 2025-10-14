@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ScrollPane?>
+
+
+<?import javafx.scene.layout.StackPane?>
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="controllers.components.root.UsersScreenController"
+           stylesheets="@/skins/base.css">
+
+
+    <BorderPane fx:id="mainContent">
+        <top>
+            <VBox>
+                <fx:include source="/regularComponents/loader/Loader.fxml" fx:id="loader"/>
+                <Separator prefWidth="200.0" />
+            </VBox>
+        </top>
+
+        <center>
+            <ScrollPane fitToHeight="true" fitToWidth="true">
+                <SplitPane fx:id="mainSplitPane" dividerPositions="0.5">
+                    <items>
+                        <VBox spacing="8" minWidth="200.0" SplitPane.resizableWithParent="true">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            <fx:include source="/regularComponents/programFeatures/ProgUpperControls.fxml" fx:id="progUpperControls"/>
+                            <fx:include source="/regularComponents/instructions/Instructions.fxml" fx:id="instructions"/>
+                            <fx:include source="/regularComponents/historyChain/HistoryChain.fxml" fx:id="historyChain"/>
+                        </VBox>
+
+                        <VBox spacing="8" minWidth="200.0" SplitPane.resizableWithParent="true">
+                            <fx:include source="/regularComponents/execution/ExecutionwDebugger.fxml" fx:id="executionwDebugger"/>
+                            <fx:include source="/regularComponents/runHistory/RunHistory.fxml" fx:id="runHistory"/>
+                        </VBox>
+                    </items>
+                </SplitPane>
+            </ScrollPane>
+        </center>
+
+        <bottom>
+            <fx:include source="/regularComponents/programFeatures/ProgBottomControls.fxml" fx:id="progBottomControls"/>
+        </bottom>
+    </BorderPane>
+</StackPane>
+

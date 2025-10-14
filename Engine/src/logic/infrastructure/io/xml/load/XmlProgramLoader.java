@@ -9,6 +9,7 @@ import logic.infrastructure.io.xml.validation.ValidateResult;
 import logic.infrastructure.io.xml.validation.XmlProgramValidator;
 import logic.domain.program.SProgram;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,28 +21,32 @@ public class XmlProgramLoader {
     private final XmlProgramBuilder builder = new XmlProgramBuilder();
 
 
-    public LoadResult load(Path xmlPath) {
-        // 1) BasicFileChecks
-        List<String> errors = new ArrayList<>(BasicFileChecks.validate(xmlPath));
-        if (!errors.isEmpty()) return LoadResult.failed(errors);
+    public LoadResult load(InputStream inputStream) {
+        try {
+            // 1) BasicFileChecks
+            List<String> errors = new ArrayList<>(BasicFileChecks.validate(inputStream));
+            if (!errors.isEmpty()) return LoadResult.failed(errors);
 
-        // 2) Parse
-         ProgramParseResult parsed = parser.parse(xmlPath);
-        if (!parsed.errors().isEmpty()) return LoadResult.failed(parsed.errors());
+            // 2) Parse
+            ProgramParseResult parsed = parser.parse(inputStream);
+            if (!parsed.errors().isEmpty()) return LoadResult.failed(parsed.errors());
 
-        // 3) Validate
-         ValidateResult validated = validator.validate(parsed.programName(), parsed.raw(),parsed.functions());
-        if (!validated.errors().isEmpty()) return LoadResult.failed(validated.errors());
+            // 3) Validate
+            ValidateResult validated = validator.validate(parsed.programName(), parsed.raw(), parsed.functions());
+            if (!validated.errors().isEmpty()) return LoadResult.failed(validated.errors());
 
-        // 4) Build program
-        SProgram program = builder.build(parsed.programName(), parsed.raw());
+            // 4) Build program
+            SProgram program = builder.build(parsed.programName(), parsed.raw());
 
 
-        // 5) Build repository of functions
-        FunctionRepository repo = new FunctionRepository();
-        builder.registerFunctions(parsed.functions(), repo);
-        program.setFunctionLookup(repo);
+            // 5) Build repository of functions
+            FunctionRepository repo = new FunctionRepository();
+            builder.registerFunctions(parsed.functions(), repo);
+            program.setFunctionLookup(repo);
 
-        return LoadResult.success(program, repo);
+            return LoadResult.success(program, repo);
+        } catch (Exception e) {
+            return LoadResult.failed(List.of("Failed to load from stream: " + e.getMessage()));
+        }
     }
 }

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<StackPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controllers.components.root.UsersScreenController">
+
+        <BorderPane>
+            <!-- ======== TOP ======== -->
+            <top>
+                <fx:include source="Header.fxml" fx:id="headerComponent"/>
+            </top>
+
+            <!-- ======== CENTER ======== -->
+            <center>
+                <ScrollPane fitToWidth="true" fitToHeight="true" >
+                        <SplitPane dividerPositions="0.6">
+                            <items>
+                                <VBox spacing="8" minWidth="200.0" SplitPane.resizableWithParent="true">
+                                    <padding>
+                                        <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <fx:include source="Users.fxml" fx:id="usersTableComponent"/>
+                                    <fx:include source="UsersRunHistory.fxml" fx:id="runsTableComponent"/>
+                                </VBox>
+
+                                <VBox spacing="8" minWidth="200.0" SplitPane.resizableWithParent="true">
+                                    <padding>
+                                        <Insets top="10" right="10" bottom="10" left="10"/>
+                                    </padding>
+                                    <fx:include source="Programs.fxml" fx:id="programsTableComponent"/>
+                                    <fx:include source="Functions.fxml" fx:id="functionsTableComponent"/>
+                                </VBox>
+                            </items>
+                        </SplitPane>
+                </ScrollPane>
+            </center>
+        </BorderPane>
+</StackPane>

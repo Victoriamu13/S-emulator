@@ -7,6 +7,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +18,10 @@ import static logic.infrastructure.io.xml.parser.utils.DomUtils.readInstructions
 public final class XmlProgramParser {
 
     // ==== Parse xml file ====
-    public ProgramParseResult parse(Path xmlPath){
+    public ProgramParseResult parse(InputStream inputStream){
         List<String> errors = new ArrayList<>();
 
-        Document doc= DomUtils.safeParse(xmlPath,errors);
+        Document doc= DomUtils.safeParse(inputStream,errors);
         if(!errors.isEmpty() || doc==null){
             return new ProgramParseResult(null,List.of(),List.of(),errors);
         }

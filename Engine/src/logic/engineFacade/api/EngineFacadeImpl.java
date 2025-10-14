@@ -19,7 +19,8 @@ import logic.infrastructure.io.xml.load.LoadResult;
 import logic.infrastructure.io.xml.load.LoadService;
 import logic.domain.program.SProgram;
 import logic.domain.program.info.ProgramInfo;
-import java.nio.file.Path;
+
+import java.io.InputStream;
 import java.util.*;
 
 import static logic.engineFacade.api.EngineFacadeUtils.*;
@@ -29,9 +30,8 @@ public class EngineFacadeImpl implements EngineFacade {
     private SProgram program;
     private SProgram currentProgram;
     private final LoadService loader = new LoadService();
-    private String loadedXmlPath;
     private DebugSession activeDebug;
-    private Map<Integer, List<String>> cachedInputs = new HashMap<>();
+    private  final Map<Integer, List<String>> cachedInputs = new HashMap<>();
     private Integer cachedMaxDegree = null;
     private Set<Integer> breakpoints = new HashSet<>();
 
@@ -43,20 +43,23 @@ public class EngineFacadeImpl implements EngineFacade {
 
     // ==== Load ====
     @Override
-    public LoadOutcome loadProgram(Path xmlPath) {
-        LoadResult res = loader.loadFromXml(xmlPath, new CurrentAppState());
-        if (res.success() && res.program() != null) {
-            this.program = res.program();
-            this.currentProgram = program;
-            this.loadedXmlPath=xmlPath.toString();
-            resetExpansionCache();
-            return LoadOutcome.ok();
+    public LoadOutcome loadProgram(InputStream inputStream) {
+        try {
+            LoadResult res = loader.loadFromXml(inputStream, new CurrentAppState());
+            if (res.success() && res.program() != null) {
+                this.program = res.program();
+                this.currentProgram = program;
+                resetExpansionCache();
+                return LoadOutcome.ok();
+            }
+            return LoadOutcome.fail(res.errors());
+        } catch (Exception e) {
+            List<String> errors = new ArrayList<>();
+            errors.add("Unexpected error while loading program from stream: " + e.getMessage());
+            return LoadOutcome.fail(errors);
         }
-        return LoadOutcome.fail(res.errors());
     }
 
-    @Override
-    public String getLoadedXmlPath() {  return loadedXmlPath;}
 
 
     // === Program / Function selection ===
