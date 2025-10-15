@@ -12,7 +12,7 @@ public class FuncCallArgument implements ComposeArgument{
         this.args=(args == null) ? java.util.List.of() : java.util.List.copyOf(args);;
     }
 
-    // ==== getters ====
+    // ==== Getters ====
     public String getFunctionName(){return functionName;}
     public List<ComposeArgument> getArguments(){return args;}
 

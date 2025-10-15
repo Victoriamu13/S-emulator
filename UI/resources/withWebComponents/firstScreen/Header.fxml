@@ -40,4 +40,6 @@
             <TextField fx:id="creditsInputField" text="credits"  editable="false" prefWidth="60" HBox.hgrow="NEVER"/>
         </children>
     </HBox>
+
+    <Label fx:id="loadStatusLabel" text="" style="-fx-font-size: 13px;"/>
 </VBox>

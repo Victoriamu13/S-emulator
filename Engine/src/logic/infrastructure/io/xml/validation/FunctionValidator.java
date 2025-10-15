@@ -25,6 +25,10 @@ public final class FunctionValidator {
             String fnName = safeString(fn.name());
             List<RawInstructions> body = safeList(fn.body());
 
+            if (body.isEmpty()) { // can be a global body
+                continue;
+            }
+
             // validate labels
             LabelIndexV lblIdx = LabelIndexV.build(body);
             addPrefixed(errors, fnName, lblIdx.errors());

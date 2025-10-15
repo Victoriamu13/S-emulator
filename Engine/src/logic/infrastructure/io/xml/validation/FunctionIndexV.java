@@ -93,4 +93,8 @@ public class FunctionIndexV {
                 }
             }
         }
+
+        public Set<String> functionNames(){
+             return funcNameToArity.keySet();
+        }
 }

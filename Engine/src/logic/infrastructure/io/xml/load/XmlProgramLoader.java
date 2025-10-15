@@ -32,7 +32,7 @@ public class XmlProgramLoader {
             if (!parsed.errors().isEmpty()) return LoadResult.failed(parsed.errors());
 
             // 3) Validate
-            ValidateResult validated = validator.validate(parsed.programName(), parsed.raw(), parsed.functions());
+            ValidateResult validated = validator.validateStructure(parsed.programName(), parsed.raw(), parsed.functions());
             if (!validated.errors().isEmpty()) return LoadResult.failed(validated.errors());
 
             // 4) Build program

@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
+import logic.domain.program.validation.ProgramValidation;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.api.EngineFacadeImpl;
 import logic.engineFacade.model.LoadOutcome;
@@ -17,6 +18,7 @@ import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 @WebServlet("/loadProgram")
 @MultipartConfig
@@ -40,7 +42,14 @@ public class LoadProgramServlet extends HttpServlet {
                 LoadOutcome outcome=engine.loadProgram(inputStream);
 
                 if(outcome.success()){
-                    response = JsonResponseUtils.success("Program loaded successfully.");
+                    List<String> validationErrors = ProgramValidation.validateAndRegister(engine);
+
+                    if(!validationErrors.isEmpty()) {
+                        response = JsonResponseUtils.error(String.join(", ", validationErrors));
+                    }else {
+                        response = JsonResponseUtils.success("Program loaded successfully.");
+                    }
+
                 }else{
                     response = JsonResponseUtils.error(String.join(", ", outcome.errors()));
                 }

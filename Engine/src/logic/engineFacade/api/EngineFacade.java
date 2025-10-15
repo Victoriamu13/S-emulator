@@ -1,4 +1,5 @@
 package logic.engineFacade.api;
+import logic.domain.program.SProgram;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
 import logic.engineFacade.model.InstructionDTO;
@@ -17,6 +18,8 @@ public interface EngineFacade {
     // === Program / Function selection ===
     void selectProgramOrFunction(String name);
     String getProgramName();
+    SProgram getProgram();
+
 
     // === Instruction Info ===
     List<InstructionDTO> getInstructionRows(int degree);
@@ -57,4 +60,5 @@ public interface EngineFacade {
 
     // ==== Functions ===
     List<String> getFunctionNames();
+
 }

@@ -84,6 +84,10 @@ public class EngineFacadeImpl implements EngineFacade {
     @Override
     public String getProgramName() {return activeProgram() != null ? activeProgram().getName() : "";}
 
+    @Override
+    public SProgram getProgram() {return activeProgram();}
+
+
 
     // ==== Instruction Info ===
     @Override
