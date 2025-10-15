@@ -8,6 +8,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import logic.domain.user.CreditManager;
+import logic.domain.user.UserManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import java.io.IOException;
@@ -17,8 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @WebServlet("/login")
 
 public class LoginServlet extends HttpServlet {
-    private static final Set<String> activeUsers= ConcurrentHashMap.newKeySet();
-    private final Gson gson=new Gson();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res)throws ServletException, IOException {
@@ -28,16 +28,18 @@ public class LoginServlet extends HttpServlet {
         if (username == null || username.trim().isEmpty()) {
             response = JsonResponseUtils.error("Username cannot be empty.");
         }
-        else if(activeUsers.contains(username)){
+        else if(UserManager.userExists(username)){
             response = JsonResponseUtils.error("Username already exists. Please choose another one.");        }
         else
         {
-            activeUsers.add(username);
+           UserManager.addUser(username);
 
             //Create username cookie
             Cookie cookie=new Cookie("username",username);
             cookie.setPath("/");
             res.addCookie(cookie);
+
+            CreditManager.initializeUser(username);
 
             response = JsonResponseUtils.success("Login successful.");
 

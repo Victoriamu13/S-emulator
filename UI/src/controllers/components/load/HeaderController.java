@@ -14,25 +14,20 @@ import java.io.File;
 
 
 public class HeaderController {
-    @FXML
-    private Button btnLoadFile;
-    @FXML
-    private TextField filePathField;
-    @FXML
-    private Label loadStatusLabel;
-    @FXML
-    private TextField userNameField;
-    @FXML
-    private Button btnChargeCredits;
-    @FXML
-    private TextField creditsField;
-    @FXML
-    private TextField creditsInputField;
+    @FXML private Button btnLoadFile;
+    @FXML private TextField filePathField;
+    @FXML private Label loadStatusLabel;
+    @FXML private TextField userNameField;
+    @FXML private Button btnChargeCredits;
+    @FXML private Button btnAdd500Credits;
+    @FXML private TextField creditsField;
+    @FXML private TextField creditsInputField;
 
     @FXML
     private void initialize() {
         btnLoadFile.setOnAction(e -> onLoadFile());
         btnChargeCredits.setOnAction(e -> onChargeCredits());
+        btnAdd500Credits.setOnAction(e -> onAdd500Credits());
 
         JsonObject obj = ServerRequestUtils.sendGet("/currentUser");
 
@@ -41,10 +36,14 @@ public class HeaderController {
 
             if ("SUCCESS".equals(state)) {
                 String username = obj.has("username") ? obj.get("username").getAsString() : "Unknown";
+                String credits = obj.has("credits") ? obj.get("credits").getAsString() : "0";
+
                 userNameField.setText(username);
+                creditsField.setText(credits);
             }
         } else {
             userNameField.setText("Unknown");
+            creditsField.setText("0");
         }
     }
 
@@ -87,10 +86,27 @@ public class HeaderController {
             RequestBody body = new FormBody.Builder()
                     .add("user", user)
                     .add("credits", amountCredits)
+                    .add("action", "DEDUCT")
                     .build();
 
             JsonObject obj = ServerRequestUtils.sendPost("/chargeCredits", body);
 
+            if (obj != null && "SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
+                String newCredits = obj.has("credits") ? obj.get("credits").getAsString() : "";
+                creditsField.setText(newCredits);
+            }
+        }
+
+        private void onAdd500Credits(){
+            String user=userNameField.getText();
+
+            RequestBody body = new FormBody.Builder()
+                    .add("user", user)
+                    .add("credits", "500")
+                    .add("action", "ADD")
+                    .build();
+
+            JsonObject obj=ServerRequestUtils.sendPost("/chargeCredits", body);
             if (obj != null && "SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
                 String newCredits = obj.has("credits") ? obj.get("credits").getAsString() : "";
                 creditsField.setText(newCredits);

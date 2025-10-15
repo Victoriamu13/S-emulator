@@ -1,14 +1,12 @@
-package servlets.header;
+package servlets.load;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.Part;
+import jakarta.servlet.http.*;
+import logic.domain.program.repository.ProgramRepository;
 import logic.domain.program.validation.ProgramValidation;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.api.EngineFacadeImpl;
@@ -24,7 +22,6 @@ import java.util.List;
 @MultipartConfig
 
 public class LoadProgramServlet extends HttpServlet {
-    private final Gson gson = new Gson();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
@@ -32,6 +29,25 @@ public class LoadProgramServlet extends HttpServlet {
         JsonObject response;
 
         try {
+            // === 1) Get user from session ===
+            String username=null;
+            if(req.getCookies()!=null){
+                for(Cookie cookie : req.getCookies()){
+                    if("username".equals(cookie.getName())){
+                        username=cookie.getValue();
+                        break;
+                    }
+                }
+            }
+
+            if(username==null || username.isBlank()){
+                response = JsonResponseUtils.error("No active user found. Please log in first.");
+                ResponseWriter.write(res, response);
+                return;
+            }
+
+
+            // === 2) Get file ===
             Part filePart = req.getPart("file");
             if(filePart == null || filePart.getSize()==0){
                 throw new IllegalArgumentException("Missing or empty file upload");
@@ -47,6 +63,7 @@ public class LoadProgramServlet extends HttpServlet {
                     if(!validationErrors.isEmpty()) {
                         response = JsonResponseUtils.error(String.join(", ", validationErrors));
                     }else {
+                        ProgramRepository.addProgram(username,engine);
                         response = JsonResponseUtils.success("Program loaded successfully.");
                     }
 

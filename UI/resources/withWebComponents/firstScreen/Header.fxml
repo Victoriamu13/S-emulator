@@ -36,8 +36,9 @@
             <Button fx:id="btnLoadFile" text="Load File Button" HBox.hgrow="NEVER"/>
             <TextField fx:id="filePathField" prefWidth="250" text="Currently Loaded File path"  editable="false" HBox.hgrow="NEVER"/>
 
+            <Button fx:id="btnAdd500Credits" text="+500 Credits" HBox.hgrow="NEVER"/>
             <Button fx:id="btnChargeCredits" text="Charge Credits" HBox.hgrow="NEVER"/>
-            <TextField fx:id="creditsInputField" text="credits"  editable="false" prefWidth="60" HBox.hgrow="NEVER"/>
+            <TextField fx:id="creditsInputField" text=""  prefWidth="60" HBox.hgrow="NEVER"/>
         </children>
     </HBox>
 
