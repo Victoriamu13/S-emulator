@@ -57,5 +57,9 @@ public class FunctionRepository implements FunctionLookup {
         return userStringToName.getOrDefault(userString, userString);
     }
 
+    @Override
+    public Map<String, List<SInstruction>> allFunctionsBodies() {
+        return new LinkedHashMap<>(functions);
+    }
 
 }

@@ -25,11 +25,13 @@ public class ProgramRepository {
     public static synchronized void addProgram(String user, EngineFacade engine) {
         SProgram program = engine.getProgram();
         String programName = engine.getProgramName();
+        String key = (user + ":" + programName).toUpperCase(Locale.ROOT);
+
         FunctionLookup lookup = program.getFunctionLookup();
         Set<String> funcs = lookup.allFunctionNames();
         funcs.forEach(fn -> allFunctions.add(fn.toUpperCase(Locale.ROOT)));
 
-        programs.put(programName, new ProgramEntry(
+        programs.put(key, new ProgramEntry(
                 programName,
                 user,
                 program.getInstructions().size(),

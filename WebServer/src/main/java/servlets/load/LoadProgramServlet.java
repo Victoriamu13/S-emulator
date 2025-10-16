@@ -1,11 +1,12 @@
 package servlets.load;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+import logic.domain.instructions.SInstruction;
+import logic.domain.program.functions.GlobalFunctionRepository;
 import logic.domain.program.repository.ProgramRepository;
 import logic.domain.program.validation.ProgramValidation;
 import logic.engineFacade.api.EngineFacade;
@@ -17,6 +18,7 @@ import servlets.utils.ResponseWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/loadProgram")
 @MultipartConfig
@@ -63,6 +65,9 @@ public class LoadProgramServlet extends HttpServlet {
                     if(!validationErrors.isEmpty()) {
                         response = JsonResponseUtils.error(String.join(", ", validationErrors));
                     }else {
+                        Map<String,List<SInstruction>> functions=engine.getProgram().getFunctionLookup().allFunctionsBodies();
+
+                        GlobalFunctionRepository.addFunctions(functions,username);
                         ProgramRepository.addProgram(username,engine);
                         response = JsonResponseUtils.success("Program loaded successfully.");
                     }

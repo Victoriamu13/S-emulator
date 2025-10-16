@@ -1,13 +1,9 @@
 package controllers.screens;
 
-import controllers.components.load.HeaderController;
-import controllers.components.root.UsersScreenController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.util.function.Consumer;
 
 public class ScreenManager {
     private static Stage stage;

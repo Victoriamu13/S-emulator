@@ -1,7 +1,5 @@
-package controllers.components.root;
+package controllers.components;
 
-import controllers.components.load.HeaderController;
-import javafx.fxml.FXML;
 import javafx.scene.control.SplitPane;
 
 

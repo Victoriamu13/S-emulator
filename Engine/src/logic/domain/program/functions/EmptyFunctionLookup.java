@@ -5,6 +5,7 @@ import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.variable.SVars;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public enum EmptyFunctionLookup implements FunctionLookup{
@@ -18,4 +19,6 @@ public enum EmptyFunctionLookup implements FunctionLookup{
     @Override public Set<String> allFunctionNames() { return Set.of(); }
 
     @Override public String internalNameOf(String userString){return null;}
+
+    @Override public Map<String,List<SInstruction>> allFunctionsBodies(){return Map.of();}
 }

@@ -1,4 +1,4 @@
-package controllers.components.load;
+package controllers.components;
 
 import com.google.gson.JsonObject;
 import controllers.utils.server.ServerRequestUtils;

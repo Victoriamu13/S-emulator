@@ -1,4 +1,4 @@
-package controllers.components.root;
+package controllers.components;
 
 import com.google.gson.JsonObject;
 import controllers.screens.ScreenManager;

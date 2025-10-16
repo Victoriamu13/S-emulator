@@ -6,18 +6,20 @@ import java.util.*;
 
 public final class GlobalFunctionRepository {
     private static final Map<String, List<SInstruction>> globalFunctions=new LinkedHashMap<>();
+    private static final Map<String, String> funcsContributors = new HashMap<>(); // functionName → username
 
     private GlobalFunctionRepository(){}
 
-    public static synchronized void addFunctions(Map<String,List<SInstruction>> functions){
+    public static synchronized void addFunctions(Map<String,List<SInstruction>> functions,String uploader){
         if(functions==null) return;
 
         for(var entry : functions.entrySet()){
             String fnName= entry.getKey().trim().toUpperCase(Locale.ROOT);
             List<SInstruction> body=entry.getValue();
 
-            if(!globalFunctions.containsKey(fnName)){
+            if(!globalFunctions.containsKey(fnName) && body!=null && !body.isEmpty()){
                 globalFunctions.put(fnName,body);
+                funcsContributors.put(fnName, uploader);
             }
         }
     }
@@ -54,6 +56,18 @@ public final class GlobalFunctionRepository {
     public static synchronized Set<String> getAllFunctionNames() {
         if (globalFunctions.isEmpty()) return Set.of();
         return new HashSet<>(globalFunctions.keySet());
+    }
+
+    public static synchronized int getFuncsContributedBy(String username) {
+        if (username == null) return 0;
+
+        int count = 0;
+        for (String contributor : funcsContributors.values()) {
+            if (username.equals(contributor)) {
+                count++;
+            }
+        }
+        return count;
     }
 
 

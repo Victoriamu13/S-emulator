@@ -1,13 +1,18 @@
 package logic.domain.user;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CreditManager {
 
     private static final ConcurrentHashMap<String,Integer> userCredits = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String,Integer> usedCredits = new ConcurrentHashMap<>();
+
 
     public static  synchronized void initializeUser(String username) {
         userCredits.putIfAbsent(username, 0);
+        usedCredits.putIfAbsent(username,0);
     }
 
     public static synchronized void addCredits(String username, int amount) {
@@ -18,11 +23,16 @@ public class CreditManager {
         return userCredits.getOrDefault(username, 0);
     }
 
+    public static synchronized  int getUsedCredits(String username) {
+        return usedCredits.getOrDefault(username, 0);
+    }
+
     public static synchronized boolean chargeCredits(String username, int amount) {
         int currentCredits = userCredits.getOrDefault(username, 0);
         if (currentCredits < amount) return false;
 
         userCredits.put(username, currentCredits - amount);
+        usedCredits.put(username, usedCredits.getOrDefault(username,0)+amount);
         return true;
     }
 

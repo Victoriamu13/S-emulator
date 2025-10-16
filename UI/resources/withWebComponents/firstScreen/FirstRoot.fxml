@@ -7,7 +7,7 @@
 <?import javafx.scene.control.SplitPane?>
 <StackPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="controllers.components.root.UsersScreenController">
+            fx:controller="controllers.components.UsersScreenController">
 
         <BorderPane>
             <!-- ======== TOP ======== -->

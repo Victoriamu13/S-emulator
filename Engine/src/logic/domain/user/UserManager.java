@@ -22,4 +22,8 @@ public class UserManager {
             activeUsers.remove(username);
         }
     }
+
+    public static Set<String> getAllActiveUsers() {
+        return activeUsers;
+    }
 }

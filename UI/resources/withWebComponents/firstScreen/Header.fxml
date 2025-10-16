@@ -8,7 +8,7 @@
 <?import javafx.geometry.Insets?>
 <VBox xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="controllers.components.load.HeaderController"
+      fx:controller="controllers.components.HeaderController"
       spacing="10" alignment="CENTER">
 
     <!-- ==== Row 1: User / Title / Credits ==== -->
