@@ -2,6 +2,8 @@ package logic.domain.expand.expandProgram;
 
 import logic.domain.instructions.SInstruction;
 import logic.domain.program.SProgram;
+import logic.domain.program.SProgramImpl;
+import logic.domain.program.functions.FunctionLookup;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -50,5 +52,28 @@ public final class DegreeCalculator {
         }
         return max;
     }
+
+    // calculate max degree of program
+    public static int calculateMaxDegree(SProgram program){
+
+        if(program==null || program.getInstructions().isEmpty()) return 0;
+
+        ExpansionContext ctx=ExpansionContext.seedFrom(program);
+        ProgramExpander expander=new ProgramExpander(ctx);
+        DegreeCalculator calculator=new DegreeCalculator(expander);
+        return calculator.maxProgramDegree(program);
+    }
+
+    // calculate max degrees of function in program
+    public static int calculateMaxDegree(List<SInstruction> instructions,FunctionLookup lookup, String name){
+        if(instructions==null || instructions.isEmpty()) return 0;
+
+        SProgramImpl tempProg=new SProgramImpl(name);
+        tempProg.setFunctionLookup(lookup);
+        instructions.forEach(tempProg::addInstruction);
+
+        return calculateMaxDegree(tempProg);
+    }
+
 
 }

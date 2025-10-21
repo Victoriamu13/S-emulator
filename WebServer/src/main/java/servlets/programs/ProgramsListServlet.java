@@ -1,26 +1,24 @@
-package servlets.user;
+package servlets.programs;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import logic.system.api.SystemManager;
-import logic.system.api.SystemManagerImpl;
-import logic.system.user.UserInfo;
+import logic.system.programs.info.ProgramsInfo;
+import logic.system.programs.info.ProgramInfoManager;
 import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/usersList")
+@WebServlet("/programsList")
 
-public class UsersListServlet extends HttpServlet {
-    private final SystemManager systemManager=new SystemManagerImpl();
-
+public class ProgramsListServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
-        List<UserInfo> allUsersInfos= systemManager.getAllUserInfo();
-        ResponseWriter.write(res, allUsersInfos);
+
+        List<ProgramsInfo> ProgramsInfo = ProgramInfoManager.getAllProgramsInfo();
+        ResponseWriter.write(res, ProgramsInfo);
     }
 }

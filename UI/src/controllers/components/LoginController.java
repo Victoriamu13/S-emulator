@@ -1,5 +1,6 @@
 package controllers.components;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import controllers.screens.ScreenManager;
 import controllers.utils.server.ServerRequestUtils;
@@ -27,10 +28,20 @@ public class LoginController {
                 .add("user",username)
                 .build();
 
-        JsonObject obj = ServerRequestUtils.sendPost("/login", body);
+        JsonElement response = ServerRequestUtils.sendPost("/login", body);
 
-        if(obj!=null && "SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())){
-            ScreenManager.showFirstScreen();
+        if(response!=null && response.isJsonObject()){
+            JsonObject obj=response.getAsJsonObject();
+
+            if (obj.has("state") && obj.get("state").isJsonPrimitive()
+                    && "SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
+                ScreenManager.showFirstScreen();
+            } else {
+                String message = obj.has("message") ? obj.get("message").getAsString() : "Login failed.";
+                ServerResponseHandler.showAlert("Login Failed", message, Alert.AlertType.ERROR);
+            }
+        }else{
+            ServerResponseHandler.showAlert("Error", "No response from server.", Alert.AlertType.ERROR);
         }
     }
 }

@@ -5,10 +5,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import logic.domain.instructions.SInstruction;
-import logic.domain.program.functions.GlobalFunctionRepository;
-import logic.domain.program.repository.ProgramRepository;
-import logic.domain.program.validation.ProgramValidation;
+import logic.system.api.SystemManager;
+import logic.system.api.SystemManagerImpl;
+import logic.system.validation.ProgramValidation;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.api.EngineFacadeImpl;
 import logic.engineFacade.model.LoadOutcome;
@@ -18,13 +17,12 @@ import servlets.utils.ResponseWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 
 @WebServlet("/loadProgram")
 @MultipartConfig
 
 public class LoadProgramServlet extends HttpServlet {
-
+ private final SystemManager systemManager=new SystemManagerImpl();
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
 
@@ -65,10 +63,7 @@ public class LoadProgramServlet extends HttpServlet {
                     if(!validationErrors.isEmpty()) {
                         response = JsonResponseUtils.error(String.join(", ", validationErrors));
                     }else {
-                        Map<String,List<SInstruction>> functions=engine.getProgram().getFunctionLookup().allFunctionsBodies();
-
-                        GlobalFunctionRepository.addFunctions(functions,username);
-                        ProgramRepository.addProgram(username,engine);
+                        systemManager.addProgram(username,engine);
                         response = JsonResponseUtils.success("Program loaded successfully.");
                     }
 
@@ -77,6 +72,7 @@ public class LoadProgramServlet extends HttpServlet {
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             response = JsonResponseUtils.error("Server error: " + e.getMessage());
         }
         ResponseWriter.write(res, response);

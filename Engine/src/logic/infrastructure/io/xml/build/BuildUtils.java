@@ -90,7 +90,6 @@ public class BuildUtils {
 
     // ==== Build from RawInstructions ====
     public static SInstruction buildInstruction(RawInstructions raw){
-
         InstructionData instName=InstructionData.valueOf(raw.name().trim().toUpperCase(Locale.ROOT));
         SLabel lineLabel=buildLineLabel(raw.labelText());
         SVars var=buildVar(raw.varText());

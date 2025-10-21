@@ -1,8 +1,9 @@
-package logic.domain.program.repository;
+package logic.system.programs.repository;
 
 import logic.domain.program.SProgram;
 import logic.domain.program.functions.FunctionLookup;
 import logic.engineFacade.api.EngineFacade;
+import logic.system.updates.UpdateFlagsManager;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -12,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ProgramRepository {
 
-    private static final Map<String,ProgramEntry> programs=new ConcurrentHashMap<>();
+    private static final Map<String, ProgramEntry> programs=new ConcurrentHashMap<>();
     private static final Set<String> allFunctions=ConcurrentHashMap.newKeySet();
 
     private ProgramRepository(){}
@@ -39,11 +40,13 @@ public class ProgramRepository {
                 0,
                 0.0
         ));
+        UpdateFlagsManager.markUpdated("programs");
     }
 
     public static synchronized Collection<ProgramEntry> allPrograms() {
         return programs.values();
     }
+
 
 }
 

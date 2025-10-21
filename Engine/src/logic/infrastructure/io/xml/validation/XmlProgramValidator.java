@@ -1,9 +1,7 @@
 package logic.infrastructure.io.xml.validation;
 
-import logic.domain.instructions.SInstruction;
-import logic.domain.program.functions.FunctionRepository;
 import logic.infrastructure.io.xml.dto.RawFunction;
-import logic.domain.program.repository.ProgramRepository;
+import logic.system.programs.repository.ProgramRepository;
 import logic.infrastructure.io.xml.dto.RawInstructions;
 import java.util.*;
 

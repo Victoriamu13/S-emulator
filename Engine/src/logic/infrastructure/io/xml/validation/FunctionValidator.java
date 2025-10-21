@@ -3,6 +3,7 @@ package logic.infrastructure.io.xml.validation;
 import logic.infrastructure.io.xml.dto.RawFunction;
 import logic.infrastructure.io.xml.dto.RawInstructions;
 import logic.infrastructure.io.xml.parser.composition.*;
+import logic.system.programs.functions.repository.GlobalFunctionRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +76,6 @@ public final class FunctionValidator {
     // ==== function call validator ====
     private static void validateFunctionCall(RawInstructions r, FunctionIndexV fIndex, List<String> errors,
                                              String missingFnMessage) {
-
         Map<String, String> args = safeArgs(r.args());
         String fnName = safeString(args.get(ARG_FN_NAME));
         String fnArgs = safeString(args.get(ARG_FN_ARGS));
@@ -84,11 +84,16 @@ public final class FunctionValidator {
             errors.add(msg(r, missingFnMessage));
             return;
         }
-        if (!fIndex.exists(fnName)) {
-            errors.add(msg(r, "Function '" + fnName + "' is not defined in <S-Functions>."));
-            return;
+
+        boolean existsLocal = fIndex.exists(fnName);
+        boolean existsGlobal = GlobalFunctionRepository.functionExists(fnName);
+
+        if (!existsLocal && !existsGlobal) {
+                errors.add(msg(r, "Function '" + fnName + "' is not defined in <S-Functions> or in Function Repository."));
+                return;
         }
 
+        int expected = fIndex.arityOf(fnName);
         CompositionParseResult parsed = CompositionParser.parseTopLevel(fnArgs);
         if (!parsed.isOk()) {
             addParseErrors(errors, r, parsed);
@@ -96,7 +101,6 @@ public final class FunctionValidator {
         }
 
         int provided = parsed.args().size();
-        int expected = fIndex.arityOf(fnName);
         if (expected >= 0 && expected != provided) {
             errors.add(msg(r, "Function '" + fnName + "' expects " + expected +
                     " argument(s) but got " + provided + "."));
@@ -118,11 +122,15 @@ public final class FunctionValidator {
         if (arg instanceof FuncCallArgument f) {
             String fn = f.getFunctionName();
 
-            if (!fIndex.exists(fn)) {
+            boolean existsLocal = fIndex.exists(fn);
+            boolean existsGlobal = GlobalFunctionRepository.functionExists(fn);
+
+            if (!existsLocal && !existsGlobal) {
                 errors.add(msg(r, "Function '" + fn + "' used in functionArguments is not defined in <S-Functions>."));
             } else {
                 int expected = fIndex.arityOf(fn);
                 int provided = f.getArguments().size();
+
                 if (expected >= 0 && expected != provided) {
                     errors.add(msg(r, "Function '" + fn + "' expects " + expected +
                             " argument(s) but got " + provided + "."));

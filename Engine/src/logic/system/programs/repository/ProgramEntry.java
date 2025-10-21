@@ -1,6 +1,4 @@
-package logic.domain.program.repository;
-
-import logic.engineFacade.api.EngineFacade;
+package logic.system.programs.repository;
 
 public class ProgramEntry {
     private final String progName;
@@ -23,7 +21,7 @@ public class ProgramEntry {
     // === GETTERS ===
     public String getProgName() { return progName; }
     public String uploadedBy() { return uploader; }
-    public int getInstructionCount() { return instCount; }
+    public int getNumberInstructions() { return instCount; }
     public int getMaxExpansionDegree() { return maxDegree; }
     public int getRunCount() { return runCount; }
     public double getAvgCreditCost() { return avgCreditCost; }

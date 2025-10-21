@@ -17,7 +17,7 @@ public class ScreenManager {
     }
 
     public static void showFirstScreen(){
-        loadScreen("/withWebComponents/firstScreen/FirstRoot.fxml","S-Emulator - Users");
+        loadScreen("/withWebComponents/firstScreen/FirstScreen.fxml","S-Emulator - Users");
     }
 
 

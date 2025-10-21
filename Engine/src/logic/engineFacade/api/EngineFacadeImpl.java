@@ -169,12 +169,8 @@ public class EngineFacadeImpl implements EngineFacade {
     @Override
     public int getMaxExpansionDegree() {
         if (cachedMaxDegree != null) return cachedMaxDegree;
-        SProgram freshCopy = EngineFacadeUtils.materializeProgram(activeProgram(), 0);
-        ExpansionContext ctx = ExpansionContext.seedFrom(activeProgram());
-        ProgramExpander  exp = new ProgramExpander(ctx);
-        DegreeCalculator calc = new DegreeCalculator(exp);
-
-        return calc.maxProgramDegree(freshCopy);
+        cachedMaxDegree=DegreeCalculator.calculateMaxDegree(activeProgram());
+        return cachedMaxDegree;
     }
 
     @Override

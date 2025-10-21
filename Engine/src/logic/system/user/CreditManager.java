@@ -1,7 +1,5 @@
-package logic.domain.user;
+package logic.system.user;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CreditManager {

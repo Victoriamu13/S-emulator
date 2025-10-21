@@ -3,6 +3,7 @@ package logic.infrastructure.io.xml.validation;
 import logic.infrastructure.io.xml.dto.RawFunction;
 import logic.infrastructure.io.xml.dto.RawInstructions;
 import logic.infrastructure.io.xml.parser.composition.*;
+import logic.system.programs.functions.repository.GlobalFunctionRepository;
 
 import java.util.*;
 
@@ -27,15 +28,17 @@ public class FunctionIndexV {
                 continue;
             }
 
-            String key = name.toUpperCase(Locale.ROOT);
-            if (!seen.add(key)) {
+            if (!seen.add(name)) {
                 idx.errors.add("Function '" + name + "' defined more than once.");
                 continue;
             }
 
             int arity = computeArity(rf.body());
-            idx.funcNameToArity.put(key, arity);
+            idx.funcNameToArity.put(name, arity);
+
+            GlobalFunctionRepository.registerArity(name, arity);
         }
+
         return idx;
     }
 
@@ -45,14 +48,20 @@ public class FunctionIndexV {
     }
 
     int arityOf(String name) {
-        return funcNameToArity.get(name.trim().toUpperCase(Locale.ROOT));
+        //return funcNameToArity.get(name.trim().toUpperCase(Locale.ROOT));
+        Integer val = funcNameToArity.get(name);
+        if (val == null) {
+            val = GlobalFunctionRepository.getArity(name);
+        }
+            return(val !=null)?val :0;
     }
+
 
     List<String> errors() { return errors; }
 
 
     // ==== Calculate arity by scanning function body for xN variables ====
-    private static int computeArity(List<RawInstructions> body) {
+    public static int computeArity(List<RawInstructions> body) {
         if (body == null) return 0;
 
         Set<Integer> inputs = new java.util.HashSet<>();
@@ -72,29 +81,28 @@ public class FunctionIndexV {
                 String fnArgs = getArgIgnoreCase(args, "functionArguments");
                 if (!fnArgs.isEmpty()) {
                     CompositionParseResult parsed = CompositionParser.parseTopLevel(fnArgs);
-                    if (parsed.isOk()) collectVarsFromArgs(parsed.args(), inputs);
+                    if (parsed.isOk()) {
+                        collectVarsFromArgs(parsed.args(), inputs);
+                        }
                 }
             }
         }
-            return inputs.size();
+        return inputs.size();
     }
 
 
     // ==== Collect xN variables recursively from ComposeArguments ====
-        private static void collectVarsFromArgs (List<ComposeArgument>args, Set<Integer>inputs){
-            for (ComposeArgument a : args) {
-                if (a instanceof VarArgument v) {
-                    String name = v.getName();
-                    if (isValidInputVariable(name)) {
-                        inputs.add(parseXIndex(name));
-                    }
-                } else if (a instanceof FuncCallArgument f) {
-                    collectVarsFromArgs(f.getArguments(), inputs);
+    private static void collectVarsFromArgs (List<ComposeArgument>args, Set<Integer>inputs){
+        for (ComposeArgument a : args) {
+            if (a instanceof VarArgument v) {
+                String name = v.getName();
+                if (isValidInputVariable(name)) {
+                    inputs.add(parseXIndex(name));
                 }
+            } else if (a instanceof FuncCallArgument f) {
+                collectVarsFromArgs(f.getArguments(), inputs);
             }
         }
+    }
 
-        public Set<String> functionNames(){
-             return funcNameToArity.keySet();
-        }
 }

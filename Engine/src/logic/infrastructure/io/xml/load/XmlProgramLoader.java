@@ -8,6 +8,7 @@ import logic.infrastructure.io.xml.parser.utils.BasicFileChecks;
 import logic.infrastructure.io.xml.validation.ValidateResult;
 import logic.infrastructure.io.xml.validation.XmlProgramValidator;
 import logic.domain.program.SProgram;
+import logic.system.programs.functions.repository.GlobalFunctionRepository;
 
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -41,8 +42,8 @@ public class XmlProgramLoader {
 
             // 5) Build repository of functions
             FunctionRepository repo = new FunctionRepository();
-            builder.registerFunctions(parsed.functions(), repo);
             program.setFunctionLookup(repo);
+            builder.registerFunctions(parsed.functions(), repo);
 
             return LoadResult.success(program, repo);
         } catch (Exception e) {

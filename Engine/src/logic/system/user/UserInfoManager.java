@@ -1,7 +1,7 @@
-package logic.domain.user;
+package logic.system.user;
 
-import logic.domain.program.functions.GlobalFunctionRepository;
-import logic.domain.program.repository.ProgramRepository;
+import logic.system.programs.functions.repository.GlobalFunctionRepository;
+import logic.system.programs.repository.ProgramRepository;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,5 +1,6 @@
 package controllers.utils.server;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import controllers.utils.client.HttpClientProvider;
 import javafx.scene.control.Alert;
@@ -15,7 +16,7 @@ public class ServerRequestUtils {
     private static final String SERVER_URL = "http://localhost:8080";
 
     // ==== Generic POST ====
-    public static JsonObject sendPost(String endpoint, RequestBody body){
+    public static JsonElement sendPost(String endpoint, RequestBody body){
         Request request=new Request.Builder()
                 .url(SERVER_URL+endpoint)
                 .post(body)
@@ -25,7 +26,7 @@ public class ServerRequestUtils {
     }
 
     // ==== Generic GET ====
-    public static JsonObject sendGet(String endpoint){
+    public static JsonElement sendGet(String endpoint){
        Request request=new Request.Builder()
                .url(SERVER_URL+endpoint)
                .get()
@@ -37,26 +38,37 @@ public class ServerRequestUtils {
 
 
     // ==== Helper Func ====
-    private static JsonObject handleResponse(Request request){
+    private static JsonElement handleResponse(Request request){
         try(Response response=client.newCall(request).execute()){
 
             if(response.isSuccessful() && response.body()!=null){
                 String responseBody=response.body().string();
-                JsonObject obj=ServerResponseHandler.gson.fromJson(responseBody,JsonObject.class);
 
-               if(obj.has("state") && "ERROR".equalsIgnoreCase(obj.get("state").getAsString())){
-                   String message=obj.has("message") ? obj.get("message").getAsString() : "Unknown server error";
-                   ServerResponseHandler.showAlert("Server Error",message, Alert.AlertType.ERROR);
-               }
+                JsonElement json=ServerResponseHandler.gson.fromJson(responseBody,JsonElement.class);
 
-                return obj;
+                if (json.isJsonObject()) {
+                    JsonObject obj = json.getAsJsonObject();
+
+                    if (obj.has("state") && obj.get("state").isJsonPrimitive()
+                            && "ERROR".equalsIgnoreCase(obj.get("state").getAsString())) {
+
+                        String message = obj.has("message")
+                                ? obj.get("message").getAsString()
+                                : "Unknown server error";
+
+                        ServerResponseHandler.showAlert("Server Error", message, Alert.AlertType.ERROR);
+                    }
+                }
+                return json;
+
+            } else {
+                ServerResponseHandler.showAlert("Error", "Server error: " + response.code(), Alert.AlertType.ERROR);
             }
-            else {
-                ServerResponseHandler.showAlert("Error","Server error: "+response.code(), Alert.AlertType.ERROR);
-            }
-        }catch(IOException e){
-            ServerResponseHandler.showAlert("Error","connection failed: "+e.getMessage(), Alert.AlertType.ERROR);
+
+        } catch (IOException e) {
+            ServerResponseHandler.showAlert("Error", "Connection failed: " + e.getMessage(), Alert.AlertType.ERROR);
         }
+
         return null;
     }
 

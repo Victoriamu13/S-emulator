@@ -33,7 +33,6 @@ public class CookieManager implements CookieJar {
 
             for(Cookie cookie : cookies){
                 hostCookies.put(cookie.name(),cookie);
-                System.out.println("[CookieManager] Stored cookie: " + cookie.name() + " = " + cookie.value());
             }
         }
     }

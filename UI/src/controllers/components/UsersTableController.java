@@ -1,76 +1,57 @@
 package controllers.components;
 
-import javafx.application.Platform;
+import com.google.gson.reflect.TypeToken;
+import controllers.utils.refreshers.GenericRefresher;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
-import javafx.collections.ObservableList;
+import java.lang.reflect.Type;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import logic.domain.user.UserInfo;
-
-import java.io.Closeable;
+import logic.system.user.UserInfo;
 import java.util.List;
 import java.util.Timer;
 
-public class UsersTableController implements Closeable {
-    private Timer timer;
-    private UsersListRefresher listRefresher;
-    private final BooleanProperty autoUpdate;
-    private final IntegerProperty totalUsers;
+
+public class UsersTableController{
+    Timer timer;
+    private GenericRefresher<UserInfo> refresher;
+    private final BooleanProperty autoUpdate = new SimpleBooleanProperty(true);
+    private final IntegerProperty totalUsers = new SimpleIntegerProperty(0);
 
     @FXML private TableView<UserInfo> usersTable;
     @FXML private TableColumn<UserInfo, String> colUserName;
-    @FXML private TableColumn<UserInfo, Number> colPrograms;
-    @FXML private TableColumn<UserInfo, Number> colFunctions;
+    @FXML private TableColumn<UserInfo, Integer> colPrograms;
+    @FXML private TableColumn<UserInfo, Integer> colFunctions;
     @FXML private TableColumn<UserInfo, Number> colCurrentCredits;
     @FXML private TableColumn<UserInfo, Number> colUsedCredits;
-    @FXML private TableColumn<UserInfo, Number> colExecutions;
+    @FXML private TableColumn<UserInfo, Integer> colExecutions;
     @FXML private Label usersCountLabel;
 
-    public UsersTableController(){
-        this.autoUpdate=new SimpleBooleanProperty(true);
-        this.totalUsers=new SimpleIntegerProperty(0);
-    }
+
 
     @FXML
     public void initialize(){
         usersCountLabel.textProperty().bind(Bindings.concat("Active Users: (", totalUsers.asString(),")"));
 
         colUserName.setCellValueFactory(c->new SimpleStringProperty(c.getValue().username()));
-        colPrograms.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().programsUploaded()));
-        colFunctions.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().funcsAdded()));
-        colCurrentCredits.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().currCredits()));
-        colUsedCredits.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().creditsUsed()));
-        colExecutions.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().totalExecutions()));
+        colPrograms.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().programsUploaded()));
+        colFunctions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().funcsAdded()));
+        colCurrentCredits.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().currCredits()));
+        colUsedCredits.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().creditsUsed()));
+        colExecutions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().totalExecutions()));
 
-        startListRefresher();
+        startRefresher();
     }
 
-    public void startListRefresher(){
-        listRefresher = new UsersListRefresher(autoUpdate,this::updateUsersTable);
+    public void startRefresher(){
+        Type listType=new TypeToken<List<UserInfo>>(){}.getType();
+        refresher = new GenericRefresher<>(
+                autoUpdate,"/usersUpdated","/usersList",usersTable,listType);
+
         timer=new Timer(true);
-        timer.schedule(listRefresher,0,3000);
+        timer.schedule(refresher,0,1000);
     }
-
-
-    private void updateUsersTable(List<UserInfo> users){
-        Platform.runLater(()->{
-            ObservableList<UserInfo> items = usersTable.getItems();
-            items.clear();
-            items.addAll(users);
-            totalUsers.set(users.size());
-        });
-    }
-
-    @Override
-    public void close(){
-        usersTable.getItems().clear();
-        totalUsers.set(0);
-        if(listRefresher!=null) listRefresher.cancel();
-        if(timer!=null) timer.cancel();
-    }
-
 
 }

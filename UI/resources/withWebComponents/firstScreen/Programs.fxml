@@ -6,19 +6,23 @@
 <?import javafx.scene.layout.VBox?>
 
 
-<VBox xmlns="http://javafx.com/javafx/">
-   <children>
-      <TableView xmlns:fx="http://javafx.com/fxml"   VBox.vgrow="ALWAYS">
+<VBox xmlns="http://javafx.com/javafx/"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controllers.components.ProgramsTableController">
+
+
+<children>
+      <TableView fx:id="programsTable"   VBox.vgrow="ALWAYS">
           <columnResizePolicy >
               <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
           </columnResizePolicy>
         <columns>
-          <TableColumn prefWidth="75.0" text="Name" />
-          <TableColumn prefWidth="75.0" text="Uploaded By" />
-            <TableColumn prefWidth="75.0" text="Instructions Count (Degree 0)" />
-            <TableColumn prefWidth="75.0" text="Max Degree" />
-            <TableColumn prefWidth="75.0" text="Execution Count" />
-            <TableColumn prefWidth="75.0" text="Average Credit Cost" />
+          <TableColumn  fx:id="colName" text="Name" />
+          <TableColumn fx:id="colUploadedBy" text="Uploaded By" />
+            <TableColumn fx:id="colInstructionCount" text="Instructions Count" />
+            <TableColumn fx:id="colMaxDegree" text="Max Degree" />
+            <TableColumn fx:id="colRunCount" text="Execution Count" />
+            <TableColumn  fx:id="colAvgCreditCost" text="Average Credit Cost" />
         </columns>
       </TableView>
       <Button mnemonicParsing="false" text="Execute Program" alignment="TOP_RIGHT"/>

@@ -7,18 +7,18 @@
 
 
 <VBox  xmlns="http://javafx.com/javafx/"  xmlns:fx="http://javafx.com/fxml"
-       fx:controller="controllers.components.instructions.FunctionsController" >
+       fx:controller="controllers.components.FunctionsTableController" >
    <children>
-      <TableView fx:id="FunctionsTable"   VBox.vgrow="ALWAYS">
+      <TableView fx:id="functionsTable"   VBox.vgrow="ALWAYS">
           <columnResizePolicy >
               <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
           </columnResizePolicy>
         <columns>
-          <TableColumn prefWidth="75.0" text="Function " />
-          <TableColumn prefWidth="75.0" text="Parent Program" />
-            <TableColumn prefWidth="75.0" text="Uploaded By" />
-            <TableColumn prefWidth="75.0" text="Instructions Count (Degree 0)" />
-            <TableColumn prefWidth="75.0" text="Max Degree" />
+          <TableColumn fx:id="colName" text="Function " />
+          <TableColumn fx:id="colProgramName" text="Parent Program" />
+            <TableColumn fx:id="colUploader" text="Uploaded By" />
+            <TableColumn fx:id="colInstCount" text="Instructions Count (Degree 0)" />
+            <TableColumn fx:id="colMaxDegree" text="Max Degree" />
         </columns>
       </TableView>
       <Button mnemonicParsing="false" text="Execute Program" alignment="TOP_RIGHT"/>

@@ -43,26 +43,26 @@ public class XmlProgramBuilder {
             List<RawInstructions> bodyRaw = safeList(fn.body());
 
             // Temporary build to extract args
-            SProgram tmp = build("[fn] " + fnName, bodyRaw);
-            List<SInstruction> bodyCopy = new ArrayList<>(tmp.getInstructions());
+                SProgram tmp = build("[fn] " + fnName, bodyRaw);
+                List<SInstruction> bodyCopy = new ArrayList<>(tmp.getInstructions());
 
-            // Collect input variable names
-            Set<String> inNames = new LinkedHashSet<>(ProgramInfoUtils.inputsUsed(bodyCopy));
+                // Collect input variable names
+                Set<String> inNames = new LinkedHashSet<>(ProgramInfoUtils.inputsUsed(bodyCopy));
 
-            // Also collect from QuoteInst and JumpEqualFuncInst
-            for (SInstruction ins : bodyCopy) {
-                if (ins instanceof QuoteInst q) {
-                    inNames.addAll(collectVarsFromArgs(q.getArguments()));
+                // Also collect from QuoteInst and JumpEqualFuncInst
+                for (SInstruction ins : bodyCopy) {
+                    if (ins instanceof QuoteInst q) {
+                        inNames.addAll(collectVarsFromArgs(q.getArguments()));
+                    }
+                    if (ins instanceof JumpEqualFuncInst jef) {
+                        inNames.addAll(collectVarsFromArgs(jef.getFunctionArgs()));
+                    }
                 }
-                if (ins instanceof JumpEqualFuncInst jef) {
-                    inNames.addAll(collectVarsFromArgs(jef.getFunctionArgs()));
-                }
-            }
-            // Build SVars for each input name
-            List<SVars> args = inNames.stream()
-                    .map(BuildUtils::buildVar)
-                    .toList();
-            repo.register(fnName,fnUserString, args, bodyCopy);  // Register func in repo
+                // Build SVars for each input name
+                List<SVars> args = inNames.stream()
+                        .map(BuildUtils::buildVar)
+                        .toList();
+                repo.register(fnName, fnUserString, args, bodyCopy);  // Register func in repo
         }
     }
 

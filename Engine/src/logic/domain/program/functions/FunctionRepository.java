@@ -2,6 +2,8 @@ package logic.domain.program.functions;
 
 import logic.domain.instructions.SInstruction;
 import logic.domain.variable.SVars;
+import logic.system.programs.functions.repository.GlobalFunctionRepository;
+
 import java.util.*;
 
 
@@ -34,7 +36,18 @@ public class FunctionRepository implements FunctionLookup {
 
     @Override
     public List<SInstruction> bodyOf(String functionName){
-        return functions.get(key(functionName));
+        String key= key(functionName);
+        List<SInstruction> localBody= functions.get(key);
+
+        if(localBody != null && !localBody.isEmpty())return localBody;
+
+        if (GlobalFunctionRepository.functionExists(functionName)) {
+            List<SInstruction> globalBody = GlobalFunctionRepository.getFunctionBody(functionName);
+            if (globalBody != null && !globalBody.isEmpty()) {
+                return globalBody;
+            }
+        }
+        return List.of();
     }
 
     @Override
@@ -44,8 +57,22 @@ public class FunctionRepository implements FunctionLookup {
 
     @Override
     public String userStringOf(String functionName) {
-        return functionUserStrings.getOrDefault(key(functionName), functionName);
+        String key= key(functionName);
+        String localUserString=functionUserStrings.get(key);
+        if(localUserString!=null) return localUserString;
+
+        if(GlobalFunctionRepository.functionExists(functionName)){
+            return GlobalFunctionRepository
+                    .allFunctions()
+                    .stream()
+                    .filter(f->f.getFuncName().equalsIgnoreCase(functionName))
+                    .findFirst()
+                    .map(f->f.getUserString())
+                    .orElse(functionName);
+        }
+        return functionName;
     }
+
 
     @Override
     public Set<String> allFunctionNames() {

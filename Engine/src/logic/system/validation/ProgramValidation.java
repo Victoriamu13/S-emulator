@@ -1,9 +1,10 @@
-package logic.domain.program.validation;
+package logic.system.validation;
 
 import logic.domain.instructions.SInstruction;
 import logic.domain.program.functions.FunctionLookup;
-import logic.domain.program.functions.GlobalFunctionRepository;
-import logic.domain.program.repository.ProgramRepository;
+import logic.system.programs.functions.repository.FunctionEntry;
+import logic.system.programs.functions.repository.GlobalFunctionRepository;
+import logic.system.programs.repository.ProgramRepository;
 import logic.engineFacade.api.EngineFacade;
 
 import java.util.ArrayList;
@@ -27,14 +28,14 @@ public class ProgramValidation {
         FunctionLookup lookup=engine.getProgram().getFunctionLookup();
         Set<String> localFunctions=lookup.allFunctionNames();
 
+        GlobalFunctionRepository.allFunctions().stream().map(FunctionEntry::getFuncName).toList();
+
         for(String func : localFunctions){
            List<SInstruction> localBody= lookup.bodyOf(func);
-
            // Case 1: Function declared but not implemented locally or globally
-           if(localBody.isEmpty() || localBody==null){
-               if(!GlobalFunctionRepository.functionExists(func)){
-                   errors.add("Function '" + func + "' declared without implementation and not found globally.");
-               }
+           if(localBody.isEmpty()){
+               if (GlobalFunctionRepository.functionExists(func)) continue;
+               errors.add("Function '" + func + "' declared without implementation and not found globally.");
                continue;
            }
 

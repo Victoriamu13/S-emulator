@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.StackPane?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="controllers.components.UsersScreenController"
+           fx:controller="controllers.components.FirstScreenController"
            stylesheets="@/skins/base.css">
 
 
