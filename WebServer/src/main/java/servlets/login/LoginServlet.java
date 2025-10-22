@@ -10,8 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import logic.system.api.SystemManager;
 import logic.system.api.SystemManagerImpl;
 import logic.system.updates.UpdateFlagsManager;
-import logic.system.user.CreditManager;
-import logic.system.user.UserManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import java.io.IOException;
@@ -23,7 +21,7 @@ public class LoginServlet extends HttpServlet {
     private final SystemManager systemManager=new SystemManagerImpl();
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse res)throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse res)throws IOException {
         JsonObject response;
         String username = req.getParameter("user");
 

@@ -14,11 +14,11 @@ public class FunctionInfoManager {
 
         for(FunctionEntry funcEntry : GlobalFunctionRepository.allFunctions()){
             infos.add(new FunctionInfo(
-                    funcEntry.getUserString(),
-                    funcEntry.getProgName(),
-                    funcEntry.getUploader(),
-                    funcEntry.getInstCount(),
-                    funcEntry.getMaxDegree()
+                    funcEntry.userString(),
+                    funcEntry.progName(),
+                    funcEntry.uploader(),
+                    funcEntry.instCount(),
+                    funcEntry.maxDegree()
             ));
         }
         List<FunctionInfo> reversed = new ArrayList<>(infos);

@@ -19,7 +19,7 @@ public class ChangeCreditsServlet extends HttpServlet {
 
     private final SystemManager systemManager=new SystemManagerImpl();
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
+    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException{
 
         JsonObject response;
         try{

@@ -28,7 +28,7 @@ public class ProgramValidation {
         FunctionLookup lookup=engine.getProgram().getFunctionLookup();
         Set<String> localFunctions=lookup.allFunctionNames();
 
-        GlobalFunctionRepository.allFunctions().stream().map(FunctionEntry::getFuncName).toList();
+        GlobalFunctionRepository.allFunctions().stream().map(FunctionEntry::funcName).toList();
 
         for(String func : localFunctions){
            List<SInstruction> localBody= lookup.bodyOf(func);

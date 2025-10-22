@@ -1,0 +1,45 @@
+package servlets.user.history.historyTable;
+
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import logic.system.user.history.selectedUser.SelectedUserManager;
+import logic.system.user.history.userHstory.UserHistory;
+import logic.system.user.history.userHstory.UserHistoryManager;
+import servlets.utils.JsonResponseUtils;
+import servlets.utils.ResponseWriter;
+
+import java.io.IOException;
+import java.util.List;
+
+@WebServlet("/userHistory")
+
+public class UserHistoryServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
+        String currentUser = null;
+
+            if (req.getCookies() != null) {
+                for (Cookie c : req.getCookies()) {
+                    if("username".equals(c.getName())) {
+                        currentUser = c.getValue();
+                        break;
+                    }
+                }
+            }
+
+
+        if(currentUser==null){ //no logged-in user found
+            ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
+            return;
+        }
+
+        String selectedUser= SelectedUserManager.getSelectedUser(currentUser); //get selected user for current logged-in user;
+        List<UserHistory> userHistory= UserHistoryManager.getUserExecHistories(selectedUser); //get selected user's history
+        ResponseWriter.write(res, userHistory);
+
+    }
+}

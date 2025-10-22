@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+
+<TableView xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controllers.components.HistoryTableController">
+  <columnResizePolicy >
+    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+  </columnResizePolicy>
+  <columns>
+    <TableColumn fx:id="colRunID" text="Run Number" />
+    <TableColumn fx:id="colType" text="Run Type" />
+      <TableColumn fx:id="colName" text="Program / Function" />
+      <TableColumn fx:id="colArch" text="Architecture Type" />
+      <TableColumn fx:id="colDegree" text="Run Level" />
+      <TableColumn fx:id="colYVal" text="Y Value" />
+      <TableColumn fx:id="colCycles" text="Cycles" />
+  </columns>
+</TableView>

@@ -1,7 +1,8 @@
-package logic.system.user;
+package logic.system.user.info;
 
 import logic.system.programs.functions.repository.GlobalFunctionRepository;
 import logic.system.programs.repository.ProgramRepository;
+import logic.system.user.credits.CreditManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;

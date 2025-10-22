@@ -16,7 +16,7 @@ import java.util.List;
 
 public class ProgramsListServlet extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
 
         List<ProgramsInfo> ProgramsInfo = ProgramInfoManager.getAllProgramsInfo();
         ResponseWriter.write(res, ProgramsInfo);

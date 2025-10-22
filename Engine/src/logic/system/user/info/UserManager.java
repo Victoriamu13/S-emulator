@@ -1,4 +1,4 @@
-package logic.system.user;
+package logic.system.user.info;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

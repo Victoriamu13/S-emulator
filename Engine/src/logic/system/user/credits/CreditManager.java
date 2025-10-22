@@ -1,4 +1,4 @@
-package logic.system.user;
+package logic.system.user.credits;
 
 import java.util.concurrent.ConcurrentHashMap;
 

@@ -1,7 +1,7 @@
 package logic.system.api;
 
 import logic.engineFacade.api.EngineFacade;
-import logic.system.user.UserInfo;
+import logic.system.user.info.UserInfo;
 
 import java.util.List;
 

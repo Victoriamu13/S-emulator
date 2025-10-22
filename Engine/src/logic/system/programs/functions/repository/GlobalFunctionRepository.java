@@ -84,7 +84,7 @@ public final class GlobalFunctionRepository {
         if (username == null) return 0;
         int count = 0;
         for (FunctionEntry funcEntry : functions.values()) {
-            if (username.equals(funcEntry.getUploader())) {
+            if (username.equals(funcEntry.uploader())) {
                 count++;
             }
         }

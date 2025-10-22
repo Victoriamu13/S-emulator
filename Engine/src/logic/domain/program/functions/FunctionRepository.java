@@ -65,9 +65,9 @@ public class FunctionRepository implements FunctionLookup {
             return GlobalFunctionRepository
                     .allFunctions()
                     .stream()
-                    .filter(f->f.getFuncName().equalsIgnoreCase(functionName))
+                    .filter(f->f.funcName().equalsIgnoreCase(functionName))
                     .findFirst()
-                    .map(f->f.getUserString())
+                    .map(f->f.userString())
                     .orElse(functionName);
         }
         return functionName;

@@ -17,7 +17,7 @@ import java.util.List;
 public class FunctionsListServer extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws  IOException{
          List<FunctionInfo> allFunctionsInfo = FunctionInfoManager.getAllFunctionsInfo();
         ResponseWriter.write(res,allFunctionsInfo);
     }

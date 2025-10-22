@@ -25,7 +25,7 @@
                                         <Insets top="10" right="10" bottom="10" left="10"/>
                                     </padding>
                                     <fx:include source="Users.fxml" fx:id="usersTableComponent"/>
-                                    <fx:include source="UsersRunHistory.fxml" fx:id="runsTableComponent"/>
+                                    <fx:include source="UsersHistory.fxml" fx:id="historyTableComponent"/>
                                 </VBox>
 
                                 <VBox spacing="8" minWidth="200.0" SplitPane.resizableWithParent="true">

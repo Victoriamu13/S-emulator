@@ -1,7 +1,9 @@
 package controllers.components;
 
+import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import controllers.utils.refreshers.GenericRefresher;
+import controllers.utils.server.ServerRequestUtils;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import java.lang.reflect.Type;
@@ -9,7 +11,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import logic.system.user.UserInfo;
+import logic.system.user.info.UserInfo;
+import okhttp3.FormBody;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+
 import java.util.List;
 import java.util.Timer;
 
@@ -42,7 +48,22 @@ public class UsersTableController{
         colUsedCredits.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().creditsUsed()));
         colExecutions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().totalExecutions()));
 
+        usersTable.getSelectionModel().selectedItemProperty().addListener((obs,oldVal,newVal)-> {
+            if(newVal!=null){
+              updateSelectedUser(newVal.username());
+            }
+        });
         startRefresher();
+    }
+
+    private void updateSelectedUser(String selectedUser){
+        RequestBody body=new FormBody.Builder()
+                .add("user",selectedUser)
+                .build();
+
+        new Thread(()->{
+        JsonElement response = ServerRequestUtils.sendPost("/selectedUser",body);
+        }).start();
     }
 
     public void startRefresher(){

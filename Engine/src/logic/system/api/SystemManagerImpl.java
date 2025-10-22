@@ -1,18 +1,15 @@
 package logic.system.api;
 
-import logic.domain.instructions.SInstruction;
 import logic.domain.program.functions.FunctionLookup;
 import logic.engineFacade.api.EngineFacade;
-import logic.system.programs.functions.repository.FunctionEntry;
 import logic.system.programs.functions.repository.GlobalFunctionRepository;
 import logic.system.programs.repository.ProgramRepository;
-import logic.system.user.CreditManager;
-import logic.system.user.UserInfo;
-import logic.system.user.UserInfoManager;
-import logic.system.user.UserManager;
+import logic.system.user.credits.CreditManager;
+import logic.system.user.info.UserInfo;
+import logic.system.user.info.UserInfoManager;
+import logic.system.user.info.UserManager;
 
 import java.util.List;
-import java.util.Map;
 
 public class SystemManagerImpl implements SystemManager{
 

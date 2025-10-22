@@ -1,4 +1,4 @@
-package servlets.user;
+package servlets.user.info;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;

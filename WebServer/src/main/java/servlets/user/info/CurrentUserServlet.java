@@ -1,4 +1,4 @@
-package servlets.user;
+package servlets.user.info;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
@@ -21,7 +21,7 @@ public class CurrentUserServlet extends HttpServlet {
     private final SystemManager systemManager=new SystemManagerImpl();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
         JsonObject response;
         String username=null;
 
