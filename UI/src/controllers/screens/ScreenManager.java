@@ -13,11 +13,15 @@ public class ScreenManager {
     }
 
     public static void showLoginScreen(){
-        loadScreen("/withWebComponents/landScreen/Login.fxml","S-Emulator - Login");
+        loadScreen("/withWebComponents/loginScreen/Login.fxml","S-Emulator - Login");
     }
 
-    public static void showFirstScreen(){
-        loadScreen("/withWebComponents/firstScreen/FirstScreen.fxml","S-Emulator - Users");
+    public static void showDashboardScreen(){
+        loadScreen("/withWebComponents/dashboardScreen/DashboardScreen.fxml","S-Emulator - Users");
+    }
+
+    public static void showExecutionScreen(){
+        loadScreen("/withWebComponents/executionScreen/ExecutionScreen.fxml","S-Emulator - Execution");
     }
 
 

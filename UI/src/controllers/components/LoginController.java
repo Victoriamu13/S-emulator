@@ -35,7 +35,7 @@ public class LoginController {
 
             if (obj.has("state") && obj.get("state").isJsonPrimitive()
                     && "SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
-                ScreenManager.showFirstScreen();
+                ScreenManager.showDashboardScreen();
             } else {
                 String message = obj.has("message") ? obj.get("message").getAsString() : "Login failed.";
                 ServerResponseHandler.showAlert("Login Failed", message, Alert.AlertType.ERROR);

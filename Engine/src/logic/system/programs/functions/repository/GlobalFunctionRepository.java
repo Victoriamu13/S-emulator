@@ -3,6 +3,7 @@ package logic.system.programs.functions.repository;
 import logic.domain.expand.expandProgram.DegreeCalculator;
 import logic.domain.instructions.SInstruction;
 import logic.domain.program.functions.FunctionLookup;
+import logic.domain.variable.SVars;
 import logic.system.updates.UpdateFlagsManager;
 
 import java.util.*;
@@ -90,6 +91,49 @@ public final class GlobalFunctionRepository {
         }
         return count;
     }
+
+    // Retrieve FunctionEntry by function name
+    public static FunctionEntry getFunctionEntry(String fnName){
+        return functions.get(fnName);
+    }
+
+    public static FunctionLookup asLookup() {
+        return new FunctionLookup() {
+            @Override
+            public List<SInstruction> bodyOf(String functionName) {
+                if (functionName == null) return List.of();
+                return functionBodies.getOrDefault(functionName, List.of());
+            }
+
+            @Override
+            public List<SVars> argsOf(String functionName) {
+                return List.of();
+            }
+
+            @Override
+            public String userStringOf(String functionName) {
+                FunctionEntry entry = functions.get(functionName);
+                return (entry != null) ? entry.userString() : functionName;
+            }
+
+            @Override
+            public String internalNameOf(String userString) {
+                for (FunctionEntry entry : functions.values()) {
+                    if (entry.userString().equals(userString)) {
+                        return entry.funcName();
+                    }
+                }
+                return "";
+            }
+
+            @Override
+            public Set<String> allFunctionNames() {
+                return new HashSet<>(functions.keySet());
+            }
+        };
+
+    }
+
 
 
 }

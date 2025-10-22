@@ -1,7 +1,6 @@
 package logic.domain.program.functions;
 
 import logic.domain.instructions.SInstruction;
-import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.variable.SVars;
 
 import java.util.List;
@@ -14,5 +13,4 @@ public interface FunctionLookup {
     String userStringOf(String functionName);
     Set<String> allFunctionNames();
     String internalNameOf(String userString);
-    Map<String, List<SInstruction>> allFunctionsBodies();
 }

@@ -6,11 +6,11 @@ import logic.domain.program.SProgramImpl;
 
 import java.util.List;
 
-public class FunctionAsSProgramAdapter {
+public class FuncAsProgAdapter {
     private final String functionName;
     private final FunctionLookup lookup;
 
-    public FunctionAsSProgramAdapter(String functionName, FunctionLookup lookup) {
+    public FuncAsProgAdapter(String functionName, FunctionLookup lookup) {
         this.functionName = functionName;
         this.lookup = lookup;
     }

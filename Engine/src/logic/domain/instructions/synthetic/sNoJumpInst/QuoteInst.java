@@ -1,8 +1,8 @@
 package logic.domain.instructions.synthetic.sNoJumpInst;
 
 import logic.domain.execution.context.CurrentContext;
-import logic.domain.execution.executer.FunctionExecuter;
-import logic.domain.execution.executer.FunctionResult;
+import logic.domain.execution.executer.funcExecuter.FunctionExecuter;
+import logic.domain.execution.executer.funcExecuter.FunctionResult;
 import logic.domain.instructions.AbstractInstruction;
 import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.data.InstructionData;

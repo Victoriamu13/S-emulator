@@ -21,6 +21,6 @@
             <TableColumn fx:id="colMaxDegree" text="Max Degree" />
         </columns>
       </TableView>
-      <Button mnemonicParsing="false" text="Execute Program" alignment="TOP_RIGHT"/>
+      <Button fx:id="btnRunAsProgram" text="Execute Program" alignment="TOP_RIGHT"/>
    </children>
 </VBox>

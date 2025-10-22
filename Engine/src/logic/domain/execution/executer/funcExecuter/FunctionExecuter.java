@@ -1,4 +1,4 @@
-package logic.domain.execution.executer;
+package logic.domain.execution.executer.funcExecuter;
 
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.execution.context.CurrentContextImpl;
@@ -22,7 +22,7 @@ import java.util.Map;
 public class FunctionExecuter { //Run functions as "Black Box"
 
     // Evaluate a single ComposeArgument into (value,cycles)
-    public static FunctionResult  evaluateArgument(ComposeArgument arg, CurrentContext ctx,FunctionLookup fnLookup){
+    public static FunctionResult evaluateArgument(ComposeArgument arg, CurrentContext ctx, FunctionLookup fnLookup){
         if(arg instanceof VarArgument var){
             SVars v = BuildUtils.buildVar(var.getName());   // resolve variable name → SVars
             long val = ctx.getVariableValue(v);            // read runtime value

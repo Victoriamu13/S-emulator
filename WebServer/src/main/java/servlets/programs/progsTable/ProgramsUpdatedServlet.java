@@ -1,4 +1,4 @@
-package servlets.functions;
+package servlets.programs.progsTable;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,19 +10,19 @@ import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
 
-@WebServlet("/functionsUpdated")
+@WebServlet("/programsUpdated")
 
-public class FunctionsUpdateServlet extends HttpServlet {
+public class ProgramsUpdatedServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
         JsonObject response = new JsonObject();
 
-        boolean updated= UpdateFlagsManager.hasUpdated("functions");
+        boolean updated= UpdateFlagsManager.hasUpdated("programs");
         response.addProperty("updated", updated);
 
         if(updated){
-            UpdateFlagsManager.clearFlag("functions");
+            UpdateFlagsManager.clearFlag("programs");
         }
 
         ResponseWriter.write(res,response);

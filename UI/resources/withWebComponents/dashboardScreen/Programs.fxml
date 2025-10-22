@@ -25,6 +25,6 @@
             <TableColumn  fx:id="colAvgCreditCost" text="Average Credit Cost" />
         </columns>
       </TableView>
-      <Button mnemonicParsing="false" text="Execute Program" alignment="TOP_RIGHT"/>
+      <Button fx:id="btnRunProgram" text="Execute Program" alignment="TOP_RIGHT"/>
    </children>
 </VBox>

@@ -1,7 +1,7 @@
 package logic.engineFacade.api;
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.execution.context.CurrentContextImpl;
-import logic.domain.execution.executer.ProgramExecuterImpl;
+import logic.domain.execution.executer.progExecuter.ProgramExecuterImpl;
 import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.program.SProgramImpl;
@@ -11,8 +11,6 @@ import logic.engineFacade.model.debug.DebugSession;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
 import logic.domain.expand.expandProgram.DegreeCalculator;
-import logic.domain.expand.expandProgram.ExpansionContext;
-import logic.domain.expand.expandProgram.ProgramExpander;
 import logic.engineFacade.model.InstructionDTO;
 import logic.infrastructure.io.app.CurrentAppState;
 import logic.infrastructure.io.xml.load.LoadResult;
@@ -334,6 +332,20 @@ public class EngineFacadeImpl implements EngineFacade {
         return lookup.allFunctionNames().stream()
                 .map(lookup::userStringOf)
                 .toList();
+    }
+
+    @Override
+    public LoadOutcome loadExistingProgram(SProgram program) {
+        if (program == null) {
+            List<String> errors = new ArrayList<>();
+            errors.add("annot load program: program is null.");
+            return LoadOutcome.fail(errors);
+        }
+
+        this.program=program;
+        this.currentProgram = program;
+        resetExpansionCache();
+        return LoadOutcome.ok();
     }
 
 }

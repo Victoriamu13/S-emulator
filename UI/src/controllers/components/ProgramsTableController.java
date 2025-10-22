@@ -1,12 +1,19 @@
 package controllers.components;
 
 import com.google.gson.reflect.TypeToken;
+import controllers.screens.ScreenManager;
 import controllers.utils.refreshers.GenericRefresher;
+import controllers.utils.server.ServerRequestUtils;
+import controllers.utils.server.ServerResponseHandler;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import logic.system.programs.info.ProgramsInfo;
+import okhttp3.FormBody;
+import okhttp3.RequestBody;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -24,6 +31,7 @@ public class ProgramsTableController{
     @FXML private TableColumn<ProgramsInfo,Integer> colMaxDegree;
     @FXML private TableColumn<ProgramsInfo,Integer> colRunCount;
     @FXML private TableColumn<ProgramsInfo,Number> colAvgCreditCost;
+    @FXML private Button btnRunProgram;
 
     @FXML
     public void initialize() {
@@ -34,7 +42,22 @@ public class ProgramsTableController{
         colRunCount.setCellValueFactory(c->new SimpleObjectProperty<>(c.getValue().numExecutions()));
         colAvgCreditCost.setCellValueFactory(c->new SimpleDoubleProperty(c.getValue().avgCreditCost()));
 
+        btnRunProgram.setOnAction(e->onRunProgram());
         startRefresher();
+    }
+
+    private void onRunProgram(){
+        ProgramsInfo selectedProgram=programsTable.getSelectionModel().getSelectedItem();
+        if(selectedProgram!=null) return;
+
+        RequestBody body=new FormBody.Builder()
+                .add("program",selectedProgram.name())
+                .build();
+
+        new Thread(()->{
+            ServerRequestUtils.sendPost("/selectProgram",body);
+            Platform.runLater(() -> ScreenManager.showExecutionScreen());
+        }).start();
     }
 
     public void startRefresher() {

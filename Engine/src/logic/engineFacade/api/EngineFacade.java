@@ -60,5 +60,6 @@ public interface EngineFacade {
 
     // ==== Functions ===
     List<String> getFunctionNames();
+    LoadOutcome loadExistingProgram(SProgram program);
 
 }

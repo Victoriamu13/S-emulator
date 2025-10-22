@@ -21,8 +21,6 @@ public class FunctionInfoManager {
                     funcEntry.maxDegree()
             ));
         }
-        List<FunctionInfo> reversed = new ArrayList<>(infos);
-        Collections.reverse(reversed);
-        return reversed;
+        return infos;
     }
 }

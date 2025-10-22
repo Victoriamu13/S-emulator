@@ -1,5 +1,7 @@
-package logic.domain.execution.executer;
+package logic.domain.execution.executer.progExecuter;
 
+import logic.domain.execution.executer.funcExecuter.FunctionExecuter;
+import logic.domain.execution.executer.funcExecuter.FunctionResult;
 import logic.domain.execution.utils.ExecutionUtils;
 import logic.domain.execution.utils.LabelUtils;
 import logic.domain.instructions.synthetic.sJumpInst.JumpEqualFuncInst;

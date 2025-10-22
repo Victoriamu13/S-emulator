@@ -5,15 +5,12 @@ import logic.domain.program.functions.FunctionLookup;
 import logic.engineFacade.api.EngineFacade;
 import logic.system.updates.UpdateFlagsManager;
 
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ProgramRepository {
 
-    private static final Map<String, ProgramEntry> programs=new ConcurrentHashMap<>();
+    private static final Map<String, ProgramEntry> programs = Collections.synchronizedMap(new LinkedHashMap<>());
     private static final Set<String> allFunctions=ConcurrentHashMap.newKeySet();
 
     private ProgramRepository(){}
