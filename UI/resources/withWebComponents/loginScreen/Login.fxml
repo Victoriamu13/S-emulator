@@ -9,7 +9,7 @@
 <VBox spacing="20" alignment="CENTER"
       xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="controllers.components.LoginController">
+      fx:controller="controllers.components.dashboard.LoginController">
 
    <children>
       <Label text="WELCOME" />

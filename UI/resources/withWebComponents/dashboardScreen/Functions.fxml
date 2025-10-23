@@ -7,7 +7,7 @@
 
 
 <VBox  xmlns="http://javafx.com/javafx/"  xmlns:fx="http://javafx.com/fxml"
-       fx:controller="controllers.components.FunctionsTableController" >
+       fx:controller="controllers.components.dashboard.FunctionsTableController" >
    <children>
       <TableView fx:id="functionsTable"   VBox.vgrow="ALWAYS">
           <columnResizePolicy >

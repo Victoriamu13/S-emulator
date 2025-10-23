@@ -1,4 +1,4 @@
-package controllers.components;
+package controllers.components.dashboard;
 
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
@@ -13,7 +13,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import logic.system.user.info.UserInfo;
 import okhttp3.FormBody;
-import okhttp3.Request;
 import okhttp3.RequestBody;
 
 import java.util.List;

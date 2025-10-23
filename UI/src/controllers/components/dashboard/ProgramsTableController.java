@@ -1,10 +1,9 @@
-package controllers.components;
+package controllers.components.dashboard;
 
 import com.google.gson.reflect.TypeToken;
 import controllers.screens.ScreenManager;
 import controllers.utils.refreshers.GenericRefresher;
 import controllers.utils.server.ServerRequestUtils;
-import controllers.utils.server.ServerResponseHandler;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.fxml.FXML;
@@ -48,14 +47,14 @@ public class ProgramsTableController{
 
     private void onRunProgram(){
         ProgramsInfo selectedProgram=programsTable.getSelectionModel().getSelectedItem();
-        if(selectedProgram!=null) return;
+        if(selectedProgram==null) return;
 
         RequestBody body=new FormBody.Builder()
                 .add("program",selectedProgram.name())
                 .build();
 
         new Thread(()->{
-            ServerRequestUtils.sendPost("/selectProgram",body);
+            ServerRequestUtils.sendPost("/selectedProgram",body);
             Platform.runLater(() -> ScreenManager.showExecutionScreen());
         }).start();
     }

@@ -1,4 +1,4 @@
-package controllers.components;
+package controllers.components.dashboard;
 
 import com.google.gson.reflect.TypeToken;
 import controllers.screens.ScreenManager;
@@ -14,7 +14,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import logic.system.programs.functions.info.FunctionInfo;
-import logic.system.programs.info.ProgramsInfo;
 import okhttp3.FormBody;
 import okhttp3.RequestBody;
 
@@ -49,14 +48,14 @@ public class FunctionsTableController {
 
     private void onRunAsProgram(){
         FunctionInfo selectedFunction=functionsTable.getSelectionModel().getSelectedItem();
-        if(selectedFunction!=null) return;
+        if(selectedFunction==null) return;
 
         RequestBody body=new FormBody.Builder()
                 .add("function",selectedFunction.name())
                 .build();
 
         new Thread(()->{
-            ServerRequestUtils.sendPost("/selectFunction",body);
+            ServerRequestUtils.sendPost("/selectedFunction",body);
             Platform.runLater(() -> ScreenManager.showExecutionScreen());
         }).start();
     }

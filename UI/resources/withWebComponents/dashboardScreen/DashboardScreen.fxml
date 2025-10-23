@@ -7,18 +7,18 @@
 <?import javafx.scene.control.SplitPane?>
 <StackPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="controllers.components.FirstScreenController">
+            fx:controller="controllers.components.dashboard.DashboardScreenController">
 
         <BorderPane>
             <!-- ======== TOP ======== -->
             <top>
-                <fx:include source="Header.fxml" fx:id="headerComponent"/>
+                <fx:include source="DashHeader.fxml" fx:id="headerComponent"/>
             </top>
 
             <!-- ======== CENTER ======== -->
             <center>
                 <ScrollPane fitToWidth="true" fitToHeight="true" >
-                        <SplitPane dividerPositions="0.6">
+                        <SplitPane  fx:id="mainSplitPane" dividerPositions="0.6">
                             <items>
                                 <VBox spacing="8" minWidth="200.0" SplitPane.resizableWithParent="true">
                                     <padding>

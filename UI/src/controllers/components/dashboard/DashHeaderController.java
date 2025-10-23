@@ -1,4 +1,4 @@
-package controllers.components;
+package controllers.components.dashboard;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -16,7 +16,7 @@ import javafx.scene.paint.Color;
 import java.io.File;
 
 
-public class HeaderController {
+public class DashHeaderController {
     @FXML private Button btnLoadFile;
     @FXML private TextField filePathField;
     @FXML private Label loadStatusLabel;

@@ -1,4 +1,4 @@
-package controllers.components;
+package controllers.components.dashboard;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

@@ -30,7 +30,14 @@ public class ScreenManager {
             FXMLLoader loader=new FXMLLoader(ScreenManager.class.getResource(fxmlPath));
             Parent root = loader.load();
 
-            stage.setScene(new Scene(root));
+            if (stage.getScene() == null) { //case first screen
+                Scene scene = new Scene(root, 900, 600);
+                stage.setScene(scene);
+            } else {
+                stage.getScene().setRoot(root);  //case switch to another screen
+            }
+
+            stage.centerOnScreen();
             stage.setTitle(title);
             stage.show();
 
