@@ -3,7 +3,7 @@ package logic.infrastructure.io.xml.build;
 import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.synthetic.sJumpInst.JumpEqualFuncInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.QuoteInst;
-import logic.domain.program.functions.FunctionRepository;
+import logic.domain.program.functions.FunctionLookupImpl;
 import logic.domain.program.info.ProgramInfoUtils;
 import logic.domain.variable.SVars;
 import logic.infrastructure.io.xml.dto.RawFunction;
@@ -32,7 +32,7 @@ public class XmlProgramBuilder {
     }
 
     // ================ Register Functions ====================
-    public void registerFunctions(List<RawFunction> functions, FunctionRepository repo) {
+    public void registerFunctions(List<RawFunction> functions, FunctionLookupImpl repo) {
         if (functions == null || functions.isEmpty()) return;
 
         for (RawFunction fn : functions) {

@@ -1,4 +1,4 @@
-package servlets.user.info;
+package servlets.updates;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,13 +10,13 @@ import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
 
-@WebServlet("/usersUpdated")
+@WebServlet("/historyUpdated")
 
-public class UserUpdatedServlet extends HttpServlet {
+public class HistoryUpdatedServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        boolean updated= UpdateFlagsManager.hasUpdated("users");
+        boolean updated= UpdateFlagsManager.hasUpdated("history");
 
         JsonObject response=new JsonObject();
         response.addProperty("updated", updated);

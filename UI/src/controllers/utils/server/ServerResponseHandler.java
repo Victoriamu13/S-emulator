@@ -2,6 +2,7 @@ package controllers.utils.server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -27,10 +28,12 @@ public class ServerResponseHandler {
 
 
     public static void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(type);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 }

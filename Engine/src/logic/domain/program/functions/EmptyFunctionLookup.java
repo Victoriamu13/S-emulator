@@ -17,6 +17,4 @@ public enum EmptyFunctionLookup implements FunctionLookup{
     @Override public String userStringOf(String functionName) { return functionName; }
 
     @Override public Set<String> allFunctionNames() { return Set.of(); }
-
-    @Override public String internalNameOf(String userString){return null;}
 }

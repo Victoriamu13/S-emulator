@@ -2,7 +2,7 @@ package logic.system.api;
 
 import logic.domain.program.functions.FunctionLookup;
 import logic.engineFacade.api.EngineFacade;
-import logic.system.programs.functions.repository.GlobalFunctionRepository;
+import logic.system.programs.functions.repository.FunctionRepository;
 import logic.system.programs.repository.ProgramRepository;
 import logic.system.user.credits.CreditManager;
 import logic.system.user.info.UserInfo;
@@ -46,7 +46,7 @@ public class SystemManagerImpl implements SystemManager{
     // ==== PROGRAMS ====
     @Override public void addProgram(String username, EngineFacade engine){
         FunctionLookup lookup=engine.getProgram().getFunctionLookup();
-        GlobalFunctionRepository.addFunctions(lookup,username, engine.getProgramName());
+        FunctionRepository.addFunctions(lookup,username, engine.getProgramName());
         ProgramRepository.addProgram(username,engine);
     }
 

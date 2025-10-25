@@ -22,14 +22,28 @@ public class GenericRefresher<T> extends TimerTask {
     private final BooleanProperty autoUpdate;
     private final TableView<T> table;
     private final Type listType;
+    private final String arrayField;
 
-    public GenericRefresher(BooleanProperty autoUpdate, String updatedEndpoint, String dataEndpoint,
-                            TableView<T> table, Type listType) {
+    public GenericRefresher(BooleanProperty autoUpdate,
+                            String updatedEndpoint,
+                            String dataEndpoint,
+                            TableView<T> table,
+                            Type listType) {
+        this(autoUpdate, updatedEndpoint, dataEndpoint, table, listType, null);
+    }
+
+    public GenericRefresher(BooleanProperty autoUpdate,
+                            String updatedEndpoint,
+                            String dataEndpoint,
+                            TableView<T> table,
+                            Type listType,
+                            String arrayField) {
         this.autoUpdate = autoUpdate;
         this.updatedEndpoint = updatedEndpoint;
         this.dataEndpoint = dataEndpoint;
         this.table = table;
         this.listType = listType;
+        this.arrayField = arrayField;
     }
 
     @Override
@@ -42,9 +56,21 @@ public class GenericRefresher<T> extends TimerTask {
         JsonObject obj = response.getAsJsonObject();
         if (obj.has("updated") && obj.get("updated").getAsBoolean()) {
             JsonElement dataResponse = ServerRequestUtils.sendGet(dataEndpoint); //get updated data
-            if (dataResponse == null || !dataResponse.isJsonArray()) return;
+            if (dataResponse == null) return;
 
-            List<T> items = gson.fromJson(dataResponse, listType);
+            List<T> items;
+            if(arrayField==null){
+                if(!dataResponse.isJsonArray())return;
+                items=gson.fromJson(dataResponse,listType);
+            }else{
+                if(!dataResponse.isJsonObject())return;
+                JsonObject objData=dataResponse.getAsJsonObject();
+                JsonElement arr=objData.get(arrayField);
+                if(arr==null || !arr.isJsonArray())return;
+                items=gson.fromJson(arr,listType);
+            }
+
+            if (items == null) return;
 
             Platform.runLater(() -> {
                 ObservableList<T> observable = FXCollections.observableArrayList(items);

@@ -21,6 +21,7 @@ public class ServerRequestUtils {
                 .url(SERVER_URL+endpoint)
                 .post(body)
                 .build();
+        System.out.println("[Client POST] " + endpoint + " (body sent)");
 
         return handleResponse(request);
     }
@@ -31,6 +32,7 @@ public class ServerRequestUtils {
                .url(SERVER_URL+endpoint)
                .get()
                .build();
+        System.out.println("[Client GET] " + endpoint);
 
        return handleResponse(request);
     }
@@ -42,6 +44,7 @@ public class ServerRequestUtils {
         try(Response response=client.newCall(request).execute()){
 
             if(response.isSuccessful() && response.body()!=null){
+
                 String responseBody=response.body().string();
 
                 JsonElement json=ServerResponseHandler.gson.fromJson(responseBody,JsonElement.class);

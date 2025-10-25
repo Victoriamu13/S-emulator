@@ -1,10 +1,9 @@
 package logic.system.programs.functions.info;
 
 import logic.system.programs.functions.repository.FunctionEntry;
-import logic.system.programs.functions.repository.GlobalFunctionRepository;
+import logic.system.programs.functions.repository.FunctionRepository;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class FunctionInfoManager {
@@ -12,7 +11,7 @@ public class FunctionInfoManager {
     public static List<FunctionInfo> getAllFunctionsInfo(){
         List<FunctionInfo> infos=new ArrayList<>();
 
-        for(FunctionEntry funcEntry : GlobalFunctionRepository.allFunctions()){
+        for(FunctionEntry funcEntry : FunctionRepository.allFunctions()){
             infos.add(new FunctionInfo(
                     funcEntry.userString(),
                     funcEntry.progName(),

@@ -1,6 +1,6 @@
 package logic.infrastructure.io.xml.load;
 
-import logic.domain.program.functions.FunctionRepository;
+import logic.domain.program.functions.FunctionLookupImpl;
 import logic.infrastructure.io.xml.build.XmlProgramBuilder;
 import logic.infrastructure.io.xml.parser.programParse.ProgramParseResult;
 import logic.infrastructure.io.xml.parser.programParse.XmlProgramParser;
@@ -8,10 +8,8 @@ import logic.infrastructure.io.xml.parser.utils.BasicFileChecks;
 import logic.infrastructure.io.xml.validation.ValidateResult;
 import logic.infrastructure.io.xml.validation.XmlProgramValidator;
 import logic.domain.program.SProgram;
-import logic.system.programs.functions.repository.GlobalFunctionRepository;
 
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +39,7 @@ public class XmlProgramLoader {
 
 
             // 5) Build repository of functions
-            FunctionRepository repo = new FunctionRepository();
+            FunctionLookupImpl repo = new FunctionLookupImpl();
             program.setFunctionLookup(repo);
             builder.registerFunctions(parsed.functions(), repo);
 

@@ -1,25 +1,25 @@
-package logic.domain.program.functions;
+package logic.system.programs.functions.repository;
 
 import logic.domain.instructions.SInstruction;
 import logic.domain.program.SProgram;
 import logic.domain.program.SProgramImpl;
+import logic.domain.program.functions.FunctionLookup;
 
 import java.util.List;
+import java.util.Locale;
 
 public class FuncAsProgAdapter {
     private final String functionName;
     private final FunctionLookup lookup;
 
     public FuncAsProgAdapter(String functionName, FunctionLookup lookup) {
-        this.functionName = functionName;
+        this.functionName = functionName.trim();
         this.lookup = lookup;
     }
 
     public SProgram asProgram() {
         //build a program
-        String progName =lookup.userStringOf(functionName);
-
-        SProgramImpl program = new SProgramImpl(progName);
+        SProgramImpl program = new SProgramImpl(functionName);
         program.setFunctionLookup(lookup);
 
         //copy body

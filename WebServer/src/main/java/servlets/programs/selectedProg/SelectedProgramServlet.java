@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.system.programs.selectedProg.SelectedProgramManager;
+import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 
@@ -34,6 +35,7 @@ public class SelectedProgramServlet extends HttpServlet {
 
         if(program!=null && currentUser!=null){
             SelectedProgramManager.setSelectedProgram(currentUser,"program",program); //set selected program for current logged-in user
+            UpdateFlagsManager.markUpdated("degree");
             ResponseWriter.write(res, JsonResponseUtils.success("Program selected successfully."));
         }else{
             ResponseWriter.write(res,JsonResponseUtils.error("Missing user or program data."));

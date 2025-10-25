@@ -60,25 +60,6 @@ public class EngineFacadeImpl implements EngineFacade {
 
 
 
-    // === Program / Function selection ===
-    @Override
-    public void selectProgramOrFunction(String name) {
-        if (program == null) return;
-
-        if (program.getName().equals(name)) {
-            currentProgram = program;
-        } else {
-            String internalName = program.getFunctionLookup().internalNameOf(name);
-            var body = program.getFunctionLookup().bodyOf(internalName);
-            if (body != null && !body.isEmpty()) {
-                currentProgram = new SProgramImpl(internalName);
-                currentProgram.setFunctionLookup(program.getFunctionLookup());
-                body.forEach(currentProgram::addInstruction);
-            }
-        }
-    }
-
-
     @Override
     public String getProgramName() {return activeProgram() != null ? activeProgram().getName() : "";}
 

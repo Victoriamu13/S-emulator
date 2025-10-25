@@ -3,7 +3,7 @@ package logic.infrastructure.io.xml.validation;
 import logic.infrastructure.io.xml.dto.RawFunction;
 import logic.infrastructure.io.xml.dto.RawInstructions;
 import logic.infrastructure.io.xml.parser.composition.*;
-import logic.system.programs.functions.repository.GlobalFunctionRepository;
+import logic.system.programs.functions.repository.FunctionRepository;
 
 import java.util.*;
 
@@ -36,7 +36,7 @@ public class FunctionIndexV {
             int arity = computeArity(rf.body());
             idx.funcNameToArity.put(name, arity);
 
-            GlobalFunctionRepository.registerArity(name, arity);
+            FunctionRepository.registerArity(name, arity);
         }
 
         return idx;
@@ -51,7 +51,7 @@ public class FunctionIndexV {
         //return funcNameToArity.get(name.trim().toUpperCase(Locale.ROOT));
         Integer val = funcNameToArity.get(name);
         if (val == null) {
-            val = GlobalFunctionRepository.getArity(name);
+            val = FunctionRepository.getArity(name);
         }
             return(val !=null)?val :0;
     }

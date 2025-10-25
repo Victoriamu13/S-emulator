@@ -1,6 +1,6 @@
 package logic.system.user.info;
 
-import logic.system.programs.functions.repository.GlobalFunctionRepository;
+import logic.system.programs.functions.repository.FunctionRepository;
 import logic.system.programs.repository.ProgramRepository;
 import logic.system.user.credits.CreditManager;
 
@@ -24,7 +24,7 @@ public class UserInfoManager {
                     .filter(pe -> pe.uploadedBy().equals(user))
                     .count();
 
-            int contributedFuncs= GlobalFunctionRepository.getFuncsContributedBy(user);
+            int contributedFuncs= FunctionRepository.getFuncsContributedBy(user);
             int currentCredits= CreditManager.getCredits(user);
             int usedCredits= CreditManager.getUsedCredits(user);
             int totalExec=runsCount.getOrDefault(user,0);

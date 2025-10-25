@@ -1,7 +1,6 @@
 package logic.domain.execution.context;
 
 import logic.domain.program.functions.FunctionLookup;
-import logic.domain.program.functions.FunctionRepository;
 import logic.domain.variable.SVars;
 
 import java.util.Map;

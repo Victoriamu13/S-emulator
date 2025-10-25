@@ -16,7 +16,6 @@ public interface EngineFacade {
 
 
     // === Program / Function selection ===
-    void selectProgramOrFunction(String name);
     String getProgramName();
     SProgram getProgram();
 

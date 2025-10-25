@@ -1,12 +1,12 @@
 package logic.domain.execution.executer.funcExecuter;
 
 import logic.domain.program.SProgram;
-import logic.domain.program.functions.FuncAsProgAdapter;
+import logic.system.programs.functions.repository.FuncAsProgAdapter;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.api.EngineFacadeImpl;
 import logic.engineFacade.model.ExecutionReport;
 import logic.system.programs.functions.repository.FunctionEntry;
-import logic.system.programs.functions.repository.GlobalFunctionRepository;
+import logic.system.programs.functions.repository.FunctionRepository;
 
 public class FuncAsProgExecuter {
 
@@ -16,12 +16,12 @@ public class FuncAsProgExecuter {
             return ExecutionReport.empty();
         }
 
-        if(!GlobalFunctionRepository.functionExists(functionName)){
+        if(!FunctionRepository.functionExists(functionName)){
             return ExecutionReport.empty();
         }
 
-        FunctionEntry entry=GlobalFunctionRepository.getFunctionEntry(functionName);
-        FuncAsProgAdapter adapter=new FuncAsProgAdapter(functionName,GlobalFunctionRepository.asLookup());
+        FunctionEntry entry= FunctionRepository.getFunctionEntry(functionName);
+        FuncAsProgAdapter adapter=new FuncAsProgAdapter(functionName, FunctionRepository.asLookup());
 
         SProgram tempProgram=adapter.asProgram();
         if(tempProgram==null){

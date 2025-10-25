@@ -3,7 +3,7 @@ package logic.system.validation;
 import logic.domain.instructions.SInstruction;
 import logic.domain.program.functions.FunctionLookup;
 import logic.system.programs.functions.repository.FunctionEntry;
-import logic.system.programs.functions.repository.GlobalFunctionRepository;
+import logic.system.programs.functions.repository.FunctionRepository;
 import logic.system.programs.repository.ProgramRepository;
 import logic.engineFacade.api.EngineFacade;
 
@@ -28,21 +28,21 @@ public class ProgramValidation {
         FunctionLookup lookup=engine.getProgram().getFunctionLookup();
         Set<String> localFunctions=lookup.allFunctionNames();
 
-        GlobalFunctionRepository.allFunctions().stream().map(FunctionEntry::funcName).toList();
+        FunctionRepository.allFunctions().stream().map(FunctionEntry::funcName).toList();
 
         for(String func : localFunctions){
            List<SInstruction> localBody= lookup.bodyOf(func);
            // Case 1: Function declared but not implemented locally or globally
            if(localBody.isEmpty()){
-               if (GlobalFunctionRepository.functionExists(func)) continue;
+               if (FunctionRepository.functionExists(func)) continue;
                errors.add("Function '" + func + "' declared without implementation and not found globally.");
                continue;
            }
 
            //Case 2: Function implemented locally, check for idencity with global
-            if(GlobalFunctionRepository.functionExists(func)){
-              List<SInstruction> globalBody=GlobalFunctionRepository.getFunctionBody(func);
-              if(!GlobalFunctionRepository.compareBodies(localBody,globalBody)){
+            if(FunctionRepository.functionExists(func)){
+              List<SInstruction> globalBody= FunctionRepository.getFunctionBody(func);
+              if(!FunctionRepository.compareBodies(localBody,globalBody)){
                   errors.add("Function '" + func + "' has a different implementation than the one in the system.");
               }
             }

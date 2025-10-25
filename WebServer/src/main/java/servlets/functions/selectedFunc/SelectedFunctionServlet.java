@@ -6,7 +6,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import logic.system.programs.functions.repository.FunctionRepository;
 import logic.system.programs.selectedProg.SelectedProgramManager;
+import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 
@@ -30,9 +32,12 @@ public class SelectedFunctionServlet extends HttpServlet {
                 }
             }
         }
+        System.out.println("[SelectedFunctionServlet] user=" + currentUser + ", selected function=" + function);
 
         if(function!=null && currentUser!=null){
-            SelectedProgramManager.setSelectedProgram(currentUser,"function",function); //set selected function for current logged-in user
+            String internalName = FunctionRepository.getInternalName(function);
+            SelectedProgramManager.setSelectedProgram(currentUser,"function",internalName); //set selected function for current logged-in user
+            UpdateFlagsManager.markUpdated("degree");
             ResponseWriter.write(res, JsonResponseUtils.success("Function selected successfully."));
         }else{
             ResponseWriter.write(res,JsonResponseUtils.error("Missing user or function data."));

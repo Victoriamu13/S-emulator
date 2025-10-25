@@ -12,5 +12,4 @@ public interface FunctionLookup {
     List<SVars> argsOf(String functionName);
     String userStringOf(String functionName);
     Set<String> allFunctionNames();
-    String internalNameOf(String userString);
 }

@@ -3,7 +3,7 @@ package logic.infrastructure.io.xml.validation;
 import logic.infrastructure.io.xml.dto.RawFunction;
 import logic.infrastructure.io.xml.dto.RawInstructions;
 import logic.infrastructure.io.xml.parser.composition.*;
-import logic.system.programs.functions.repository.GlobalFunctionRepository;
+import logic.system.programs.functions.repository.FunctionRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +86,7 @@ public final class FunctionValidator {
         }
 
         boolean existsLocal = fIndex.exists(fnName);
-        boolean existsGlobal = GlobalFunctionRepository.functionExists(fnName);
+        boolean existsGlobal = FunctionRepository.functionExists(fnName);
 
         if (!existsLocal && !existsGlobal) {
                 errors.add(msg(r, "Function '" + fnName + "' is not defined in <S-Functions> or in Function Repository."));
@@ -123,7 +123,7 @@ public final class FunctionValidator {
             String fn = f.getFunctionName();
 
             boolean existsLocal = fIndex.exists(fn);
-            boolean existsGlobal = GlobalFunctionRepository.functionExists(fn);
+            boolean existsGlobal = FunctionRepository.functionExists(fn);
 
             if (!existsLocal && !existsGlobal) {
                 errors.add(msg(r, "Function '" + fn + "' used in functionArguments is not defined in <S-Functions>."));

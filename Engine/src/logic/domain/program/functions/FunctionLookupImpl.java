@@ -2,12 +2,11 @@ package logic.domain.program.functions;
 
 import logic.domain.instructions.SInstruction;
 import logic.domain.variable.SVars;
-import logic.system.programs.functions.repository.GlobalFunctionRepository;
 
 import java.util.*;
 
 
-public class FunctionRepository implements FunctionLookup {
+public class FunctionLookupImpl implements FunctionLookup {
     // functionName → body
     private final Map<String, List<SInstruction>> functions = new LinkedHashMap<>();
 
@@ -17,21 +16,18 @@ public class FunctionRepository implements FunctionLookup {
     // functionName → user-facing display string
     private final Map<String, String> functionUserStrings = new LinkedHashMap();
 
-    // userString → functionName
-    private final Map<String, String> userStringToName = new LinkedHashMap<>();
-
     private static String key(String name) {
-        return name == null ? "" : name.trim().toUpperCase(Locale.ROOT);
+        return name == null ? "" : name.trim();
 }  // normalize
 
     public void register(String name,String userString, List<SVars> args, List<SInstruction> body){
         String internalKey = key(name);   // normalized internal
-        String userKey = key(userString);  // normalized user-facing
 
         functions.put(internalKey, body);      // store function body
         functionArgs.put(internalKey, args);  // store formal args
-        functionUserStrings.put(internalKey, userString);  // store UI name
-        userStringToName.put(userKey, internalKey);        // reverse lookup
+        if (userString != null && !userString.isBlank()) {
+            functionUserStrings.put(internalKey, userString);  // store UI name
+        }
     }
 
     @Override
@@ -41,9 +37,9 @@ public class FunctionRepository implements FunctionLookup {
 
         if(localBody != null && !localBody.isEmpty())return localBody;
 
-        if (GlobalFunctionRepository.functionExists(functionName)) {
-            List<SInstruction> globalBody = GlobalFunctionRepository.getFunctionBody(functionName);
-            if (globalBody != null && !globalBody.isEmpty()) {
+        if (logic.system.programs.functions.repository.FunctionRepository.functionExists(functionName)) {
+            List<SInstruction> globalBody = logic.system.programs.functions.repository.FunctionRepository.getFunctionBody(functionName);
+            if (!globalBody.isEmpty()) {
                 return globalBody;
             }
         }
@@ -61,8 +57,8 @@ public class FunctionRepository implements FunctionLookup {
         String localUserString=functionUserStrings.get(key);
         if(localUserString!=null) return localUserString;
 
-        if(GlobalFunctionRepository.functionExists(functionName)){
-            return GlobalFunctionRepository
+        if(logic.system.programs.functions.repository.FunctionRepository.functionExists(functionName)){
+            return logic.system.programs.functions.repository.FunctionRepository
                     .allFunctions()
                     .stream()
                     .filter(f->f.funcName().equalsIgnoreCase(functionName))
@@ -77,11 +73,6 @@ public class FunctionRepository implements FunctionLookup {
     @Override
     public Set<String> allFunctionNames() {
         return new LinkedHashSet<>(functions.keySet());
-    }
-
-    @Override
-    public String internalNameOf(String userString) {
-        return userStringToName.getOrDefault(userString, userString);
     }
 
 }
