@@ -21,8 +21,6 @@ public class ServerRequestUtils {
                 .url(SERVER_URL+endpoint)
                 .post(body)
                 .build();
-        System.out.println("[Client POST] " + endpoint + " (body sent)");
-
         return handleResponse(request);
     }
 
@@ -32,8 +30,6 @@ public class ServerRequestUtils {
                .url(SERVER_URL+endpoint)
                .get()
                .build();
-        System.out.println("[Client GET] " + endpoint);
-
        return handleResponse(request);
     }
 

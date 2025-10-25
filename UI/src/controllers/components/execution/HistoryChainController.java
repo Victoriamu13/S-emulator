@@ -2,7 +2,6 @@ package controllers.components.execution;
 
 import com.google.gson.reflect.TypeToken;
 import controllers.utils.refreshers.GenericRefresher;
-import controllers.utils.server.ServerRequestUtils;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -11,19 +10,17 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import logic.engineFacade.model.InstructionDTO;
-import okhttp3.FormBody;
-import okhttp3.RequestBody;
 
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Timer;
 
-public class InstructionsTableController {
+public class HistoryChainController {
     Timer timer;
     private GenericRefresher<InstructionDTO> refresher;
     private final BooleanProperty autoUpdate=new SimpleBooleanProperty(true);
 
-    @FXML private TableView<InstructionDTO> instructionsTable;
+    @FXML private TableView<InstructionDTO> historyTable;
     @FXML private TableColumn<InstructionDTO, Number> colIndex;
     @FXML private TableColumn<InstructionDTO, String> colType;
     @FXML private TableColumn<InstructionDTO, String> colLabel;
@@ -39,34 +36,15 @@ public class InstructionsTableController {
         colCycles.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().cyclesText()));
 
         startRefresher();
-        setupSelectionListener();
     }
 
-    private void startRefresher() {
-        Type listType = new TypeToken<List<InstructionDTO>>(){}.getType();
-        refresher = new GenericRefresher<>(autoUpdate,
-                "/degreeUpdated", "/programData",
-                instructionsTable, listType, "instructions");
+    private void startRefresher(){
+        Type listType=new TypeToken<List<InstructionDTO>>(){}.getType();
+        refresher=new GenericRefresher<>(autoUpdate,"/historyChainUpdated","/historyChain",
+                historyTable,listType,"chain");
 
-        timer = new Timer(true);
-        timer.schedule(refresher, 0, 2000);
-    }
-
-    private void setupSelectionListener(){
-        instructionsTable.setOnMouseClicked(event->{
-            InstructionDTO selected=instructionsTable.getSelectionModel().getSelectedItem();
-            if(selected==null)return;
-
-            int index=selected.index();
-            RequestBody body=new FormBody.Builder()
-                    .add("index",String.valueOf(index))
-                    .build();
-
-            new Thread(()->{
-                ServerRequestUtils.sendPost("/historyChain",body);
-            }).start();
-        });
+        timer=new Timer(true);
+        timer.schedule(refresher,0,2000);
     }
 
 }
-

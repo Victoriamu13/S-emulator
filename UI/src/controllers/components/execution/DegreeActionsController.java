@@ -41,6 +41,7 @@ public class DegreeActionsController {
             Platform.runLater(() -> {
                 if (response != null && response.isJsonObject()) {
                     JsonObject obj = response.getAsJsonObject();
+
                     if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
                         currentDegree = obj.get("currentDegree").getAsInt();
                         maxDegree = obj.get("maxDegree").getAsInt();
@@ -71,6 +72,8 @@ public class DegreeActionsController {
                         currentDegree = obj.get("degree").getAsInt();
                         refreshDegree();
                         refreshHighlightList(currentDegree);
+
+                        clearHistoryChain();
                     }
                 }else{
                     ServerResponseHandler.showAlert("ERROR","Server error updatind degree.", Alert.AlertType.ERROR);
@@ -101,6 +104,16 @@ public class DegreeActionsController {
                 cmbHighlight.getItems().setAll(vars);
                 cmbHighlight.setPromptText("Highlight");
             });
+        }).start();
+    }
+
+    private void clearHistoryChain(){
+        new Thread(()->{
+            RequestBody body=new FormBody.Builder()
+                    .add("clear","true")
+                    .build();
+
+            ServerRequestUtils.sendPost("/historyChain",body);
         }).start();
     }
 }
