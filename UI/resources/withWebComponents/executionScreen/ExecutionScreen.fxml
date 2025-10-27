@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.ScrollPane?>
+
+<?import javafx.scene.layout.VBox?>
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.components.executionScreen.ExecutionScreenController">
+
+   <children>
+      <BorderPane prefHeight="600.0" prefWidth="900.0">
+
+         <top>
+            <fx:include source="ExecHeader.fxml" />
+         </top>
+
+         <center>
+            <ScrollPane fitToHeight="true" fitToWidth="true">
+               <SplitPane  fx:id="mainSplitPane" dividerPositions="0.6">
+
+               <items>
+                  <BorderPane>
+                     <top>
+                        <fx:include source="DegreeActions.fxml" />
+                     </top>
+
+                     <center>
+                        <VBox spacing="8" SplitPane.resizableWithParent="true">
+                        <fx:include source="Instructions.fxml" />
+                        <fx:include source="HistoryChain.fxml" />
+                       </VBox>
+                     </center>
+                  </BorderPane>
+
+                  <BorderPane>
+                     <top>
+                        <fx:include source="ExecActions.fxml" />
+                     </top>
+
+                     <center>
+                        <fx:include source="Execution.fxml" />
+                     </center>
+
+                  </BorderPane>
+               </items>
+            </SplitPane>
+          </ScrollPane>
+         </center>
+
+      </BorderPane>
+   </children>
+</StackPane>

@@ -10,6 +10,7 @@ import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -21,17 +22,7 @@ public class SelectedProgramServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String program=req.getParameter("program"); //selected program that client wants to view
-        String currentUser=null;
-
-        //get current logged-in user from cookies
-        if(req.getCookies()!=null){
-            for(Cookie c: req.getCookies()){
-                if("username".equals(c.getName())){
-                    currentUser=c.getValue();
-                    break;
-                }
-            }
-        }
+        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
 
         if(program!=null && currentUser!=null){
             SelectedProgramManager.setSelectedProgram(currentUser,"program",program); //set selected program for current logged-in user
@@ -45,16 +36,7 @@ public class SelectedProgramServlet extends HttpServlet {
     //Fetch the currently selected program for the logged-in user
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = null; //current logged-in user
-
-        if (req.getCookies() != null) {
-            for (Cookie c : req.getCookies()) { //find current logged-in user from cookies
-                if ("username".equals(c.getName())) {
-                    currentUser = c.getValue();
-                    break;
-                }
-            }
-        }
+        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
 
         if (currentUser == null) { //no logged-in user found
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));

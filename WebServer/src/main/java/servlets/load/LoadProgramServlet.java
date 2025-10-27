@@ -7,12 +7,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import logic.system.api.SystemManager;
 import logic.system.api.SystemManagerImpl;
+import logic.system.user.engine.EngineFacadeManager;
 import logic.system.validation.ProgramValidation;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.api.EngineFacadeImpl;
 import logic.engineFacade.model.LoadOutcome;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,15 +32,7 @@ public class LoadProgramServlet extends HttpServlet {
 
         try {
             // === 1) Get user from session ===
-            String username=null;
-            if(req.getCookies()!=null){
-                for(Cookie cookie : req.getCookies()){
-                    if("username".equals(cookie.getName())){
-                        username=cookie.getValue();
-                        break;
-                    }
-                }
-            }
+            String username = ServletUserUtils.getUsernameFromCookies(req);
 
             if(username==null || username.isBlank()){
                 response = JsonResponseUtils.error("No active user found. Please log in first.");
@@ -54,22 +48,35 @@ public class LoadProgramServlet extends HttpServlet {
             }
 
             try(InputStream inputStream = filePart.getInputStream()){
+
+                // === 3) Create engine and load program ===
                 EngineFacade engine=new EngineFacadeImpl();
                 LoadOutcome outcome=engine.loadProgram(inputStream);
 
-                if(outcome.success()){
-                    List<String> validationErrors = ProgramValidation.validateAndRegister(engine);
-
-                    if(!validationErrors.isEmpty()) {
-                        response = JsonResponseUtils.error(String.join(", ", validationErrors));
-                    }else {
-                        systemManager.addProgram(username,engine);
-                        response = JsonResponseUtils.success("Program loaded successfully.");
-                    }
-
-                }else{
+                if (!outcome.success()) {
                     response = JsonResponseUtils.error(String.join(", ", outcome.errors()));
+                    ResponseWriter.write(res, response);
+                    return;
                 }
+
+                // === 4) Validate & register program in system ===
+                List<String> validationErrors = ProgramValidation.validateAndRegister(engine);
+                if (!validationErrors.isEmpty()) {
+                    response = JsonResponseUtils.error(String.join(", ", validationErrors));
+                    ResponseWriter.write(res, response);
+                    return;
+                }
+
+                // === 5) Add to system repository ===
+                systemManager.addProgram(username, engine);
+
+                // === 6) Register engine globally ===
+                String progName = engine.getProgramName();
+                EngineFacadeManager.registerEngine(username, progName, engine);
+
+                // === 7) Success response ===
+                response = JsonResponseUtils.success(
+                        "Program '" + progName + "' loaded and engine initialized successfully.");
             }
         } catch (Exception e) {
             e.printStackTrace();

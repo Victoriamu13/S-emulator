@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+
+<?import javafx.scene.layout.Region?>
+<?import javafx.geometry.Insets?>
+
+<HBox xmlns="http://javafx.com/javafx/"
+      xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.components.executionScreen.ExecHeaderController"
+      alignment="CENTER" spacing="20">
+
+   <padding>
+      <Insets top="10" right="20" bottom="15" left="20"/>
+   </padding>
+
+   <children>
+      <Label text="User Name" />
+      <TextField fx:id="userNameField" editable="false" prefWidth="120"/>
+      <Region HBox.hgrow="ALWAYS" />
+
+      <Label text="S-Emulator Execution" />
+      <Region HBox.hgrow="ALWAYS" />
+
+      <Label text="Available Credits:" />
+      <TextField fx:id="creditsField" text="0" editable="false" prefWidth="80"/>
+   </children>
+</HBox>

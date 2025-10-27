@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com/javafx/"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controllers.components.executionScreen.execution.ExecActionsController"
+      spacing="10" alignment="CENTER">
+    <padding>
+        <Insets top="10" right="20" bottom="10" left="20"/>
+    </padding>
+
+    <VBox spacing="5" alignment="CENTER">
+        <children>
+            <Label text="Debugger / Execution" />
+            <HBox spacing="10" alignment="CENTER">
+                <children>
+                    <RadioButton fx:id="normalMode" text="Normal"/>
+                    <RadioButton fx:id="debugMode" text="Debug"/>
+                    <Button fx:id="btnNewRun" text="New Run"/>
+                    <Button fx:id="btnRun" text="Run"/>
+                    <Button fx:id="btnStop" text="Stop"/>
+                    <Button fx:id="btnResume" text="Resume"/>
+                    <Button fx:id="btnStepOver" text="Step Over"/>
+                    <Button fx:id="btnStepBack" text="Step Back"/>
+                </children>
+            </HBox>
+        </children>
+    </VBox>
+</HBox>

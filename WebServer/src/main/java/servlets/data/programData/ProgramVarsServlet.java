@@ -13,6 +13,8 @@ import logic.system.programs.selectedProg.SelectedProgramManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import logic.system.programs.functions.repository.FunctionRepository;
+import servlets.utils.ServletUserUtils;
+
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,15 +26,7 @@ public class ProgramVarsServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = null;
-        if (req.getCookies() != null) {
-            for (Cookie c : req.getCookies()) {
-                if ("username".equals(c.getName())) {
-                    currentUser = c.getValue();
-                    break;
-                }
-            }
-        }
+        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;

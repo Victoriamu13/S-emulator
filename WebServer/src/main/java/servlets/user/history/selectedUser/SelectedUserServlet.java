@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import logic.system.user.history.selectedUser.SelectedUserManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -20,16 +21,7 @@ public class SelectedUserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException{
         String username = req.getParameter("user");  //selected user that client wants to view
-        String currentUser = null;  //current logged-in user
-
-        if(req.getCookies()!=null){
-            for(Cookie c: req.getCookies()){
-                if("username".equals(c.getName())){ //find current logged-in user from cookies
-                    currentUser = c.getValue();
-                    break;
-                }
-            }
-        }
+        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
 
         if(username!=null && currentUser!=null){
             SelectedUserManager.setSelectedUser(currentUser, username); //set selected user for current logged-in user

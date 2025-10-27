@@ -6,6 +6,7 @@ import logic.domain.program.functions.FunctionLookup;
 import logic.domain.variable.SVars;
 import logic.engineFacade.api.EngineFacade;
 import logic.system.updates.UpdateFlagsManager;
+import logic.system.user.engine.EngineFacadeManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,7 +15,6 @@ public final class FunctionRepository {
     private static final Map<String, FunctionEntry> functions = Collections.synchronizedMap(new LinkedHashMap<>());
     private static final Map<String, List<SInstruction>> functionBodies = new ConcurrentHashMap<>();
     private static Map<String, Integer> functionArities = new ConcurrentHashMap<>();
-    private static final Map<String, Map<String, EngineFacade>> functionsEngines = new ConcurrentHashMap<>();
 
     private FunctionRepository() {
     }
@@ -131,19 +131,11 @@ public final class FunctionRepository {
 
     }
 
-    public static synchronized void setEngineForFunction(String username, String fnName, EngineFacade engine) {
-        if (username == null || fnName == null || engine == null) return;
-        functionsEngines.computeIfAbsent(username, u -> new ConcurrentHashMap<>())
-                .put(fnName, engine);
+    public static void setEngineForFunction(String username, String fnName, EngineFacade engine) {
+        EngineFacadeManager.registerEngine(username, fnName, engine);
     }
 
-    public static synchronized EngineFacade getEngineForFunction(String username,String fnName) {
-        if (username == null || fnName == null) return null;
-        Map<String, EngineFacade> userEngines = functionsEngines.get(username);
-        return (userEngines == null) ? null : userEngines.get(fnName);
-    }
-
-    public static synchronized void clearEnginesForUser(String username) {
-        functionsEngines.remove(username);
+    public static EngineFacade getEngineForFunction(String username, String fnName) {
+        return EngineFacadeManager.getEngine(username, fnName);
     }
 }

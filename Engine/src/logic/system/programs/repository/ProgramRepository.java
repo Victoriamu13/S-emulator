@@ -4,6 +4,7 @@ import logic.domain.program.SProgram;
 import logic.domain.program.functions.FunctionLookup;
 import logic.engineFacade.api.EngineFacade;
 import logic.system.updates.UpdateFlagsManager;
+import logic.system.user.engine.EngineFacadeManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ProgramRepository {
 
     private static final Map<String, ProgramEntry> programs = Collections.synchronizedMap(new LinkedHashMap<>());
-    private static final Map<String, Map<String, EngineFacade>> programEngines=new ConcurrentHashMap<>();
 
     private ProgramRepository(){}
 
@@ -35,17 +35,12 @@ public class ProgramRepository {
                 0,
                 0.0
         ));
-        programEngines.computeIfAbsent(user, u -> new ConcurrentHashMap<>())
-                .put(programName.toUpperCase(Locale.ROOT), engine);
-
+        EngineFacadeManager.registerEngine(user, programName, engine);
         UpdateFlagsManager.markUpdated("programs");
     }
 
-    public static EngineFacade getEngineForProgram(String user,String progName){
-        if(progName==null) return null;
-        Map<String, EngineFacade> userEngines = programEngines.get(user);
-        if (userEngines == null) return null;
-        return userEngines.get(progName.toUpperCase(Locale.ROOT));
+    public static synchronized EngineFacade getEngineForProgram(String user, String progName) {
+        return EngineFacadeManager.getEngine(user, progName);
     }
 
     public static synchronized Collection<ProgramEntry> allPrograms() {

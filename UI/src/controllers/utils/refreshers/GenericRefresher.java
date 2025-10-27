@@ -6,8 +6,8 @@ import controllers.utils.server.ServerRequestUtils;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.TableView;
+import logic.engineFacade.model.InstructionDTO;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -17,29 +17,29 @@ import static controllers.utils.server.ServerResponseHandler.gson;
 
 public class GenericRefresher<T> extends TimerTask {
 
-    private final String updatedEndpoint;
-    private final String dataEndpoint;
     private final BooleanProperty autoUpdate;
+    private final String updateEndpoint;
+    private final String dataEndpoint;
     private final TableView<T> table;
     private final Type listType;
     private final String arrayField;
 
     public GenericRefresher(BooleanProperty autoUpdate,
-                            String updatedEndpoint,
+                            String updateEndpoint,
                             String dataEndpoint,
                             TableView<T> table,
                             Type listType) {
-        this(autoUpdate, updatedEndpoint, dataEndpoint, table, listType, null);
+        this(autoUpdate, updateEndpoint, dataEndpoint, table, listType, null);
     }
 
     public GenericRefresher(BooleanProperty autoUpdate,
-                            String updatedEndpoint,
+                            String updateEndpoint,
                             String dataEndpoint,
                             TableView<T> table,
                             Type listType,
                             String arrayField) {
         this.autoUpdate = autoUpdate;
-        this.updatedEndpoint = updatedEndpoint;
+        this.updateEndpoint = updateEndpoint;
         this.dataEndpoint = dataEndpoint;
         this.table = table;
         this.listType = listType;
@@ -49,33 +49,25 @@ public class GenericRefresher<T> extends TimerTask {
     @Override
     public void run() {
         if (!autoUpdate.get()) return;
+        JsonElement updateResponse = ServerRequestUtils.sendGet(updateEndpoint);
+        if (updateResponse == null) return;
 
-        JsonElement response = ServerRequestUtils.sendGet(updatedEndpoint); //check for updates
-        if (response == null || !response.isJsonObject()) return;
+        JsonObject obj = updateResponse.getAsJsonObject();
+        if (!obj.has("updated") || !obj.get("updated").getAsBoolean()) return;
 
-        JsonObject obj = response.getAsJsonObject();
-        if (obj.has("updated") && obj.get("updated").getAsBoolean()) {
-            JsonElement dataResponse = ServerRequestUtils.sendGet(dataEndpoint); //get updated data
-            if (dataResponse == null) return;
+        JsonElement dataResponse = ServerRequestUtils.sendGet(dataEndpoint);
+        if (dataResponse == null) return;
 
-            List<T> items;
-            if(arrayField==null){
-                if(!dataResponse.isJsonArray())return;
-                items=gson.fromJson(dataResponse,listType);
-            }else{
-                if(!dataResponse.isJsonObject())return;
-                JsonObject objData=dataResponse.getAsJsonObject();
-                JsonElement arr=objData.get(arrayField);
-                if(arr==null || !arr.isJsonArray())return;
-                items=gson.fromJson(arr,listType);
-            }
-
-            if (items == null) return;
-
-            Platform.runLater(() -> {
-                ObservableList<T> observable = FXCollections.observableArrayList(items);
-                table.setItems(observable);
-            });
+        JsonElement arrayElement = null;
+        if (arrayField != null && dataResponse.isJsonObject()) {
+            JsonObject dataObj = dataResponse.getAsJsonObject();
+            arrayElement = dataObj.get(arrayField);
+        } else if (dataResponse.isJsonArray()) {
+            arrayElement = dataResponse;
         }
+
+        if (arrayElement == null || !arrayElement.isJsonArray()) return;
+        List<T> items = gson.fromJson(arrayElement, listType);
+        Platform.runLater(() -> table.setItems(FXCollections.observableArrayList(items)));
     }
 }

@@ -18,8 +18,10 @@ import logic.system.programs.functions.repository.FunctionRepository;
 import logic.system.programs.repository.ProgramRepository;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
+import logic.system.user.engine.EngineFacadeManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,17 +32,9 @@ public class ProgramDataServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
 
-        String currentUser = null;
-
         // find logged-in user from cookies
-        if (req.getCookies() != null) {
-            for (Cookie c : req.getCookies()) {
-                if ("username".equals(c.getName())) {
-                    currentUser = c.getValue();
-                    break;
-                }
-            }
-        }
+        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
+
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
@@ -54,35 +48,27 @@ public class ProgramDataServlet extends HttpServlet {
             return;
         }
 
-        EngineFacade engine=null;
+        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, name);
 
-        if("program".equalsIgnoreCase(type)){
-            engine=ProgramRepository.getEngineForProgram(currentUser,name);
-        }
-        else if("function".equalsIgnoreCase(type)){
-            engine = FunctionRepository.getEngineForFunction(currentUser, name);
-
-            if (engine == null) {
+        if (engine == null) {
+            if ("program".equalsIgnoreCase(type)) {
+                engine = ProgramRepository.getEngineForProgram(currentUser, name);
+            }
+            else if ("function".equalsIgnoreCase(type)) {
                 String internalName = FunctionRepository.getInternalName(name);
 
                 if (FunctionRepository.functionExists(internalName)) {
                     FunctionLookup lookup = FunctionRepository.asLookup();
                     SProgram program = new FuncAsProgAdapter(internalName, lookup).asProgram();
-
                     engine = new EngineFacadeImpl();
-
                     engine.loadExistingProgram(program);
-                    FunctionRepository.setEngineForFunction(currentUser, internalName, engine);
-                } else {
-                    ResponseWriter.write(res, JsonResponseUtils.error("Function not found."));
-                    return;
                 }
             }
-        }
-
-        if(engine==null){
-            ResponseWriter.write(res,JsonResponseUtils.error("Program not fount on server."));
-            return;
+            if (engine == null) {
+                ResponseWriter.write(res, JsonResponseUtils.error("Program/Function not found."));
+                return;
+            }
+            EngineFacadeManager.registerEngine(currentUser, name, engine);
         }
 
         int degree=DegreeManager.getDegree(currentUser);

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com/javafx/"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controllers.components.executionScreen.execution.ExecutionController"
+      spacing="30" alignment="TOP_CENTER">
+
+   <padding>
+      <Insets top="10" right="20" bottom="15" left="20"/>
+   </padding>
+
+   <children>
+      <VBox spacing="10" alignment="CENTER_LEFT">
+         <children>
+            <Label text="Program Variables"/>
+            <TableView fx:id="variablesTable" VBox.vgrow="ALWAYS">
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+               </columnResizePolicy>
+               <columns>
+                  <TableColumn fx:id="colVar" text="Variable"/>
+                  <TableColumn fx:id="colValue" text="Value"/>
+               </columns>
+            </TableView>
+            <Label fx:id="lblCycles" text="Cycles: 0"/>
+         </children>
+      </VBox>
+
+      <VBox spacing="10" alignment="CENTER_LEFT">
+         <children>
+            <Label text="Program Inputs"/>
+            <ListView fx:id="inputsList" VBox.vgrow="ALWAYS"/>
+            <Button fx:id="backToDashboard" text="Back to Dashboard"/>
+         </children>
+      </VBox>
+   </children>
+</HBox>

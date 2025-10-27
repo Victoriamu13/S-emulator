@@ -11,6 +11,7 @@ import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -21,18 +22,7 @@ public class SelectedFunctionServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String function=req.getParameter("function"); //selected function that client wants to view
-        String currentUser=null;
-
-        //get current logged-in user from cookies
-        if(req.getCookies()!=null){
-            for(Cookie c: req.getCookies()){
-                if("username".equals(c.getName())){
-                    currentUser=c.getValue();
-                    break;
-                }
-            }
-        }
-        System.out.println("[SelectedFunctionServlet] user=" + currentUser + ", selected function=" + function);
+        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
 
         if(function!=null && currentUser!=null){
             String internalName = FunctionRepository.getInternalName(function);
@@ -47,17 +37,7 @@ public class SelectedFunctionServlet extends HttpServlet {
     //Fetch the currently selected program for the logged-in user
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = null; //current logged-in user
-
-        if (req.getCookies() != null) {
-            for (Cookie c : req.getCookies()) { //find current logged-in user from cookies
-                if ("username".equals(c.getName())) {
-                    currentUser = c.getValue();
-                    break;
-                }
-            }
-        }
-
+        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
         if (currentUser == null) { //no logged-in user found
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;

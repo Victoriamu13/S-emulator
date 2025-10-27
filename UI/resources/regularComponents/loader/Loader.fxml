@@ -8,7 +8,7 @@
 
 <HBox spacing="10.0"
       xmlns:fx="http://javafx.com/javafx"
-      fx:controller="controllers.components.dashboard.DashHeaderController"
+      fx:controller="controllers.components.dashboardScreen.DashHeaderController"
       stylesheets="@/skins/base.css">
 
    <children>

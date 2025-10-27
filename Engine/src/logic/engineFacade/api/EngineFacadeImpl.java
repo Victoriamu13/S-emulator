@@ -32,6 +32,7 @@ public class EngineFacadeImpl implements EngineFacade {
     private  final Map<Integer, List<String>> cachedInputs = new HashMap<>();
     private Integer cachedMaxDegree = null;
     private Set<Integer> breakpoints = new HashSet<>();
+    private ExecutionReport lastReport = null;
 
 
     private SProgram activeProgram() {
@@ -196,7 +197,22 @@ public class EngineFacadeImpl implements EngineFacade {
     public long[] prepareInputsFields(int degree, List<String> rawValues) {
         List<String> inputsUsed = getInputsUsed(degree);
         int required = getRequiredInputsCount(inputsUsed);
+
+        cachedInputs.put(degree,new ArrayList<>(rawValues));
         return parseInputValues(rawValues, required,inputsUsed);
+    }
+
+
+    @Override
+    public List<String> getCachedInputValues(int degree) {
+        List<String> inputs = getInputsUsed(degree);
+        List<String> vals = cachedInputs.get(degree);
+        if (vals == null || vals.size() != inputs.size()) {
+            vals = new ArrayList<>();
+            for (int i = 0; i < inputs.size(); i++) vals.add("0");
+            cachedInputs.put(degree, vals);
+        }
+        return new ArrayList<>(vals);
     }
 
     @Override
@@ -207,13 +223,30 @@ public class EngineFacadeImpl implements EngineFacade {
     }
 
     @Override
+    public List<String> loadInputVars(int degree) {
+        List<String> inputs = getInputsUsed(degree);
+
+        List<String> defaultValues = new java.util.ArrayList<>();
+        for (int i = 0; i < inputs.size(); i++) {
+            defaultValues.add("0");
+        }
+        cachedInputs.put(degree, defaultValues);
+        return inputs;
+    }
+
+    @Override
     public ExecutionReport runWithReport(int degree,long... inputs) {
         int maxDegree=getMaxExpansionDegree();
         int used = validDegree(degree,maxDegree);
         SProgram materialized = materializeProgram(activeProgram(),used);
-        return new ProgramExecuterImpl(materialized).runWithReport(breakpoints,inputs);
+
+        ExecutionReport report = new ProgramExecuterImpl(materialized).runWithReport(breakpoints, inputs);
+        this.lastReport=report;
+        return report;
     }
 
+    @Override
+    public ExecutionReport getLastReport() { return lastReport; }
 
     // ==== Debug =====
 

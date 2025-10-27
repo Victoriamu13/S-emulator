@@ -4,7 +4,7 @@
 <?import javafx.scene.control.TableView?>
 
 <TableView xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml"
-           fx:controller="controllers.components.dashboard.HistoryTableController">
+           fx:controller="controllers.components.dashboardScreen.HistoryTableController">
   <columnResizePolicy >
     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
   </columnResizePolicy>

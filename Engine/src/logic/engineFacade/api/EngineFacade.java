@@ -39,11 +39,13 @@ public interface EngineFacade {
     // ==== Execution ====
     ExecutionReport runWithReport(int degree, long... inputs);
     List<String> getInputsUsed(int degree);
+    public List<String> loadInputVars(int degree);
     long[] parseInputsCsv(String csv, int degree);
     long[] prepareInputsFields(int degree, List<String> rawValues);
+    List<String> getCachedInputValues(int degree);
+    ExecutionReport getLastReport();
 
-
-    // ===== Debugging =====
+        // ===== Debugging =====
     boolean isDebugActive();
     int getCurrentPc();
     boolean startDebugSession(int degree, long... inputs);

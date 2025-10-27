@@ -11,6 +11,7 @@ import logic.system.api.SystemManager;
 import logic.system.api.SystemManagerImpl;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -23,16 +24,7 @@ public class CurrentUserServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
         JsonObject response;
-        String username=null;
-
-        if(req.getCookies()!=null){
-            for(Cookie cookie :req.getCookies()){
-                if("username".equals(cookie.getName())){
-                    username= cookie.getValue();
-                    break;
-                }
-            }
-        }
+        String username = ServletUserUtils.getUsernameFromCookies(req);
         if(username!=null){
             int credits= systemManager.getCredits(username);
             response = JsonResponseUtils.success("Current user fetched successfully.");
