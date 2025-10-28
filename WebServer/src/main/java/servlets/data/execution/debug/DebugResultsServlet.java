@@ -1,4 +1,4 @@
-package servlets.data.execution;
+package servlets.data.execution.debug;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -16,12 +16,10 @@ import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
-@WebServlet("/executionReport")
-
-public class ExecutionReportServlet extends HttpServlet {
-
+@WebServlet("/debugResults")
+public class DebugResultsServlet extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String currentUser = ServletUserUtils.getUsernameFromCookies(req);
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
@@ -29,24 +27,19 @@ public class ExecutionReportServlet extends HttpServlet {
         }
 
         String progName = SelectedProgramManager.getSelectedProgram(currentUser);
-        if (progName == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No selected program."));
-            return;
-        }
-
         EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
         if (engine == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No active engine for program '" + progName + "'."));
+            ResponseWriter.write(res, JsonResponseUtils.error("No engine found."));
             return;
         }
 
-        ExecutionReport report = engine.buildInitialReport();
+        ExecutionReport report = engine.getLastReport();
         if (report == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No execution report available yet."));
+            ResponseWriter.write(res, JsonResponseUtils.error("No debug results yet."));
             return;
         }
 
-        JsonObject response = JsonResponseUtils.success("Execution report fetched successfully.");
+        JsonObject response = JsonResponseUtils.success("Debug results fetched.");
         response.add("report", new Gson().toJsonTree(report));
         ResponseWriter.write(res, response);
     }

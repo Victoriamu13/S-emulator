@@ -253,7 +253,6 @@ public class EngineFacadeImpl implements EngineFacade {
     @Override
     public boolean startDebugSession(int degree, long... inputs) {
         activeDebug = null;
-
         int maxDegree=getMaxExpansionDegree();
         int used = validDegree(degree,maxDegree);
         SProgram prog = materializeProgram(activeProgram(),used);
@@ -263,12 +262,17 @@ public class EngineFacadeImpl implements EngineFacade {
 
         activeDebug=new DebugSession(instructions,ctx);
         activeDebug.setBreakpoints(new HashSet<>(this.breakpoints));
+        this.lastReport = activeDebug.buildInitialReport();
 
         return true;
     }
 
     @Override
-    public ExecutionReport stepOver() {return (activeDebug != null) ? activeDebug.step() : null;}
+    public ExecutionReport stepOver() {
+        ExecutionReport r = (activeDebug != null) ? activeDebug.step() : null;
+        if (r != null) this.lastReport = r;
+        return r;
+    }
 
     @Override
     public ExecutionReport stepBack() {return (activeDebug != null) ? activeDebug.stepBack() : null;}
@@ -277,6 +281,7 @@ public class EngineFacadeImpl implements EngineFacade {
     public ExecutionReport resume() {
         if (activeDebug == null) return null;
         ExecutionReport report = activeDebug.resumeUntilBreakpoint();
+        this.lastReport = report;
         if (activeDebug.isFinished()) activeDebug = null;
         return report;
     }
@@ -286,6 +291,7 @@ public class EngineFacadeImpl implements EngineFacade {
         if (activeDebug != null) {
             activeDebug.stop();
             ExecutionReport report = activeDebug.buildFinalReport();
+            this.lastReport = report;
             activeDebug = null;
             return report;
         }

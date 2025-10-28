@@ -1,6 +1,5 @@
-package servlets.data.execution;
+package servlets.data.execution.normal;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,21 +8,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
 import logic.system.data.expansion.DegreeManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
-import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
-import java.util.List;
 
-@WebServlet("/newRun")
+@WebServlet("/setInputs")
 
-public class NewRunServlet extends HttpServlet {
+public class SetInputsServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String currentUser = ServletUserUtils.getUsernameFromCookies(req);
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
@@ -32,24 +29,36 @@ public class NewRunServlet extends HttpServlet {
 
         String progName = SelectedProgramManager.getSelectedProgram(currentUser);
         if (progName == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No program selected."));
+            ResponseWriter.write(res, JsonResponseUtils.error("No selected program."));
             return;
         }
 
         EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
         if (engine == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("Engine not found."));
+            ResponseWriter.write(res, JsonResponseUtils.error("No active engine for program."));
             return;
         }
 
-        engine.resetExpansionCache();
+        String inputsCsv = req.getParameter("inputs");
+        if (inputsCsv == null || inputsCsv.isEmpty()) {
+            inputsCsv = "0";
+        }
+
         int degree = DegreeManager.getDegree(currentUser);
-        List<String> inputs = engine.loadInputVars(degree);
+        long[] parsedInputs;
+        try {
+            parsedInputs = engine.parseInputsCsv(inputsCsv, degree);
+        } catch (Exception e) {
+            ResponseWriter.write(res, JsonResponseUtils.error("Failed to parse inputs: " + e.getMessage()));
+            return;
+        }
 
-        UpdateFlagsManager.markUpdated("inputs");
+        engine.prepareInputsFields(degree, java.util.Arrays.stream(parsedInputs)
+                .mapToObj(String::valueOf)
+                .toList());
 
-        JsonObject response=JsonResponseUtils.success("New run initialized successfully.");
-        response.add("inputs", new Gson().toJsonTree(inputs));
-        ResponseWriter.write(res,response);
+        JsonObject response = JsonResponseUtils.success("Inputs saved successfully.");
+        response.addProperty("inputs", inputsCsv);
+        ResponseWriter.write(res, response);
     }
 }

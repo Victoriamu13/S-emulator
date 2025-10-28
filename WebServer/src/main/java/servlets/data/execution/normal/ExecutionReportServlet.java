@@ -1,4 +1,4 @@
-package servlets.data.execution;
+package servlets.data.execution.normal;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
-import logic.engineFacade.api.EngineFacadeImpl;
+import logic.engineFacade.model.ExecutionReport;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.user.engine.EngineFacadeManager;
 import servlets.utils.JsonResponseUtils;
@@ -16,10 +16,12 @@ import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
-@WebServlet("/results")
-public class ResultsDataServlet extends HttpServlet {
+@WebServlet("/executionReport")
+
+public class ExecutionReportServlet extends HttpServlet {
+
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
         String currentUser = ServletUserUtils.getUsernameFromCookies(req);
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
@@ -34,18 +36,18 @@ public class ResultsDataServlet extends HttpServlet {
 
         EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
         if (engine == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No engine."));
+            ResponseWriter.write(res, JsonResponseUtils.error("No active engine for program '" + progName + "'."));
             return;
         }
 
-        var report = engine.getLastReport();
+        ExecutionReport report = engine.buildInitialReport();
         if (report == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No results yet."));
+            ResponseWriter.write(res, JsonResponseUtils.error("No execution report available yet."));
             return;
         }
 
-        JsonObject out = JsonResponseUtils.success("Results fetched.");
-        out.add("report", new Gson().toJsonTree(report));
-        ResponseWriter.write(res, out);
+        JsonObject response = JsonResponseUtils.success("Execution report fetched successfully.");
+        response.add("report", new Gson().toJsonTree(report));
+        ResponseWriter.write(res, response);
     }
 }

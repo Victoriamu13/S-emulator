@@ -4,7 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.SplitPane;
 
 public class ExecutionScreenController {
-    private static final double DIVIDER_POSITION = 0.6;
+    private static final double DIVIDER_POSITION = 0.5;
     @FXML private SplitPane mainSplitPane;
 
     @FXML

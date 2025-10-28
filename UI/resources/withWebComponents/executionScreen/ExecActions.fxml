@@ -19,7 +19,8 @@
                     <RadioButton fx:id="normalMode" text="Normal"/>
                     <RadioButton fx:id="debugMode" text="Debug"/>
                     <Button fx:id="btnNewRun" text="New Run"/>
-                    <Button fx:id="btnRun" text="Run"/>
+                    <Button fx:id="btnRunNormal" text="Run Normal"/>
+                    <Button fx:id="btnRunDebug" text="Run Debug"/>
                     <Button fx:id="btnStop" text="Stop"/>
                     <Button fx:id="btnResume" text="Resume"/>
                     <Button fx:id="btnStepOver" text="Step Over"/>

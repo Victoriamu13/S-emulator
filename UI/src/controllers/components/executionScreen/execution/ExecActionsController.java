@@ -1,17 +1,20 @@
 package controllers.components.executionScreen.execution;
 
 import controllers.utils.server.ServerRequestUtils;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
+import okhttp3.FormBody;
 import okhttp3.RequestBody;
 
 public class ExecActionsController {
     @FXML private RadioButton normalMode;
     @FXML private RadioButton debugMode;
     @FXML private Button btnNewRun;
-    @FXML private Button btnRun;
+    @FXML private Button btnRunNormal;
+    @FXML private Button btnRunDebug;
     @FXML private Button btnStop;
     @FXML private Button btnResume;
     @FXML private Button btnStepOver;
@@ -25,12 +28,14 @@ public class ExecActionsController {
         updateButtonsState("INIT");
 
         modeGroup.selectedToggleProperty().addListener((obs, old, now) -> {
-            if (now == normalMode) updateButtonsState("NORMAL");
-            else if (now == debugMode) updateButtonsState("DEBUG");
+            String mode = (now == normalMode) ? "NORMAL" : "DEBUG";
+            sendModeChangeToServer(mode);
+            updateButtonsState(mode);
         });
 
         btnNewRun.setOnAction(e -> handleNewRun());
-        btnRun.setOnAction(e -> handleRun());
+        btnRunNormal.setOnAction(e -> handleRunNormal());
+        btnRunDebug.setOnAction(e -> handleRunDebug());
         btnStop.setOnAction(e -> handleStop());
         btnResume.setOnAction(e -> handleResume());
         btnStepOver.setOnAction(e -> handleStepOver());
@@ -39,7 +44,8 @@ public class ExecActionsController {
 
     private void updateButtonsState(String mode) {
         btnNewRun.setDisable(true);
-        btnRun.setDisable(true);
+        btnRunNormal.setDisable(true);
+        btnRunDebug.setDisable(true);
         btnStop.setDisable(true);
         btnResume.setDisable(true);
         btnStepOver.setDisable(true);
@@ -48,11 +54,11 @@ public class ExecActionsController {
         switch (mode) {
             case "NORMAL" -> {
                 btnNewRun.setDisable(false);
-                btnRun.setDisable(false);
+                btnRunNormal.setDisable(false);
             }
             case "DEBUG" -> {
                 btnNewRun.setDisable(false);
-                btnRun.setDisable(false);
+                btnRunDebug.setDisable(false);
                 btnStop.setDisable(false);
                 btnResume.setDisable(false);
                 btnStepOver.setDisable(false);
@@ -62,25 +68,41 @@ public class ExecActionsController {
         }
     }
 
+    private void sendModeChangeToServer(String mode) {
+        new Thread(() -> {
+            RequestBody body = new FormBody.Builder()
+                    .add("mode", mode)
+                    .build();
+            ServerRequestUtils.sendPost("/changeMode", body);
+        }).start();
+    }
+
     private void handleNewRun() {
         new Thread(() -> ServerRequestUtils.sendGet("/newRun")).start();
     }
 
-    private void handleRun() {
+    private void handleRunNormal() {
         new Thread(() ->
                 ServerRequestUtils.sendPost("/executeProgram", RequestBody.create(null, new byte[0]))
         ).start();
     }
 
+    private void handleRunDebug() {
+        new Thread(() ->
+                ServerRequestUtils.sendPost("/startDebug", RequestBody.create(null, new byte[0]))
+        ).start();
+    }
+
+
     private void handleStop() {
         new Thread(() ->
-                ServerRequestUtils.sendPost("/stopExecution", RequestBody.create(null, new byte[0]))
+                ServerRequestUtils.sendPost("/stopDebug", RequestBody.create(null, new byte[0]))
         ).start();
     }
 
     private void handleResume() {
         new Thread(() ->
-                ServerRequestUtils.sendPost("/resumeExecution", RequestBody.create(null, new byte[0]))
+                ServerRequestUtils.sendPost("/resumeDebug", RequestBody.create(null, new byte[0]))
         ).start();
     }
 

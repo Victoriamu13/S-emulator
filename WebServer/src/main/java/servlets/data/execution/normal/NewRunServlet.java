@@ -1,4 +1,4 @@
-package servlets.data.execution;
+package servlets.data.execution.normal;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -9,15 +9,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
 import logic.system.data.expansion.DegreeManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
+import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
+import java.util.List;
 
-@WebServlet("/inputs")
-public class InputsDataServlet extends HttpServlet {
+@WebServlet("/newRun")
+
+public class NewRunServlet extends HttpServlet {
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String currentUser = ServletUserUtils.getUsernameFromCookies(req);
@@ -28,23 +32,24 @@ public class InputsDataServlet extends HttpServlet {
 
         String progName = SelectedProgramManager.getSelectedProgram(currentUser);
         if (progName == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No selected program."));
+            ResponseWriter.write(res, JsonResponseUtils.error("No program selected."));
             return;
         }
 
         EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
         if (engine == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No engine."));
+            ResponseWriter.write(res, JsonResponseUtils.error("Engine not found."));
             return;
         }
 
+        engine.resetExpansionCache();
         int degree = DegreeManager.getDegree(currentUser);
-        var inputs = engine.getInputsUsed(degree);
-        var values = engine.getCachedInputValues(degree);
+        List<String> inputs = engine.loadInputVars(degree);
 
-        JsonObject out = JsonResponseUtils.success("Inputs fetched.");
-        out.add("inputs", new Gson().toJsonTree(inputs));
-        out.add("values", new Gson().toJsonTree(values));
-        ResponseWriter.write(res, out);
+        UpdateFlagsManager.markUpdated("inputs");
+
+        JsonObject response=JsonResponseUtils.success("New run initialized successfully.");
+        response.add("inputs", new Gson().toJsonTree(inputs));
+        ResponseWriter.write(res,response);
     }
 }

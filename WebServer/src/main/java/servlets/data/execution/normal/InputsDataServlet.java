@@ -1,5 +1,6 @@
-package servlets.data.execution;
+package servlets.data.execution.normal;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,12 +16,10 @@ import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
-@WebServlet("/setInputs")
-
-public class SetInputsServlet extends HttpServlet {
-
+@WebServlet("/inputs")
+public class InputsDataServlet extends HttpServlet {
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String currentUser = ServletUserUtils.getUsernameFromCookies(req);
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
@@ -35,30 +34,17 @@ public class SetInputsServlet extends HttpServlet {
 
         EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
         if (engine == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No active engine for program."));
+            ResponseWriter.write(res, JsonResponseUtils.error("No engine."));
             return;
-        }
-
-        String inputsCsv = req.getParameter("inputs");
-        if (inputsCsv == null || inputsCsv.isEmpty()) {
-            inputsCsv = "0";
         }
 
         int degree = DegreeManager.getDegree(currentUser);
-        long[] parsedInputs;
-        try {
-            parsedInputs = engine.parseInputsCsv(inputsCsv, degree);
-        } catch (Exception e) {
-            ResponseWriter.write(res, JsonResponseUtils.error("Failed to parse inputs: " + e.getMessage()));
-            return;
-        }
+        var inputs = engine.getInputsUsed(degree);
+        var values = engine.getCachedInputValues(degree);
 
-        engine.prepareInputsFields(degree, java.util.Arrays.stream(parsedInputs)
-                .mapToObj(String::valueOf)
-                .toList());
-
-        JsonObject response = JsonResponseUtils.success("Inputs saved successfully.");
-        response.addProperty("inputs", inputsCsv);
-        ResponseWriter.write(res, response);
+        JsonObject out = JsonResponseUtils.success("Inputs fetched.");
+        out.add("inputs", new Gson().toJsonTree(inputs));
+        out.add("values", new Gson().toJsonTree(values));
+        ResponseWriter.write(res, out);
     }
 }

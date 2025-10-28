@@ -32,7 +32,9 @@ public class ExecutionController {
         setupInputsUI();
         setupTable();
         startInputsRefresher();
+        startInitExecutionRefresher();
         startResultsRefresher();
+        startDebugResultsRefresher();
     }
 
     // ======== SETUP =======
@@ -100,6 +102,31 @@ public class ExecutionController {
         }, 0, 1000);
     }
 
+    private void startDebugResultsRefresher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement flagResponse = ServerRequestUtils.sendGet("/debugResultsUpdated");
+                if (flagResponse == null || !flagResponse.isJsonObject()) return;
+                boolean updated = flagResponse.getAsJsonObject().get("updated").getAsBoolean();
+                if (updated) refreshDebugResultsFromServer();
+            }
+        }, 0, 1000);
+    }
+
+    private void startInitExecutionRefresher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement flagResponse = ServerRequestUtils.sendGet("/initExecutionUpdated");
+                if (flagResponse == null || !flagResponse.isJsonObject()) return;
+                boolean updated = flagResponse.getAsJsonObject().get("updated").getAsBoolean();
+                if (updated) initExecutionTables();
+            }
+        }, 0, 1000);
+    }
+
+    // ======= DATA REFRESH =======
     private void refreshInputsFromServer() {
         new Thread(() -> {
             JsonElement response = ServerRequestUtils.sendGet("/inputs");
@@ -145,6 +172,28 @@ public class ExecutionController {
         }).start();
     }
 
+    private void refreshDebugResultsFromServer() {
+        new Thread(() -> {
+            JsonElement response = ServerRequestUtils.sendGet("/debugResults");
+            if (response == null || !response.isJsonObject()) return;
+
+            JsonObject obj = response.getAsJsonObject();
+            JsonElement reportJson = obj.get("report");
+            if (reportJson == null) return;
+
+            ExecutionReport report = new Gson().fromJson(reportJson, ExecutionReport.class);
+
+            Platform.runLater(() -> {
+                lblCycles.setText("Cycles: " + report.totalCycles());
+                variablesTable.getItems().setAll(
+                        report.finalVars().entrySet().stream()
+                                .map(e -> new VariableRow(e.getKey(), String.valueOf(e.getValue())))
+                                .toList()
+                );
+            });
+        }).start();
+    }
+
     // ======= WITH SERVER ACTIONS =======
     private void sendInputsToServer() {
         String csv = inputsList.getItems().stream()
@@ -154,5 +203,14 @@ public class ExecutionController {
 
         RequestBody body = new FormBody.Builder().add("inputs", csv).build();
         new Thread(() -> ServerRequestUtils.sendPost("/setInputs", body)).start();
+    }
+
+    // ======= INIT =======
+    private void initExecutionTables() {
+        Platform.runLater(() -> {
+            variablesTable.getItems().clear();
+            inputsList.getItems().clear();
+            lblCycles.setText("Cycles: 0");
+        });
     }
 }
