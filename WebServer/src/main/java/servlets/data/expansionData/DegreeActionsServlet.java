@@ -2,7 +2,8 @@ package servlets.data.expansionData;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
+import logic.system.data.expansion.FinalIndexManager;
+import logic.system.data.highlight.HighlightManager;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,7 +21,6 @@ public class DegreeActionsServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-
         String currentUser = ServletUserUtils.getUsernameFromCookies(req);
 
         if (currentUser == null) {
@@ -31,15 +31,18 @@ public class DegreeActionsServlet extends HttpServlet {
         try {
             newDegree = Integer.parseInt(req.getParameter("degree"));
 
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
 
         DegreeManager.setDegree(currentUser, newDegree);
         UpdateFlagsManager.markUpdated("degree");
+        FinalIndexManager.clear(currentUser);
+
+        HighlightManager.clearHighlight(currentUser);
+        UpdateFlagsManager.markUpdated("programVariables");
+        UpdateFlagsManager.markUpdated("highlight");
 
         JsonObject response = JsonResponseUtils.success("Degree updated successfully.");
         response.addProperty("degree", newDegree);
         ResponseWriter.write(res, response);
-
     }
 }

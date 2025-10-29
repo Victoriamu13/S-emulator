@@ -39,6 +39,7 @@ public class HistoryChainServlet extends HttpServlet {
         if("true".equalsIgnoreCase(clear)){
             HistoryChainManager.clearHistoryChain(currentUser);
             UpdateFlagsManager.markUpdated("historyChain");
+
             ResponseWriter.write(res,JsonResponseUtils.success("History chain cleared."));
             return;
         }
@@ -65,6 +66,7 @@ public class HistoryChainServlet extends HttpServlet {
         }
 
         List<InstructionDTO> chain = engine.getExpansionHistoryChain(degree, index);
+
         HistoryChainManager.setHistoryChain(currentUser, chain);
         UpdateFlagsManager.markUpdated("historyChain");
 

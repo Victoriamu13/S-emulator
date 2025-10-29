@@ -1,4 +1,4 @@
-package servlets.updates;
+package servlets.updates.executionUpdates.normalRun;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,16 +10,16 @@ import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
 
-@WebServlet("/debugResultsUpdated")
-public class DebugResultsUpdatedServlet extends HttpServlet {
+@WebServlet("/initExecutionUpdated")
+public class InitExecutionUpdatedServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         JsonObject response = new JsonObject();
-        boolean updated = UpdateFlagsManager.hasUpdated("debugResults");
+        boolean updated = UpdateFlagsManager.hasUpdated("initExecution");
         response.addProperty("updated", updated);
 
         if (updated) {
-            UpdateFlagsManager.clearFlag("debugResults");
+            UpdateFlagsManager.clearFlag("initExecution");
         }
 
         ResponseWriter.write(res, response);

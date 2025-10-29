@@ -3,13 +3,14 @@ package servlets.data.programData;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
+import logic.system.data.expansion.FinalIndexManager;
 import logic.system.programs.repository.ProgramRepository;
 import logic.system.programs.selectedProg.SelectedProgramManager;
+import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import logic.system.programs.functions.repository.FunctionRepository;
@@ -17,7 +18,7 @@ import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @WebServlet("/programVariables")
@@ -52,22 +53,39 @@ public class ProgramVarsServlet extends HttpServlet {
         }
 
         int degree = 0;
+        Integer finalIndex = null;
         try {
             String degreeParam = req.getParameter("degree");
             if (degreeParam != null) degree = Integer.parseInt(degreeParam);
+
+            String indexParam = req.getParameter("finalIndex");
+            if (indexParam != null && !indexParam.isBlank()) {
+                finalIndex = Integer.parseInt(indexParam);
+            } else {
+                finalIndex = FinalIndexManager.get(currentUser);
+            }
         } catch (NumberFormatException ignored) {}
 
-        List<String> inputs = engine.getInputsUsed(degree);
-        List<String> vars = engine.getAllVariablesUsed(degree, null);
-        List<String> labels = engine.getAllLabelsUsed(degree, null);
+        Integer prevFinalIndex = FinalIndexManager.get(currentUser);
+        if (finalIndex != null) FinalIndexManager.set(currentUser, finalIndex);
 
+        // === Collect Variables ===
         Set<String> all = new LinkedHashSet<>();
-        all.addAll(inputs);
-        all.addAll(vars);
-        all.addAll(labels);
+
+        // regular variables from current degree
+        all.addAll(engine.getInputsUsed(degree));
+        all.addAll(engine.getAllVariablesUsed(degree, finalIndex));
+        all.addAll(engine.getAllLabelsUsed(degree, finalIndex));
 
         JsonObject response = JsonResponseUtils.success("Fetched variable list.");
         response.add("variables", new Gson().toJsonTree(all));
+
+        boolean degreeChanged = UpdateFlagsManager.hasUpdated("degree");
+        boolean finalIndexChanged =(!Objects.equals(prevFinalIndex, finalIndex));
+
+        if (degreeChanged || finalIndexChanged) {
+            UpdateFlagsManager.markUpdated("programVariables");
+        }
         ResponseWriter.write(res, response);
     }
 }

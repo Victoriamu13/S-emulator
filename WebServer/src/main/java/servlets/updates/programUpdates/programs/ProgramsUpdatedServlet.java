@@ -1,4 +1,4 @@
-package servlets.updates;
+package servlets.updates.programUpdates.programs;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,16 +10,20 @@ import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
 
-@WebServlet("/usersUpdated")
+@WebServlet("/programsUpdated")
 
-public class UserUpdatedServlet extends HttpServlet {
+public class ProgramsUpdatedServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        boolean updated= UpdateFlagsManager.hasUpdated("users");
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
+        JsonObject response = new JsonObject();
 
-        JsonObject response=new JsonObject();
+        boolean updated= UpdateFlagsManager.hasUpdated("programs");
         response.addProperty("updated", updated);
+
+        if(updated){
+            UpdateFlagsManager.clearFlag("programs");
+        }
 
         ResponseWriter.write(res,response);
     }

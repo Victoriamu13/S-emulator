@@ -1,4 +1,4 @@
-package servlets.updates;
+package servlets.updates.userUpdates;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;

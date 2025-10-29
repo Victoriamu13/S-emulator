@@ -1,19 +1,25 @@
 package controllers.components.executionScreen;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controllers.utils.refreshers.GenericRefresher;
+import controllers.utils.server.ServerRequestUtils;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import logic.engineFacade.model.InstructionDTO;
 
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Timer;
+import java.util.TimerTask;
 
 public class HistoryChainController {
     Timer timer;
@@ -36,6 +42,7 @@ public class HistoryChainController {
         colCycles.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().cyclesText()));
 
         startRefresher();
+        startHighlightRefresher();
     }
 
     private void startRefresher(){
@@ -47,4 +54,65 @@ public class HistoryChainController {
         timer.schedule(refresher,0,2000);
     }
 
+    private void startHighlightRefresher() {
+        Timer highlightTimer = new Timer(true);
+        highlightTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/highlightUpdated");
+                if (resp == null || !resp.isJsonObject()) return;
+
+                boolean updated = resp.getAsJsonObject()
+                        .get("updated")
+                        .getAsBoolean();
+
+                if (updated) {
+                    applyHighlight();
+                }
+            }
+        }, 0, 1000);
+    }
+
+
+    private void applyHighlight() {
+        JsonElement resp = ServerRequestUtils.sendGet("/highlightVariable");
+        if (resp == null || !resp.isJsonObject()) return;
+
+        JsonObject obj = resp.getAsJsonObject();
+        if (!"SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) return;
+
+        String var = obj.get("highlight").isJsonNull() ? null : obj.get("highlight").getAsString();
+
+        Platform.runLater(() -> {
+            if (var == null || var.isBlank()) {
+                historyTable.setRowFactory(null);
+                historyTable.refresh();
+                return;
+            }
+
+            historyTable.setRowFactory(tv -> new TableRow<>() {
+                @Override
+                protected void updateItem(InstructionDTO item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (empty || item == null) {
+                        setStyle("");
+                        return;
+                    }
+
+                    boolean match = (item.command() != null && item.command().contains(var)) ||
+                            (item.label() != null && item.label().equals(var));
+
+                    if (match) {
+                        setStyle("-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;");
+                    } else {
+                        setStyle("");
+                    }
+                }
+            });
+            historyTable.refresh();
+        });
+    }
 }
+
+

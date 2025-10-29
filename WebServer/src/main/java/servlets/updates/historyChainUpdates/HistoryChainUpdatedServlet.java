@@ -1,4 +1,4 @@
-package servlets.updates;
+package servlets.updates.historyChainUpdates;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,21 +10,17 @@ import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
 
-@WebServlet("/programsUpdated")
+@WebServlet("/historyChainUpdated")
 
-public class ProgramsUpdatedServlet extends HttpServlet {
+public class HistoryChainUpdatedServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
-        JsonObject response = new JsonObject();
+        JsonObject response=new JsonObject();
+        boolean updated= UpdateFlagsManager.hasUpdated("historyChain");
+        response.addProperty("updated",updated);
 
-        boolean updated= UpdateFlagsManager.hasUpdated("programs");
-        response.addProperty("updated", updated);
-
-        if(updated){
-            UpdateFlagsManager.clearFlag("programs");
-        }
-
+        if(updated) UpdateFlagsManager.clearFlag("historyChain");
         ResponseWriter.write(res,response);
     }
 }

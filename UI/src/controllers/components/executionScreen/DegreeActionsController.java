@@ -17,6 +17,8 @@ import okhttp3.RequestBody;
 
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class DegreeActionsController {
     @FXML private Button btnExpand;
@@ -29,12 +31,41 @@ public class DegreeActionsController {
 
     @FXML
     private void initialize(){
-        loadDegreeFromServer();
+        loadDegreeFromServer(); // Load initial degree info from server
         btnExpand.setOnAction(e->updateDegree(currentDegree+1));
         btnCollapse.setOnAction(e -> updateDegree(currentDegree - 1));
-        refreshDegree();
+
+        // Handle highlight selection change
+        cmbHighlight.setOnAction(e -> {
+            String selected = cmbHighlight.getSelectionModel().getSelectedItem();
+            updateHighlight(selected);
+        });
+
+        setupHighlightComboBoxPlaceholder();      // Add placeholder text "Highlight"
+        refreshDegree();   // Display initial degree value
+        startProgramVarsRefresher();
+
     }
 
+    // Sets up placeholder text for ComboBox when nothing is selected
+    private void setupHighlightComboBoxPlaceholder() {
+        cmbHighlight.setButtonCell(new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null || item.isBlank()) {
+                    setText("Highlight");
+                    setStyle("-fx-text-fill: -fx-text-inner-color; -fx-opacity: 0.6;");
+                } else {
+                    setText(item);
+                    setStyle("");
+                }
+            }
+        });
+    }
+
+    // Loads the current and max degree from the server
     private void loadDegreeFromServer(){
         new Thread(() -> {
             JsonElement response = ServerRequestUtils.sendGet("/programData");
@@ -46,7 +77,7 @@ public class DegreeActionsController {
                         currentDegree = obj.get("currentDegree").getAsInt();
                         maxDegree = obj.get("maxDegree").getAsInt();
                         refreshDegree();
-                        refreshHighlightList(currentDegree);
+                        loadInitialVariables();
                     }
                 } else {
                     ServerResponseHandler.showAlert("Error", "Failed to load degree info.", Alert.AlertType.ERROR);
@@ -55,6 +86,24 @@ public class DegreeActionsController {
         }).start();
     }
 
+    private void loadInitialVariables() {
+        RequestBody body = new FormBody.Builder()
+                .add("degree", String.valueOf(currentDegree))
+                .build();
+        new Thread(() -> {
+            JsonElement response = ServerRequestUtils.sendPost("/programVariables", body);
+            if (response == null || !response.isJsonObject()) return;
+            var obj = response.getAsJsonObject();
+
+            if (!obj.has("variables")) return;
+
+            Type listType = new TypeToken<List<String>>(){}.getType();
+            List<String> vars = new Gson().fromJson(obj.get("variables"), listType);
+            Platform.runLater(() -> cmbHighlight.getItems().setAll(vars));
+        }).start();
+    }
+
+   // Sends new degree to the server (expand/collapse)
     private void updateDegree(int newDegree){
         if(newDegree<0 || newDegree>maxDegree) return;
 
@@ -71,9 +120,9 @@ public class DegreeActionsController {
                     if("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
                         currentDegree = obj.get("degree").getAsInt();
                         refreshDegree();
-                        refreshHighlightList(currentDegree);
-
+                        clearHighlight();
                         clearHistoryChain();
+
                     }
                 }else{
                     ServerResponseHandler.showAlert("ERROR","Server error updatind degree.", Alert.AlertType.ERROR);
@@ -82,31 +131,60 @@ public class DegreeActionsController {
         }).start();
     }
 
+    // Updates the degree label text
     private void refreshDegree(){
         lblDegree.setText((currentDegree+" / "+maxDegree));
     }
 
-    private void refreshHighlightList(int degree){
-        RequestBody body = new FormBody.Builder()
-                .add("degree", String.valueOf(currentDegree))
-                .build();
 
-        new Thread(()->{
-            JsonElement response = ServerRequestUtils.sendPost("/programVariables",body);
-            if (response == null || !response.isJsonObject()) return;
-            var obj = response.getAsJsonObject();
-            if (!obj.has("variables")) return;
+    private void startProgramVarsRefresher() {
+        Timer varsTimer = new Timer(true);
+        varsTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/programVariablesUpdated");
+                if (resp == null || !resp.isJsonObject()) return;
 
-            Type listType = new TypeToken<List<String>>(){}.getType();
-            List<String> vars = new Gson().fromJson(obj.get("variables"), listType);
+                boolean updated = resp.getAsJsonObject().get("updated").getAsBoolean();
+                if (!updated) return;
 
-            Platform.runLater(() -> {
-                cmbHighlight.getItems().setAll(vars);
-                cmbHighlight.setPromptText("Highlight");
-            });
-        }).start();
+                RequestBody body = new FormBody.Builder()
+                        .add("degree", String.valueOf(currentDegree))
+                        .build();
+
+                JsonElement varsResponse = ServerRequestUtils.sendPost("/programVariables", body);
+                if (varsResponse == null || !varsResponse.isJsonObject()) return;
+
+                var obj = varsResponse.getAsJsonObject();
+                if (!obj.has("variables")) return;
+
+                Type listType = new TypeToken<List<String>>(){}.getType();
+                List<String> newVars = new Gson().fromJson(obj.get("variables"), listType);
+
+                Platform.runLater(() -> {
+                    String selectedBefore = cmbHighlight.getSelectionModel().getSelectedItem();
+
+                    cmbHighlight.getItems().setAll(newVars);
+
+                    if (selectedBefore != null && newVars.contains(selectedBefore)) {
+                        cmbHighlight.getSelectionModel().select(selectedBefore);
+                    } else {
+                        cmbHighlight.getSelectionModel().clearSelection();
+                    }
+                });
+            }
+        }, 0, 1000);
     }
 
+// Clears highlight selection (after degree change)
+    private void clearHighlight() {
+        Platform.runLater(() -> {
+            cmbHighlight.getSelectionModel().clearSelection();
+            cmbHighlight.setValue(null);
+        });
+    }
+
+// Clears the history chain on the previous chosen instruction
     private void clearHistoryChain(){
         new Thread(()->{
             RequestBody body=new FormBody.Builder()
@@ -114,6 +192,16 @@ public class DegreeActionsController {
                     .build();
 
             ServerRequestUtils.sendPost("/historyChain",body);
+        }).start();
+    }
+
+    // Sends selected variable name to the server to mark highlight
+    private void updateHighlight(String variable) {
+        new Thread(() -> {
+            RequestBody body = new FormBody.Builder()
+                    .add("variable", variable == null ? "" : variable)
+                    .build();
+            ServerRequestUtils.sendPost("/highlightVariable", body);
         }).start();
     }
 }

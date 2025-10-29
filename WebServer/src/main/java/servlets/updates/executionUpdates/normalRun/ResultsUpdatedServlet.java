@@ -1,4 +1,4 @@
-package servlets.updates;
+package servlets.updates.executionUpdates.normalRun;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,21 +10,19 @@ import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
 
-@WebServlet("/degreeUpdated")
+@WebServlet("/resultsUpdated")
 
-public class DegreeUpdatedServlet extends HttpServlet {
+public class ResultsUpdatedServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
         JsonObject response=new JsonObject();
-        boolean updated= UpdateFlagsManager.hasUpdated("degree");
-
+        boolean updated= UpdateFlagsManager.hasUpdated("results");
         response.addProperty("updated",updated);
 
         if(updated){
-            UpdateFlagsManager.clearFlag("degree");
-
+            UpdateFlagsManager.clearFlag("results");
         }
-        ResponseWriter.write(res, response);
+        ResponseWriter.write(res,response);
     }
 }
