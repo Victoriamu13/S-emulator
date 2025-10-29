@@ -17,15 +17,6 @@ public class HighlightUpdatedServlet extends HttpServlet {
         JsonObject response = new JsonObject();
         boolean updated = UpdateFlagsManager.hasUpdated("highlight");
         response.addProperty("updated", updated);
-
-        if (updated) {
-            new Thread(() -> {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ignored) {}
-                UpdateFlagsManager.clearFlag("highlight");
-            }).start();
-        }
         ResponseWriter.write(res, response);
     }
 }

@@ -20,6 +20,7 @@ import okhttp3.RequestBody;
 
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -27,6 +28,7 @@ public class InstructionsTableController {
     Timer timer;
     private GenericRefresher<InstructionDTO> refresher;
     private final BooleanProperty autoUpdate=new SimpleBooleanProperty(true);
+    private String lastHighlight = "";
 
     @FXML private TableView<InstructionDTO> instructionsTable;
     @FXML private TableColumn<InstructionDTO, Number> colIndex;
@@ -59,7 +61,7 @@ public class InstructionsTableController {
         timer.schedule(refresher, 0, 2000);
     }
 
-     // Checks if highlight changed
+    // Checks if highlight changed
     private void startHighlightRefresher() {
         Timer highlightTimer = new Timer(true);
 
@@ -78,7 +80,7 @@ public class InstructionsTableController {
         }, 0, 1000);
     }
 
-   // When user choose instruction → update history chain + variable list
+    // When user choose instruction → update history chain + variable list
     private void setupSelectionListener(){
         instructionsTable.setOnMouseClicked(event->{
             InstructionDTO selected=instructionsTable.getSelectionModel().getSelectedItem();
@@ -100,7 +102,7 @@ public class InstructionsTableController {
         });
     }
 
-// Applies highlight color to matching rows
+    // Applies highlight color to matching rows
     private void applyHighlight() {
         JsonElement resp = ServerRequestUtils.sendGet("/highlightVariable");
         if (resp == null || !resp.isJsonObject()) return;
@@ -108,7 +110,9 @@ public class InstructionsTableController {
         JsonObject obj = resp.getAsJsonObject();
         if (!"SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) return;
 
-        String var = obj.get("highlight").isJsonNull() ? null : obj.get("highlight").getAsString();
+        String var = obj.get("highlight").isJsonNull() ? "" : obj.get("highlight").getAsString();
+        if (Objects.equals(var, lastHighlight)) return;
+        lastHighlight = var;
 
         Platform.runLater(() -> {
             if (var == null || var.isBlank()) {
@@ -127,20 +131,18 @@ public class InstructionsTableController {
                         return;
                     }
 
-                    boolean match = (item.command() != null && item.command().contains(var)) ||
-                                    (item.label() != null && item.label().equals(var));
-                    if (match) {
-                        setStyle("-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;");
-                    } else {
-                        setStyle("");
-                    }
+                    boolean match = (item.command() != null && item.command().contains(var))
+                            || (item.label() != null && item.label().equals(var));
+                    setStyle(match
+                            ? "-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;"
+                            : "");
                 }
             });
             instructionsTable.refresh();
         });
     }
 
-  // Retrieves current degree from server to send correct requests
+    // Retrieves current degree from server to send correct requests
     private int getCurrentDegreeFromServer() {
         JsonElement response = ServerRequestUtils.sendGet("/programData");
         if (response == null || !response.isJsonObject()) return 0;
@@ -152,4 +154,3 @@ public class InstructionsTableController {
         return obj.get("currentDegree").getAsInt();
     }
 }
-

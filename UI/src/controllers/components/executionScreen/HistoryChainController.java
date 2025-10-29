@@ -18,6 +18,7 @@ import logic.engineFacade.model.InstructionDTO;
 
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -25,6 +26,7 @@ public class HistoryChainController {
     Timer timer;
     private GenericRefresher<InstructionDTO> refresher;
     private final BooleanProperty autoUpdate=new SimpleBooleanProperty(true);
+    private String lastHighlight = "";
 
     @FXML private TableView<InstructionDTO> historyTable;
     @FXML private TableColumn<InstructionDTO, Number> colIndex;
@@ -82,6 +84,8 @@ public class HistoryChainController {
         if (!"SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) return;
 
         String var = obj.get("highlight").isJsonNull() ? null : obj.get("highlight").getAsString();
+        if (Objects.equals(var, lastHighlight)) return;
+        lastHighlight = var;
 
         Platform.runLater(() -> {
             if (var == null || var.isBlank()) {
@@ -100,14 +104,11 @@ public class HistoryChainController {
                         return;
                     }
 
-                    boolean match = (item.command() != null && item.command().contains(var)) ||
-                            (item.label() != null && item.label().equals(var));
-
-                    if (match) {
-                        setStyle("-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;");
-                    } else {
-                        setStyle("");
-                    }
+                    boolean match = (item.command() != null && item.command().contains(var))
+                            || (item.label() != null && item.label().equals(var));
+                    setStyle(match
+                            ? "-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;"
+                            : "");
                 }
             });
             historyTable.refresh();

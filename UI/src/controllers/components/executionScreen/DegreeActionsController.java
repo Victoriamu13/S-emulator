@@ -103,7 +103,7 @@ public class DegreeActionsController {
         }).start();
     }
 
-   // Sends new degree to the server (expand/collapse)
+    // Sends new degree to the server (expand/collapse)
     private void updateDegree(int newDegree){
         if(newDegree<0 || newDegree>maxDegree) return;
 
@@ -120,9 +120,23 @@ public class DegreeActionsController {
                     if("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
                         currentDegree = obj.get("degree").getAsInt();
                         refreshDegree();
-                        clearHighlight();
+
+                        cmbHighlight.getSelectionModel().clearSelection();
+                        cmbHighlight.setValue(null);
+
+                        new Thread(() -> {
+                            RequestBody clearBody = new FormBody.Builder()
+                                    .add("variable", "")
+                                    .build();
+                            ServerRequestUtils.sendPost("/highlightVariable", clearBody);
+                        }).start();
+
                         clearHistoryChain();
 
+                        new Thread(() -> {
+                            try { Thread.sleep(400); } catch (InterruptedException ignored) {}
+                            loadInitialVariables();
+                        }).start();
                     }
                 }else{
                     ServerResponseHandler.showAlert("ERROR","Server error updatind degree.", Alert.AlertType.ERROR);
@@ -176,15 +190,22 @@ public class DegreeActionsController {
         }, 0, 1000);
     }
 
-// Clears highlight selection (after degree change)
+    // Clears highlight selection (after degree change)
     private void clearHighlight() {
         Platform.runLater(() -> {
             cmbHighlight.getSelectionModel().clearSelection();
             cmbHighlight.setValue(null);
         });
+        new Thread(() -> {
+            // also clear highlight on server side
+            RequestBody body = new FormBody.Builder()
+                    .add("variable", "")
+                    .build();
+            ServerRequestUtils.sendPost("/highlightVariable", body);
+        }).start();
     }
 
-// Clears the history chain on the previous chosen instruction
+    // Clears the history chain on the previous chosen instruction
     private void clearHistoryChain(){
         new Thread(()->{
             RequestBody body=new FormBody.Builder()
