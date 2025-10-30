@@ -40,6 +40,7 @@ public class StopDebugServlet extends HttpServlet {
             return;
         }
 
+
         UpdateFlagsManager.markUpdated("debugResults");
 
         JsonObject response = JsonResponseUtils.success("Debug stopped.");

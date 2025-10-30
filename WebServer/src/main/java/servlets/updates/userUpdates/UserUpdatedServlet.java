@@ -20,7 +20,9 @@ public class UserUpdatedServlet extends HttpServlet {
 
         JsonObject response=new JsonObject();
         response.addProperty("updated", updated);
-
+        if (updated) {
+            UpdateFlagsManager.clearFlag("users");
+        }
         ResponseWriter.write(res,response);
     }
 }

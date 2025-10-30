@@ -20,6 +20,9 @@ public class HistoryUpdatedServlet extends HttpServlet {
 
         JsonObject response=new JsonObject();
         response.addProperty("updated", updated);
+        if (updated) {
+            UpdateFlagsManager.clearFlag("history");
+        }
 
         ResponseWriter.write(res,response);
     }

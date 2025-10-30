@@ -7,7 +7,6 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TableView;
-import logic.engineFacade.model.InstructionDTO;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -23,6 +22,8 @@ public class GenericRefresher<T> extends TimerTask {
     private final TableView<T> table;
     private final Type listType;
     private final String arrayField;
+    private final boolean userSelection;
+    private boolean firstLoad = true;
 
     public GenericRefresher(BooleanProperty autoUpdate,
                             String updateEndpoint,
@@ -38,22 +39,43 @@ public class GenericRefresher<T> extends TimerTask {
                             TableView<T> table,
                             Type listType,
                             String arrayField) {
+        this(autoUpdate, updateEndpoint, dataEndpoint, table, listType, arrayField, false);
+    }
+
+    public GenericRefresher(BooleanProperty autoUpdate,
+                            String updateEndpoint,
+                            String dataEndpoint,
+                            TableView<T> table,
+                            Type listType,
+                            String arrayField,
+                            boolean userSelection) {
         this.autoUpdate = autoUpdate;
         this.updateEndpoint = updateEndpoint;
         this.dataEndpoint = dataEndpoint;
         this.table = table;
         this.listType = listType;
         this.arrayField = arrayField;
+        this.userSelection = userSelection;
     }
 
     @Override
     public void run() {
         if (!autoUpdate.get()) return;
-        JsonElement updateResponse = ServerRequestUtils.sendGet(updateEndpoint);
-        if (updateResponse == null) return;
 
-        JsonObject obj = updateResponse.getAsJsonObject();
-        if (!obj.has("updated") || !obj.get("updated").getAsBoolean()) return;
+        boolean shouldFetch = firstLoad;
+
+        JsonElement updateResponse = ServerRequestUtils.sendGet(updateEndpoint);
+        if (updateResponse != null && updateResponse.isJsonObject()) {
+            JsonObject obj = updateResponse.getAsJsonObject();
+            if (obj.has("updated") && obj.get("updated").getAsBoolean()) {
+                System.out.println("[Refresher] Update detected for " + updateEndpoint);
+
+                shouldFetch = true;
+            }
+        }
+
+        if (!shouldFetch) return;
+        firstLoad = false;
 
         JsonElement dataResponse = ServerRequestUtils.sendGet(dataEndpoint);
         if (dataResponse == null) return;
@@ -67,7 +89,19 @@ public class GenericRefresher<T> extends TimerTask {
         }
 
         if (arrayElement == null || !arrayElement.isJsonArray()) return;
-        List<T> items = gson.fromJson(arrayElement, listType);
-        Platform.runLater(() -> table.setItems(FXCollections.observableArrayList(items)));
+        List<T> newItems = gson.fromJson(arrayElement, listType);
+        System.out.println("[Refresher] Loaded " + newItems.size() + " items from " + dataEndpoint);
+
+        Platform.runLater(() -> {
+            List<T> currentItems = table.getItems();
+            boolean sameContent = currentItems.size() == newItems.size()
+                    && currentItems.containsAll(newItems)
+                    && newItems.containsAll(currentItems);
+
+            if (sameContent) return;
+            System.out.println("[Refresher] Applying " + newItems.size() + " new items to table.");
+
+            table.setItems(FXCollections.observableArrayList(newItems));
+        });
     }
 }

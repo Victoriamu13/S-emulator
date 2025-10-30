@@ -25,7 +25,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class InstructionsTableController {
-    Timer timer;
+    //Timer timer;
+    private final Timer timer = new Timer(true);
+
     private GenericRefresher<InstructionDTO> refresher;
     private final BooleanProperty autoUpdate=new SimpleBooleanProperty(true);
     private String lastHighlight = "";
@@ -39,15 +41,18 @@ public class InstructionsTableController {
 
     @FXML
     public void initialize() {
+        setupColumns();
+        startInstructionsRefresher();  // updates instruction table
+        startHighlightRefresher();     // listens for highlight changes
+        setupSelectionListener();     // handles selections on table rows
+    }
+
+    private void setupColumns() {
         colIndex.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().index()));
         colType.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().type()));
         colLabel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().label()));
         colCommand.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().command()));
         colCycles.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().cyclesText()));
-
-        startInstructionsRefresher();  // updates instruction table
-        startHighlightRefresher();     // listens for highlight changes
-        setupSelectionListener();     // handles selections on table rows
     }
 
     // Refreshes the instructions table every 2 seconds if degree updated
@@ -55,30 +60,11 @@ public class InstructionsTableController {
         Type listType = new TypeToken<List<InstructionDTO>>(){}.getType();
         refresher = new GenericRefresher<>(autoUpdate,
                 "/degreeUpdated", "/programData",
-                instructionsTable, listType, "instructions");
+                instructionsTable, listType,"instructions");
 
-        timer = new Timer(true);
         timer.schedule(refresher, 0, 2000);
     }
 
-    // Checks if highlight changed
-    private void startHighlightRefresher() {
-        Timer highlightTimer = new Timer(true);
-
-        highlightTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                JsonElement resp = ServerRequestUtils.sendGet("/highlightUpdated");
-                if (resp == null || !resp.isJsonObject()) return;
-
-                boolean updated = resp.getAsJsonObject()
-                        .get("updated")
-                        .getAsBoolean();
-
-                if (updated) applyHighlight();
-            }
-        }, 0, 1000);
-    }
 
     // When user choose instruction → update history chain + variable list
     private void setupSelectionListener(){
@@ -103,43 +89,46 @@ public class InstructionsTableController {
     }
 
     // Applies highlight color to matching rows
-    private void applyHighlight() {
-        JsonElement resp = ServerRequestUtils.sendGet("/highlightVariable");
-        if (resp == null || !resp.isJsonObject()) return;
+    private void startHighlightRefresher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/highlightVariable");
+                if (resp == null || !resp.isJsonObject()) return;
 
-        JsonObject obj = resp.getAsJsonObject();
-        if (!"SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) return;
+                JsonObject obj = resp.getAsJsonObject();
+                if (!"SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) return;
 
-        String var = obj.get("highlight").isJsonNull() ? "" : obj.get("highlight").getAsString();
-        if (Objects.equals(var, lastHighlight)) return;
-        lastHighlight = var;
+                String var = obj.get("highlight").isJsonNull() ? "" : obj.get("highlight").getAsString();
+                if (Objects.equals(var, lastHighlight)) return;
+                lastHighlight = var;
 
-        Platform.runLater(() -> {
-            if (var == null || var.isBlank()) {
-                instructionsTable.setRowFactory(null);
-                instructionsTable.refresh();
-                return;
-            }
-
-            instructionsTable.setRowFactory(tv -> new TableRow<>() {
-                @Override
-                protected void updateItem(InstructionDTO item, boolean empty) {
-                    super.updateItem(item, empty);
-
-                    if (empty || item == null) {
-                        setStyle("");
+                Platform.runLater(() -> {
+                    if (var == null || var.isBlank()) {
+                        instructionsTable.setRowFactory(null);
+                        instructionsTable.refresh();
                         return;
                     }
 
-                    boolean match = (item.command() != null && item.command().contains(var))
-                            || (item.label() != null && item.label().equals(var));
-                    setStyle(match
-                            ? "-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;"
-                            : "");
-                }
-            });
-            instructionsTable.refresh();
-        });
+                    instructionsTable.setRowFactory(tv -> new TableRow<>() {
+                        @Override
+                        protected void updateItem(InstructionDTO item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if (empty || item == null) {
+                                setStyle("");
+                                return;
+                            }
+
+                            boolean match = (item.command() != null && item.command().contains(var))
+                                    || (item.label() != null && item.label().equals(var));
+                            setStyle(match
+                                    ? "-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;" : "");
+                        }
+                    });
+                    instructionsTable.refresh();
+                });
+            }
+        }, 0, 1000);
     }
 
     // Retrieves current degree from server to send correct requests

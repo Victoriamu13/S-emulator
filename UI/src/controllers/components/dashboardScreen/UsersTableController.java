@@ -1,6 +1,7 @@
 package controllers.components.dashboardScreen;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controllers.utils.refreshers.GenericRefresher;
 import controllers.utils.server.ServerRequestUtils;
@@ -10,6 +11,7 @@ import java.lang.reflect.Type;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import logic.system.user.info.UserInfo;
 import okhttp3.FormBody;
@@ -47,11 +49,13 @@ public class UsersTableController{
         colUsedCredits.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().creditsUsed()));
         colExecutions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().totalExecutions()));
 
-        usersTable.getSelectionModel().selectedItemProperty().addListener((obs,oldVal,newVal)-> {
-            if(newVal!=null){
-              updateSelectedUser(newVal.username());
+        usersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                updateSelectedUser(newVal.username());
+                highlightSelectedUser(newVal.username());
             }
         });
+
         startRefresher();
     }
 
@@ -62,7 +66,29 @@ public class UsersTableController{
 
         new Thread(()->{
         JsonElement response = ServerRequestUtils.sendPost("/selectedUser",body);
+            if (response != null && response.isJsonObject()) {
+                JsonObject obj = response.getAsJsonObject();
+                if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
+                    ServerRequestUtils.sendPost("/markHistoryUpdated", null);
+                }
+            }
         }).start();
+    }
+
+    private void highlightSelectedUser(String selectedUser) {
+        usersTable.setRowFactory(tv -> new TableRow<>() {
+            @Override
+            protected void updateItem(UserInfo item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setStyle("");
+                } else if (item.username().equals(selectedUser)) {
+                    setStyle("-fx-background-color: #e0f7fa;");
+                } else {
+                    setStyle("");
+                }
+            }
+        });
     }
 
     public void startRefresher(){

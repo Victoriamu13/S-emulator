@@ -8,10 +8,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.ExecutionReport;
+import logic.engineFacade.model.RunRecord;
 import logic.system.data.expansion.DegreeManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
+import logic.system.user.history.userHstory.UserHistory;
+import logic.system.user.history.userHstory.UserHistoryManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -67,7 +70,31 @@ public class ExecuteProgramServlet extends HttpServlet {
             return;
         }
 
+        // ====== Save to RUN HISTORY =======
+       int nextRunID = UserHistoryManager.getUserExecHistories(currentUser).size() + 1; // מזהה ריצה חדש
+       RunRecord runRecord = new RunRecord(
+               nextRunID,
+               degree,
+               inputs,
+               report.yValue(),
+               report.totalCycles(),
+               report.finalVars()
+       );
+       String type=SelectedProgramManager.getSelectedType(currentUser);
+
+        UserHistory history = new UserHistory(
+                nextRunID,
+                type,
+                progName,
+              null,
+               runRecord
+        );
+
+       UserHistoryManager.addRun(currentUser, history);
+
         UpdateFlagsManager.markUpdated("results");
+        UpdateFlagsManager.markUpdated("history");
+        UpdateFlagsManager.markUpdated("users");
 
         JsonObject response = JsonResponseUtils.success("Program executed successfully (degree " + degree + ").");
         response.add("report", new Gson().toJsonTree(report));

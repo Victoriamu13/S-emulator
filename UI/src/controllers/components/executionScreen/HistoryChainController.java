@@ -1,8 +1,10 @@
 package controllers.components.executionScreen;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import controllers.utils.refreshers.GenericActionsRefresher;
 import controllers.utils.refreshers.GenericRefresher;
 import controllers.utils.server.ServerRequestUtils;
 import javafx.application.Platform;
@@ -23,10 +25,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class HistoryChainController {
-    Timer timer;
-    private GenericRefresher<InstructionDTO> refresher;
+    private final Timer timer = new Timer(true);
     private final BooleanProperty autoUpdate=new SimpleBooleanProperty(true);
-    private String lastHighlight = "";
 
     @FXML private TableView<InstructionDTO> historyTable;
     @FXML private TableColumn<InstructionDTO, Number> colIndex;
@@ -37,56 +37,48 @@ public class HistoryChainController {
 
     @FXML
     public void initialize() {
+        setupColumns();
+        startRefresher();
+    }
+
+    private void setupColumns() {
         colIndex.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().index()));
         colType.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().type()));
         colLabel.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().label()));
         colCommand.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().command()));
         colCycles.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().cyclesText()));
-
-        startRefresher();
-        startHighlightRefresher();
     }
 
     private void startRefresher(){
-        Type listType=new TypeToken<List<InstructionDTO>>(){}.getType();
-        refresher=new GenericRefresher<>(autoUpdate,"/historyChainUpdated","/historyChain",
-                historyTable,listType,"chain");
-
-        timer=new Timer(true);
-        timer.schedule(refresher,0,2000);
-    }
-
-    private void startHighlightRefresher() {
-        Timer highlightTimer = new Timer(true);
-        highlightTimer.schedule(new TimerTask() {
+        Type listType = new TypeToken<List<InstructionDTO>>(){}.getType();
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                JsonElement resp = ServerRequestUtils.sendGet("/highlightUpdated");
+                if (!autoUpdate.get()) return;
+
+                JsonElement resp = ServerRequestUtils.sendGet("/historyChain");
                 if (resp == null || !resp.isJsonObject()) return;
+                JsonObject obj = resp.getAsJsonObject();
 
-                boolean updated = resp.getAsJsonObject()
-                        .get("updated")
-                        .getAsBoolean();
+                // history chain
+                if (obj.has("chain")) {
+                    List<InstructionDTO> chain = new Gson().fromJson(obj.get("chain"), listType);
+                    Platform.runLater(() -> historyTable.getItems().setAll(chain));
+                }
 
-                if (updated) {
-                    applyHighlight();
+                // highlight
+                if (obj.has("highlight")) {
+                    String var = obj.get("highlight").getAsString();
+                    applyHighlight(var);
                 }
             }
-        }, 0, 1000);
+        }, 0, 1500);
+        System.out.println("[HistoryChain] Refresher started (updates every 1.5s)");
+
     }
 
 
-    private void applyHighlight() {
-        JsonElement resp = ServerRequestUtils.sendGet("/highlightVariable");
-        if (resp == null || !resp.isJsonObject()) return;
-
-        JsonObject obj = resp.getAsJsonObject();
-        if (!"SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) return;
-
-        String var = obj.get("highlight").isJsonNull() ? null : obj.get("highlight").getAsString();
-        if (Objects.equals(var, lastHighlight)) return;
-        lastHighlight = var;
-
+    private void applyHighlight(String var) {
         Platform.runLater(() -> {
             if (var == null || var.isBlank()) {
                 historyTable.setRowFactory(null);
@@ -98,7 +90,6 @@ public class HistoryChainController {
                 @Override
                 protected void updateItem(InstructionDTO item, boolean empty) {
                     super.updateItem(item, empty);
-
                     if (empty || item == null) {
                         setStyle("");
                         return;
@@ -107,13 +98,10 @@ public class HistoryChainController {
                     boolean match = (item.command() != null && item.command().contains(var))
                             || (item.label() != null && item.label().equals(var));
                     setStyle(match
-                            ? "-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;"
-                            : "");
+                            ? "-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;" : "");
                 }
             });
             historyTable.refresh();
         });
     }
 }
-
-

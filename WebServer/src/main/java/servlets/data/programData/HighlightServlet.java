@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.system.data.highlight.HighlightManager;
-import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -30,7 +29,6 @@ public class HighlightServlet extends HttpServlet {
             HighlightManager.setHighlight(user, var);
         }
 
-        UpdateFlagsManager.markUpdated("highlight");
         ResponseWriter.write(res, JsonResponseUtils.success("Highlight updated."));
     }
 

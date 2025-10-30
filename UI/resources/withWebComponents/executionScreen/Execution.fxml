@@ -33,7 +33,7 @@
          <children>
             <Label text="Program Inputs"/>
             <ListView fx:id="inputsList" VBox.vgrow="ALWAYS"/>
-            <Button fx:id="backToDashboard" text="Back to Dashboard"/>
+            <Button fx:id="btnBackToDashboard" text="Back to Dashboard"/>
          </children>
       </VBox>
    </children>

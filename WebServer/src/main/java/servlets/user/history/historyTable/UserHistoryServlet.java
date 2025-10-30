@@ -28,7 +28,10 @@ public class UserHistoryServlet extends HttpServlet {
         }
 
         String selectedUser= SelectedUserManager.getSelectedUser(currentUser); //get selected user for current logged-in user;
-        List<UserHistory> userHistory= UserHistoryManager.getUserExecHistories(selectedUser); //get selected user's history
+        String targetUser = (selectedUser != null) ? selectedUser : currentUser;
+
+
+        List<UserHistory> userHistory= UserHistoryManager.getUserExecHistories(targetUser); //get selected user's history
         ResponseWriter.write(res, userHistory);
 
     }
