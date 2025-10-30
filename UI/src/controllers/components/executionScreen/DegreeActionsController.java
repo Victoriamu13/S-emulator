@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import controllers.utils.client.SelectedClientState;
+import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
 import controllers.utils.server.ServerResponseHandler;
 import javafx.application.Platform;
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import static controllers.screens.ScreenManager.EXECUTION;
 
 public class DegreeActionsController {
     @FXML private Button btnExpand;
@@ -34,12 +37,20 @@ public class DegreeActionsController {
 
     @FXML
     private void initialize() {
+        TimerManager.register(EXECUTION, timer);
+
+        if (!SelectedClientState.syncFromServer()) {
+            System.out.println("[DegreeActions] Failed to sync current selection");
+        } else {
+            System.out.println("[DegreeActions] Using program = " + SelectedClientState.getName());
+        }
+
         loadDegreeFromServer();
         setupButtons();
         setupHighlightComboBox();
         startProgramVarsRefresher();
         startHighlightRefresher();
-
+        startHighlightComboClearRefresher();
     }
 
     //  LOAD DEGREE DATA
@@ -169,6 +180,7 @@ public class DegreeActionsController {
 
 
     //  REFRESHERS
+
     private void startProgramVarsRefresher() {
         Timer varsTimer = new Timer(true);
 
@@ -239,6 +251,25 @@ public class DegreeActionsController {
 
                 lastHighlight = serverHighlight;
                 Platform.runLater(() -> cmbHighlight.setValue(serverHighlight));
+            }
+        }, 0, 1000);
+    }
+
+    private void startHighlightComboClearRefresher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/HighlightComboClearUpdated");
+                if (resp == null || !resp.isJsonObject()) return;
+
+                boolean updated = resp.getAsJsonObject().get("updated").getAsBoolean();
+                if (!updated) return;
+
+                Platform.runLater(() -> {
+                    System.out.println("[DegreeActions] highlightComboClear detected → resetting combo box");
+                    cmbHighlight.getSelectionModel().clearSelection();
+                    cmbHighlight.setValue(null);
+                });
             }
         }, 0, 1000);
     }

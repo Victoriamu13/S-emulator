@@ -1,4 +1,4 @@
-package servlets.data.expansionData;
+package servlets.data.expansionData.degree;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;

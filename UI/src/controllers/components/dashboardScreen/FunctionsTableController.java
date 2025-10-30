@@ -1,8 +1,11 @@
 package controllers.components.dashboardScreen;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controllers.screens.ScreenManager;
 import controllers.utils.refreshers.GenericRefresher;
+import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -21,6 +24,8 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Timer;
 
+import static controllers.screens.ScreenManager.DASHBOARD;
+
 public class FunctionsTableController {
     private Timer timer;
     private GenericRefresher<FunctionInfo> refresher;
@@ -37,13 +42,19 @@ public class FunctionsTableController {
 
     @FXML
     public void initialize(){
+        TimerManager.register(DASHBOARD, timer);
+
+        setupColumns();
+        btnRunAsProgram.setOnAction(e-> onRunAsProgram());
+        startRefresher();
+    }
+
+    private void setupColumns(){
         colName.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().name()));
         colProgramName.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().programName()));
         colUploader.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().uploader()));
         colInstCount.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().instructionCount()));
         colMaxDegree.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().maxExpansionDegree()));
-        btnRunAsProgram.setOnAction(e-> onRunAsProgram());
-        startRefresher();
     }
 
     private void onRunAsProgram(){
@@ -51,12 +62,24 @@ public class FunctionsTableController {
         if(selectedFunction==null) return;
 
         RequestBody body=new FormBody.Builder()
-                .add("function",selectedFunction.name())
+                .add("type", "function")
+                .add("name", selectedFunction.name())
                 .build();
 
         new Thread(()->{
-            ServerRequestUtils.sendPost("/selectedFunction",body);
-            Platform.runLater(() -> ScreenManager.showExecutionScreen());
+            System.out.println("[Dashboard] Selecting function = " + selectedFunction.name());
+            JsonElement response = ServerRequestUtils.sendPost("/selected", body);
+
+            if (response != null && response.isJsonObject()) {
+                JsonObject obj = response.getAsJsonObject();
+                if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
+                    Platform.runLater(() -> ScreenManager.showExecutionScreen());
+                } else {
+                    System.out.println("[Dashboard] Selection failed → " + obj.get("message").getAsString());
+                }
+            } else {
+                System.out.println("[Dashboard] Selection request failed (null response)");
+            }
         }).start();
     }
 

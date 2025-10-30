@@ -3,7 +3,6 @@ package servlets.data.programData;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,74 +26,81 @@ import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/programData")
-
 public class ProgramDataServlet extends HttpServlet {
+
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
-        // find logged-in user from cookies
+        // ===  Get current user ===
         String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String type= SelectedProgramManager.getSelectedType(currentUser);
-        String name=SelectedProgramManager.getSelectedProgram(currentUser);
+        // === Get selection (program/function) ===
+        String type = SelectedProgramManager.getSelectedType(currentUser);
+        String name = SelectedProgramManager.getSelectedProgram(currentUser);
 
-        if(type==null || name==null){
+        if (type == null || name == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No program or function selected."));
             return;
         }
 
+        // === Try to get existing engine ===
         EngineFacade engine = EngineFacadeManager.getEngine(currentUser, name);
 
+        // CASE engine not found
         if (engine == null) {
-            if ("program".equalsIgnoreCase(type)) {
-                engine = ProgramRepository.getEngineForProgram(currentUser, name);
-            }
-            else if ("function".equalsIgnoreCase(type)) {
-                String internalName = FunctionRepository.getInternalName(name);
-
-                if (FunctionRepository.functionExists(internalName)) {
-                    FunctionLookup lookup = FunctionRepository.asLookup();
-                    SProgram program = new FuncAsProgAdapter(internalName, lookup).asProgram();
-                    engine = new EngineFacadeImpl();
-                    engine.loadExistingProgram(program);
-                }
-            }
-            if (engine == null) {
-                ResponseWriter.write(res, JsonResponseUtils.error("Program/Function not found."));
-                return;
-            }
-            EngineFacadeManager.registerEngine(currentUser, name, engine);
+            System.out.println("[ProgramDataServlet] Engine not initialized yet for user=" + currentUser + ", name=" + name);
+            ResponseWriter.write(res, JsonResponseUtils.error("Engine not ready yet for this selection."));
+            return;
         }
 
-        int degree=DegreeManager.getDegree(currentUser);
-        String degreeParam=req.getParameter("degree");
+        // ===  Reset cache to ensure fresh data ===
+        try {
+            engine.resetExpansionCache();
+        } catch (Exception e) {
+            System.out.println("[ProgramDataServlet] Warning: failed to reset cache for user=" + currentUser + ": " + e.getMessage());
+        }
 
-        if(degreeParam!=null){
-            try{
-                degree=Integer.parseInt(degreeParam);
-                DegreeManager.setDegree(currentUser,degree);
+        System.out.println("[ProgramDataServlet] Using engine for user=" + currentUser + ", name=" + name);
 
-            }catch (NumberFormatException ignored) {
+        // ===  Parse degree parameter  ===
+        int degree = DegreeManager.getDegree(currentUser);
+        String degreeParam = req.getParameter("degree");
 
+        if (degreeParam != null) {
+            try {
+                degree = Integer.parseInt(degreeParam);
+                DegreeManager.setDegree(currentUser, degree);
+            } catch (NumberFormatException ignored) {
                 ResponseWriter.write(res, JsonResponseUtils.error("Invalid degree parameter: " + degreeParam));
                 return;
             }
         }
-        int maxDegree=engine.getMaxExpansionDegree();
-        int usedDegree=Math.max(0,degree);
-        List<InstructionDTO> instructions=engine.getInstructionRows(usedDegree);
 
-        JsonObject response=JsonResponseUtils.success("Fetched program data successfully.");
-        response.addProperty("currentDegree",usedDegree);
-        response.addProperty("maxDegree",maxDegree);
-        response.add("instructions",new Gson().toJsonTree(instructions));
+        // ===  Fetch program data ===
+        int maxDegree;
+        List<InstructionDTO> instructions;
 
-        UpdateFlagsManager.markUpdated("degree");
-        ResponseWriter.write(res,response);
+        try {
+            maxDegree = engine.getMaxExpansionDegree();
+            int usedDegree = Math.max(0, degree);
+            instructions = engine.getInstructionRows(usedDegree);
+
+            // ===  Build response JSON ===
+            JsonObject response = JsonResponseUtils.success("Fetched program data successfully.");
+            response.addProperty("currentDegree", Math.max(0, degree));
+            response.addProperty("maxDegree", maxDegree);
+            response.add("instructions", new Gson().toJsonTree(instructions));
+
+            UpdateFlagsManager.markUpdated("degree");
+            ResponseWriter.write(res, response);
+
+        } catch (Exception e) {
+            System.err.println("[ProgramDataServlet] Error building program data for user=" + currentUser + ": " + e.getMessage());
+            ResponseWriter.write(res, JsonResponseUtils.error("Failed to load program data: " + e.getMessage()));
+        }
     }
 }

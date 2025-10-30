@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controllers.screens.ScreenManager;
 import controllers.utils.refreshers.GenericRefresher;
+import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
 import controllers.utils.server.ServerResponseHandler;
 import javafx.application.Platform;
@@ -21,6 +22,8 @@ import okhttp3.RequestBody;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Timer;
+
+import static controllers.screens.ScreenManager.DASHBOARD;
 
 public class HistoryTableController {
     private Timer timer;
@@ -40,6 +43,15 @@ public class HistoryTableController {
 
     @FXML
     public void initialize(){
+        TimerManager.register(DASHBOARD, timer);
+
+        setupColumns();
+        btnShowStatus.setOnAction(e -> showStatus());
+        btnReRun.setOnAction(e -> reRun());
+        startRefresher();
+    }
+
+    private void setupColumns(){
         colRunID.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().runID()));
         colType.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().progType()));
         colName.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().name()));
@@ -47,14 +59,10 @@ public class HistoryTableController {
         colDegree.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().runDegree()));
         colYVal.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().yValue()));
         colCycles.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().totalCycles()));
-
-        btnShowStatus.setOnAction(e -> showStatus());
-        btnReRun.setOnAction(e -> reRun());
-
-        startRefresher();
     }
 
     public void startRefresher(){
+        // Generic refresher to auto-update table
         Type listType=new TypeToken<List<UserHistory>>(){}.getType();
         refresher=new GenericRefresher<>(autoUpdate,"/historyUpdated", "/userHistory",
                 historyTable,listType,null,true);
@@ -70,6 +78,7 @@ public class HistoryTableController {
             return;
         }
 
+        // Request final variables snapshot for selected run
         new Thread(() -> {
             JsonElement response = ServerRequestUtils.sendGet("/showHistoryStatus?runID=" + selected.runID());
             if (response == null || !response.isJsonObject()) return;
@@ -92,14 +101,11 @@ public class HistoryTableController {
                     );
 
                     alert.setContentText(content.toString());
-                    alert.getDialogPane().setMinHeight(300);
-                    alert.getDialogPane().setMinWidth(400);
                     alert.showAndWait();
                 });
             }
         }).start();
     }
-
 
 
     private void reRun() {
@@ -109,22 +115,26 @@ public class HistoryTableController {
             return;
         }
 
-        RequestBody body = new FormBody.Builder()
-                .add("runID", String.valueOf(selected.runID()))
-                .build();
-
+    // Send selected run data to server → it will create ReRun cookies
         new Thread(() -> {
-            JsonElement res = ServerRequestUtils.sendPost("/reRunHistory", body);
-            if (res == null || !res.isJsonObject()) return;
+            RequestBody body = new FormBody.Builder()
+                    .add("runID", String.valueOf(selected.runID()))
+                    .add("degree", String.valueOf(selected.runDegree()))
+                    .add("progName", selected.name())
+                    .add("progType", selected.progType())
+                    .build();
 
-            JsonObject obj = res.getAsJsonObject();
+            JsonElement response = ServerRequestUtils.sendPost("/setReRunCookies", body);
+
+            if (response == null || !response.isJsonObject()) return;
+            JsonObject obj = response.getAsJsonObject();
+
             if (obj.has("state") && "SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
-                Platform.runLater(() -> {
-                    ScreenManager.showExecutionScreen();
-                });
-            } else if (obj.has("message")) {
+                System.out.println("[Client] ReRun cookies saved for run #" + selected.runID());
+                Platform.runLater(ScreenManager::showExecutionScreen);
+            } else {
                 Platform.runLater(() ->
-                        ServerResponseHandler.showAlert("Error", obj.get("message").getAsString(), Alert.AlertType.ERROR)
+                        ServerResponseHandler.showAlert("Error", "Failed to set ReRun cookies.", Alert.AlertType.ERROR)
                 );
             }
         }).start();

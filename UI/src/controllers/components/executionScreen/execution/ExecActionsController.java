@@ -1,5 +1,6 @@
 package controllers.components.executionScreen.execution;
 
+import com.google.gson.JsonElement;
 import controllers.utils.server.ServerRequestUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -22,6 +23,11 @@ public class ExecActionsController {
 
     @FXML
     public void initialize() {
+        setupExecutionMode();
+        setupButtons();
+    }
+
+    private void setupExecutionMode(){
         ToggleGroup modeGroup = new ToggleGroup();
         normalMode.setToggleGroup(modeGroup);
         debugMode.setToggleGroup(modeGroup);
@@ -33,6 +39,9 @@ public class ExecActionsController {
             updateButtonsState(mode);
         });
 
+    }
+
+    private void setupButtons(){
         btnNewRun.setOnAction(e -> handleNewRun());
         btnRunNormal.setOnAction(e -> handleRunNormal());
         btnRunDebug.setOnAction(e -> handleRunDebug());
@@ -43,6 +52,7 @@ public class ExecActionsController {
     }
 
     private void updateButtonsState(String mode) {
+        // Disable all buttons initially
         btnNewRun.setDisable(true);
         btnRunNormal.setDisable(true);
         btnRunDebug.setDisable(true);
@@ -51,6 +61,7 @@ public class ExecActionsController {
         btnStepOver.setDisable(true);
         btnStepBack.setDisable(true);
 
+        // Enable based on mode
         switch (mode) {
             case "NORMAL" -> {
                 btnNewRun.setDisable(false);
@@ -78,13 +89,27 @@ public class ExecActionsController {
     }
 
     private void handleNewRun() {
-        new Thread(() -> ServerRequestUtils.sendGet("/newRun")).start();
+    // Detect ReRun mode before resetting inputs
+        new Thread(() -> {
+            JsonElement resp = ServerRequestUtils.sendGet("/isReRun");
+            boolean isReRun = resp != null && resp.getAsJsonObject().get("reRun").getAsBoolean();
+
+            if (isReRun) {
+                // In ReRun mode-> do not clear inputs
+                ServerRequestUtils.sendGet("/startNewRun");
+            } else {
+                // In normal mode-> reset everything
+                ServerRequestUtils.sendGet("/newRun");
+            }
+        }).start();
     }
 
     private void handleRunNormal() {
-        new Thread(() ->
-                ServerRequestUtils.sendPost("/executeProgram", RequestBody.create(null, new byte[0]))
-        ).start();
+        new Thread(() -> {
+            ServerRequestUtils.sendPost("/runProgram", RequestBody.create(null, new byte[0]));
+            System.out.println("[Execution] >>> RUN button clicked, expecting server to use last sent inputs");
+
+        } ).start();
     }
 
     private void handleRunDebug() {

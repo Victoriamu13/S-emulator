@@ -2,7 +2,9 @@ package controllers.components.dashboardScreen;
 
 import com.google.gson.reflect.TypeToken;
 import controllers.screens.ScreenManager;
+import controllers.utils.client.SelectedClientState;
 import controllers.utils.refreshers.GenericRefresher;
+import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -17,6 +19,8 @@ import okhttp3.RequestBody;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Timer;
+
+import static controllers.screens.ScreenManager.DASHBOARD;
 
 public class ProgramsTableController{
     Timer timer;
@@ -34,15 +38,20 @@ public class ProgramsTableController{
 
     @FXML
     public void initialize() {
+        TimerManager.register(DASHBOARD, timer);
+
+        setupColumns();
+        btnRunProgram.setOnAction(e->onRunProgram());
+        startRefresher();
+    }
+
+    private void setupColumns(){
         colName.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().name()));
         colUploadedBy.setCellValueFactory(c->new SimpleStringProperty(c.getValue().uploader()));
         colInstructionCount.setCellValueFactory(c->new SimpleObjectProperty<>(c.getValue().instCount()));
         colMaxDegree.setCellValueFactory(c->new SimpleObjectProperty<>(c.getValue().maxDegree()));
         colRunCount.setCellValueFactory(c->new SimpleObjectProperty<>(c.getValue().numExecutions()));
         colAvgCreditCost.setCellValueFactory(c->new SimpleDoubleProperty(c.getValue().avgCreditCost()));
-
-        btnRunProgram.setOnAction(e->onRunProgram());
-        startRefresher();
     }
 
     private void onRunProgram(){
@@ -50,11 +59,14 @@ public class ProgramsTableController{
         if(selectedProgram==null) return;
 
         RequestBody body=new FormBody.Builder()
-                .add("program",selectedProgram.name())
+                .add("type","program")
+                .add("name", selectedProgram.name())
                 .build();
 
         new Thread(()->{
-            ServerRequestUtils.sendPost("/selectedProgram",body);
+            System.out.println("[Dashboard] Selecting program = " + selectedProgram.name());
+            ServerRequestUtils.sendPost("/selected", body);
+            SelectedClientState.setProgram(selectedProgram.name());
             Platform.runLater(() -> ScreenManager.showExecutionScreen());
         }).start();
     }
@@ -65,7 +77,7 @@ public class ProgramsTableController{
                programsTable,listType);
 
        timer=new Timer(true);
-       timer.schedule(refresher,0,2000);
+        timer.schedule(refresher,0,2000);
     }
 
 

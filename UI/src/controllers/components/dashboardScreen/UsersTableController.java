@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controllers.utils.refreshers.GenericRefresher;
+import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
@@ -19,6 +20,8 @@ import okhttp3.RequestBody;
 
 import java.util.List;
 import java.util.Timer;
+
+import static controllers.screens.ScreenManager.DASHBOARD;
 
 
 public class UsersTableController{
@@ -40,15 +43,10 @@ public class UsersTableController{
 
     @FXML
     public void initialize(){
+        TimerManager.register(DASHBOARD, timer);
+
         usersCountLabel.textProperty().bind(Bindings.concat("Active Users: (", totalUsers.asString(),")"));
-
-        colUserName.setCellValueFactory(c->new SimpleStringProperty(c.getValue().username()));
-        colPrograms.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().programsUploaded()));
-        colFunctions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().funcsAdded()));
-        colCurrentCredits.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().currCredits()));
-        colUsedCredits.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().creditsUsed()));
-        colExecutions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().totalExecutions()));
-
+        setupColumns();
         usersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 updateSelectedUser(newVal.username());
@@ -57,6 +55,16 @@ public class UsersTableController{
         });
 
         startRefresher();
+    }
+
+    private void setupColumns(){
+        colUserName.setCellValueFactory(c->new SimpleStringProperty(c.getValue().username()));
+        colPrograms.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().programsUploaded()));
+        colFunctions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().funcsAdded()));
+        colCurrentCredits.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().currCredits()));
+        colUsedCredits.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().creditsUsed()));
+        colExecutions.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().totalExecutions()));
+
     }
 
     private void updateSelectedUser(String selectedUser){

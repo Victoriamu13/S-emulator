@@ -45,8 +45,11 @@ public class NewRunServlet extends HttpServlet {
         engine.resetExpansionCache();
         int degree = DegreeManager.getDegree(currentUser);
         List<String> inputs = engine.loadInputVars(degree);
+        System.out.println("[NewRun] prog=" + progName + ", degree=" + degree + ", inputs=" + inputs.size());
 
         UpdateFlagsManager.markUpdated("inputs");
+        UpdateFlagsManager.markUpdated("startNewRun");
+        System.out.println("[Server] NewRun initialized — inputs and triggerNewRun updated flag set");
 
         JsonObject response=JsonResponseUtils.success("New run initialized successfully.");
         response.add("inputs", new Gson().toJsonTree(inputs));

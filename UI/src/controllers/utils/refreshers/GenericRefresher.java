@@ -68,7 +68,6 @@ public class GenericRefresher<T> extends TimerTask {
         if (updateResponse != null && updateResponse.isJsonObject()) {
             JsonObject obj = updateResponse.getAsJsonObject();
             if (obj.has("updated") && obj.get("updated").getAsBoolean()) {
-                System.out.println("[Refresher] Update detected for " + updateEndpoint);
 
                 shouldFetch = true;
             }
@@ -90,7 +89,6 @@ public class GenericRefresher<T> extends TimerTask {
 
         if (arrayElement == null || !arrayElement.isJsonArray()) return;
         List<T> newItems = gson.fromJson(arrayElement, listType);
-        System.out.println("[Refresher] Loaded " + newItems.size() + " items from " + dataEndpoint);
 
         Platform.runLater(() -> {
             List<T> currentItems = table.getItems();
@@ -99,7 +97,6 @@ public class GenericRefresher<T> extends TimerTask {
                     && newItems.containsAll(currentItems);
 
             if (sameContent) return;
-            System.out.println("[Refresher] Applying " + newItems.size() + " new items to table.");
 
             table.setItems(FXCollections.observableArrayList(newItems));
         });

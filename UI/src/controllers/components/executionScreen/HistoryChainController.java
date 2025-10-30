@@ -4,8 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import controllers.utils.refreshers.GenericActionsRefresher;
-import controllers.utils.refreshers.GenericRefresher;
+import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -17,12 +16,15 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import logic.engineFacade.model.InstructionDTO;
+import okhttp3.FormBody;
+import okhttp3.RequestBody;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static controllers.screens.ScreenManager.EXECUTION;
 
 public class HistoryChainController {
     private final Timer timer = new Timer(true);
@@ -37,8 +39,11 @@ public class HistoryChainController {
 
     @FXML
     public void initialize() {
+        TimerManager.register(EXECUTION, timer);
         setupColumns();
         startRefresher();
+       startHighlightClearRefresher();
+
     }
 
     private void setupColumns() {
@@ -73,8 +78,6 @@ public class HistoryChainController {
                 }
             }
         }, 0, 1500);
-        System.out.println("[HistoryChain] Refresher started (updates every 1.5s)");
-
     }
 
 
@@ -104,4 +107,34 @@ public class HistoryChainController {
             historyTable.refresh();
         });
     }
+
+    private void startHighlightClearRefresher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/highlightHistoryClearUpdated");
+                if (resp == null || !resp.isJsonObject()) return;
+
+                boolean updated = resp.getAsJsonObject().get("updated").getAsBoolean();
+                if (!updated) return;
+
+                Platform.runLater(() -> {
+                    System.out.println("[HistoryChain] highlightHistoryClear detected → removing highlight");
+                    historyTable.setRowFactory(null);
+                    historyTable.getSelectionModel().clearSelection();
+                    historyTable.getItems().clear();
+                    historyTable.refresh();
+
+                    new Thread(() -> {
+                        RequestBody body = new FormBody.Builder()
+                                .add("clear", "true")
+                                .build();
+                        ServerRequestUtils.sendPost("/historyChain", body);
+                    }).start();
+                });
+            }
+        }, 0, 1000);
+    }
+
+
 }

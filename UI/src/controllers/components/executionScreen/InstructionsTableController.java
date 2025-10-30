@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controllers.utils.refreshers.GenericRefresher;
+import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -23,9 +24,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import static controllers.screens.ScreenManager.EXECUTION;
 
 public class InstructionsTableController {
-    //Timer timer;
     private final Timer timer = new Timer(true);
 
     private GenericRefresher<InstructionDTO> refresher;
@@ -41,10 +42,14 @@ public class InstructionsTableController {
 
     @FXML
     public void initialize() {
+        TimerManager.register(EXECUTION, timer);
+
         setupColumns();
         startInstructionsRefresher();  // updates instruction table
         startHighlightRefresher();     // listens for highlight changes
         setupSelectionListener();     // handles selections on table rows
+        startHighlightClearRefresher(); //clears highlighted instructions
+
     }
 
     private void setupColumns() {
@@ -130,6 +135,27 @@ public class InstructionsTableController {
             }
         }, 0, 1000);
     }
+
+  private void startHighlightClearRefresher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/highlightInstructionsClearUpdated");
+                if (resp == null || !resp.isJsonObject()) return;
+
+                boolean updated = resp.getAsJsonObject().get("updated").getAsBoolean();
+                if (!updated) return;
+
+                Platform.runLater(() -> {
+                    System.out.println("[Instructions] highlightInstructionsClear detected → removing highlight");
+                    lastHighlight = "";
+                    instructionsTable.setRowFactory(null);
+                    instructionsTable.refresh();
+                });
+            }
+        }, 0, 1000);
+    }
+
 
     // Retrieves current degree from server to send correct requests
     private int getCurrentDegreeFromServer() {

@@ -12,6 +12,9 @@ public class SelectedProgramManager {
     public static void setSelectedProgram(String username,String type, String progName){
         if (username == null || type == null || progName == null) return;
         selectedPrograms.put(username,new Selection(type,progName));
+        System.out.println("[SelectedProgramManager] user=" + username +
+                " selected program=" + progName +
+                ", type=" + type);
     }
 
     public static String getSelectedProgram(String username){
@@ -22,6 +25,10 @@ public class SelectedProgramManager {
     public static String getSelectedType(String username){
         Selection sel=selectedPrograms.get(username);
         return sel.type();
+    }
+
+    public static boolean hasSelection(String user) {
+        return selectedPrograms.containsKey(user);
     }
 
     public static void clear(String username){

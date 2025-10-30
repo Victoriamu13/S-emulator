@@ -1,4 +1,4 @@
-package servlets.data.programData;
+package servlets.highlight;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;

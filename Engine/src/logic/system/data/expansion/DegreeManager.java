@@ -18,4 +18,9 @@ public class DegreeManager {
         if(username==null) return 0;
         return usersDegrees.getOrDefault(username, 0);
     }
+
+    public static void resetDegree(String username) {
+        if (username == null) return;
+        usersDegrees.put(username, 0);
+    }
 }

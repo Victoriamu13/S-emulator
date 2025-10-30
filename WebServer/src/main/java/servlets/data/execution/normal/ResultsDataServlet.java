@@ -39,7 +39,8 @@ public class ResultsDataServlet extends HttpServlet {
 
         var report = engine.getLastReport();
         if (report == null) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No results yet."));
+            ResponseWriter.write(res, JsonResponseUtils.error("No report."));
+
             return;
         }
 
