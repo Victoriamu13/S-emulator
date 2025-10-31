@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controllers.screens.ScreenManager;
 import controllers.utils.refreshers.GenericRefresher;
-import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
 import controllers.utils.server.ServerResponseHandler;
 import javafx.application.Platform;
@@ -23,7 +22,6 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Timer;
 
-import static controllers.screens.ScreenManager.DASHBOARD;
 
 public class HistoryTableController {
     private Timer timer;
@@ -43,8 +41,7 @@ public class HistoryTableController {
 
     @FXML
     public void initialize(){
-        TimerManager.register(DASHBOARD, timer);
-
+        System.out.println("[HistoryRefresher] started polling /historyUpdated...");
         setupColumns();
         btnShowStatus.setOnAction(e -> showStatus());
         btnReRun.setOnAction(e -> reRun());
@@ -68,7 +65,9 @@ public class HistoryTableController {
                 historyTable,listType,null,true);
 
         timer=new Timer(true);
-        timer.schedule(refresher,0,2000);
+        timer.schedule(refresher,0,1000);
+        System.out.println("[HistoryTable] Refresher started for /historyUpdated every 1s");
+
     }
 
     private void showStatus() {
@@ -115,8 +114,9 @@ public class HistoryTableController {
             return;
         }
 
-    // Send selected run data to server → it will create ReRun cookies
+    // Send selected run data to server → it will create Re-Run cookies
         new Thread(() -> {
+            // 1) Send Re-Run cookies to server
             RequestBody body = new FormBody.Builder()
                     .add("runID", String.valueOf(selected.runID()))
                     .add("degree", String.valueOf(selected.runDegree()))
@@ -124,19 +124,47 @@ public class HistoryTableController {
                     .add("progType", selected.progType())
                     .build();
 
-            JsonElement response = ServerRequestUtils.sendPost("/setReRunCookies", body);
+            JsonElement cookieResp = ServerRequestUtils.sendPost("/setReRunCookies", body);
+            if (cookieResp == null || !cookieResp.isJsonObject()) {
+                System.out.println("[Client] ❌ Failed to set ReRun cookies");
+                return;
+            }
 
-            if (response == null || !response.isJsonObject()) return;
-            JsonObject obj = response.getAsJsonObject();
-
-            if (obj.has("state") && "SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
-                System.out.println("[Client] ReRun cookies saved for run #" + selected.runID());
-                Platform.runLater(ScreenManager::showExecutionScreen);
-            } else {
+            JsonObject cookieObj = cookieResp.getAsJsonObject();
+            if (!"SUCCESS".equalsIgnoreCase(cookieObj.get("state").getAsString())) {
+                System.out.println("[Client] ❌ setReRunCookies failed: " + cookieObj);
                 Platform.runLater(() ->
                         ServerResponseHandler.showAlert("Error", "Failed to set ReRun cookies.", Alert.AlertType.ERROR)
                 );
+                return;
             }
+            System.out.println("[Client] ✅ ReRun cookies saved for run #" + selected.runID());
+
+
+            // 2) Activate Re-Run mode for user
+            RequestBody activateBody = new FormBody.Builder()
+                    .add("progName", selected.name())
+                    .add("progType", selected.progType())
+                    .add("degree", String.valueOf(selected.runDegree()))
+                    .build();
+
+            JsonElement activateResp = ServerRequestUtils.sendPost("/activateReRun", activateBody);
+            if (activateResp == null || !activateResp.isJsonObject()) {
+                System.out.println("[Client] ❌ Failed to activate ReRun mode.");
+                return;
+            }
+
+            JsonObject activateObj = activateResp.getAsJsonObject();
+            if (!"SUCCESS".equalsIgnoreCase(activateObj.get("state").getAsString())) {
+                System.out.println("[Client] ❌ activateReRun failed: " + activateObj);
+                Platform.runLater(() ->
+                        ServerResponseHandler.showAlert("Error", "Failed to Activate Re-Run mode for user.", Alert.AlertType.ERROR)
+                );
+                return;
+            }
+            System.out.println("[Client] ✅ ReRun mode activated successfully.");
+
+            Platform.runLater(ScreenManager::showExecutionScreen);
         }).start();
     }
 

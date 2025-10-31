@@ -17,13 +17,14 @@ public class HistoryUpdatedServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         boolean updated= UpdateFlagsManager.hasUpdated("history");
+        System.out.println("[HistoryUpdatedServlet] >>> history flag = " + UpdateFlagsManager.hasUpdated("history"));
 
         JsonObject response=new JsonObject();
         response.addProperty("updated", updated);
         if (updated) {
             UpdateFlagsManager.clearFlag("history");
         }
-
+        System.out.println("[HistoryUpdated] returning updated=" + updated);
         ResponseWriter.write(res,response);
     }
 }

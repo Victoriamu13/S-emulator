@@ -4,15 +4,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controllers.screens.ScreenManager;
+import controllers.utils.client.SelectedClientState;
 import controllers.utils.refreshers.GenericRefresher;
 import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
+import controllers.utils.server.ServerResponseHandler;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -23,8 +26,6 @@ import okhttp3.RequestBody;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Timer;
-
-import static controllers.screens.ScreenManager.DASHBOARD;
 
 public class FunctionsTableController {
     private Timer timer;
@@ -42,8 +43,6 @@ public class FunctionsTableController {
 
     @FXML
     public void initialize(){
-        TimerManager.register(DASHBOARD, timer);
-
         setupColumns();
         btnRunAsProgram.setOnAction(e-> onRunAsProgram());
         startRefresher();
@@ -60,6 +59,7 @@ public class FunctionsTableController {
     private void onRunAsProgram(){
         FunctionInfo selectedFunction=functionsTable.getSelectionModel().getSelectedItem();
         if(selectedFunction==null) return;
+        System.out.println("[Client → /selected] type=function, name=" + selectedFunction.name());
 
         RequestBody body=new FormBody.Builder()
                 .add("type", "function")
@@ -67,18 +67,24 @@ public class FunctionsTableController {
                 .build();
 
         new Thread(()->{
-            System.out.println("[Dashboard] Selecting function = " + selectedFunction.name());
-            JsonElement response = ServerRequestUtils.sendPost("/selected", body);
+            System.out.println("[Dashboard] Selecting program = " + selectedFunction.name());
+            JsonElement response =ServerRequestUtils.sendPost("/selected", body);
 
             if (response != null && response.isJsonObject()) {
                 JsonObject obj = response.getAsJsonObject();
+
                 if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
-                    Platform.runLater(() -> ScreenManager.showExecutionScreen());
-                } else {
-                    System.out.println("[Dashboard] Selection failed → " + obj.get("message").getAsString());
+                    boolean ready = obj.get("ready").getAsBoolean();
+                    if (ready) {
+                        SelectedClientState.setProgram(selectedFunction.name());
+                        Platform.runLater(() -> ScreenManager.showExecutionScreen());
+                    } else {
+                        ServerResponseHandler.showAlert("Warning", "Engine not ready yet.", Alert.AlertType.WARNING);
+                    }
                 }
-            } else {
-                System.out.println("[Dashboard] Selection request failed (null response)");
+            }else{
+                ServerResponseHandler.showAlert("ERROR",
+                        "Failed to contact server. Please try again.", Alert.AlertType.ERROR);
             }
         }).start();
     }

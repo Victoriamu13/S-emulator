@@ -21,8 +21,6 @@ import okhttp3.RequestBody;
 import java.util.List;
 import java.util.Timer;
 
-import static controllers.screens.ScreenManager.DASHBOARD;
-
 
 public class UsersTableController{
     Timer timer;
@@ -43,7 +41,6 @@ public class UsersTableController{
 
     @FXML
     public void initialize(){
-        TimerManager.register(DASHBOARD, timer);
 
         usersCountLabel.textProperty().bind(Bindings.concat("Active Users: (", totalUsers.asString(),")"));
         setupColumns();
@@ -77,7 +74,7 @@ public class UsersTableController{
             if (response != null && response.isJsonObject()) {
                 JsonObject obj = response.getAsJsonObject();
                 if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
-                    ServerRequestUtils.sendPost("/markHistoryUpdated", null);
+                    ServerRequestUtils.sendPost("/markHistoryUpdated",  RequestBody.create(new byte[0]));
                 }
             }
         }).start();

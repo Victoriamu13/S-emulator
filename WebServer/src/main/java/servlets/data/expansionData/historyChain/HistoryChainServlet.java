@@ -33,6 +33,12 @@ public class HistoryChainServlet extends HttpServlet {
             return;
         }
 
+        String progName = SelectedProgramManager.getSelectedProgram(currentUser);
+        if (progName == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No active program selection."));
+            return;
+        }
+
         String clear=req.getParameter("clear");
         if("true".equalsIgnoreCase(clear)){
             HistoryChainManager.clearHistoryChain(currentUser);
@@ -43,7 +49,7 @@ public class HistoryChainServlet extends HttpServlet {
         }
 
         int index=0;
-        int degree= DegreeManager.getDegree(currentUser);
+        int degree= DegreeManager.getDegree(currentUser,progName);
         try{
             index=Integer.parseInt(req.getParameter("index"));
         } catch (NumberFormatException ignored) {}

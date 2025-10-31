@@ -8,6 +8,7 @@ import logic.domain.program.SProgram;
 import logic.domain.program.functions.FunctionLookup;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.api.EngineFacadeImpl;
+import logic.system.data.expansion.DegreeManager;
 import logic.system.programs.functions.repository.FuncAsProgAdapter;
 import logic.system.programs.functions.repository.FunctionRepository;
 import logic.system.programs.repository.ProgramRepository;
@@ -30,6 +31,11 @@ public class SelectedServlet extends HttpServlet {
         String type = req.getParameter("type");     // program / function
         String name = req.getParameter("name");     // Name from client
 
+        System.out.println("[SelectedServlet] >>> incoming selection:");
+        System.out.println("    user=" + currentUser);
+        System.out.println("    type=" + type);
+        System.out.println("    name(raw)=" + name);
+
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
@@ -42,9 +48,8 @@ public class SelectedServlet extends HttpServlet {
 
         // Normalize case
         type = type.toLowerCase().trim();
-        boolean ready = false;
 
-      // Remember previous selection before overwriting it
+        // Remember previous selection before overwriting it
         String previousProgram = null;
         if (SelectedProgramManager.hasSelection(currentUser)) {
             previousProgram = SelectedProgramManager.getSelectedProgram(currentUser);
@@ -55,15 +60,13 @@ public class SelectedServlet extends HttpServlet {
 
         System.out.println("[SelectedServlet] user=" + currentUser + " selected " + type + "=" + name);
 
-        // Remove old engine if selection changed
-        if (previousProgram != null && !previousProgram.equals(name)) {
-            EngineFacadeManager.removeEngine(currentUser, previousProgram);
-        }
+        EngineFacade engine = null;
 
-        // Create engine –> only if not already existing
-        if (!EngineFacadeManager.hasEngine(currentUser, name)) {
-            EngineFacade engine = null;
-
+        if (EngineFacadeManager.hasEngine(currentUser, name)) {
+            engine = EngineFacadeManager.getEngine(currentUser, name);
+            System.out.println("[SelectedServlet] ✅ Existing Engine found for " + name);
+        } else {
+            // Create engine –> only if not already existing
             if ("program".equals(type)) {
                 engine = ProgramRepository.getEngineForProgram(currentUser, name);
                 if (engine == null) {
@@ -71,32 +74,33 @@ public class SelectedServlet extends HttpServlet {
                 }
             } else if ("function".equals(type)) {
                 String internalName = FunctionRepository.getInternalName(name);
+                System.out.println("[SelectedServlet] internalName resolved to: " + internalName);
+
                 if (FunctionRepository.functionExists(internalName)) {
                     FunctionLookup lookup = FunctionRepository.asLookup();
                     SProgram program = new FuncAsProgAdapter(internalName, lookup).asProgram();
                     engine = new EngineFacadeImpl();
                     engine.loadExistingProgram(program);
+                    System.out.println("[SelectedServlet] ✅ Engine created for internalName=" + internalName);
+
                 }
             }
 
-          // Register the new engine
+            // Register the new engine
             if (engine != null) {
-                ready = true;
                 EngineFacadeManager.registerEngine(currentUser, name, engine);
+                DegreeManager.setDegree(currentUser, name, 0);
                 System.out.println("[SelectedServlet] EngineFacade created for " + type + "=" + name);
             } else {
                 System.out.println("[SelectedServlet] EngineFacade creation skipped (invalid selection).");
             }
-        } else {
-            ready = true;
-            System.out.println("[SelectedServlet] Engine already exists for " + type + "=" + name);
         }
 
         // Send respond to client
         JsonObject response = JsonResponseUtils.success("Selection processed.");
         response.addProperty("type", type);
         response.addProperty("name", name);
-        response.addProperty("ready", ready);
+        response.addProperty("ready", engine!=null);
         ResponseWriter.write(res, response);
     }
 

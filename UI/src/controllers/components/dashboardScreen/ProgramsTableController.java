@@ -1,14 +1,18 @@
 package controllers.components.dashboardScreen;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controllers.screens.ScreenManager;
 import controllers.utils.client.SelectedClientState;
 import controllers.utils.refreshers.GenericRefresher;
 import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
+import controllers.utils.server.ServerResponseHandler;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -20,7 +24,6 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Timer;
 
-import static controllers.screens.ScreenManager.DASHBOARD;
 
 public class ProgramsTableController{
     Timer timer;
@@ -38,8 +41,6 @@ public class ProgramsTableController{
 
     @FXML
     public void initialize() {
-        TimerManager.register(DASHBOARD, timer);
-
         setupColumns();
         btnRunProgram.setOnAction(e->onRunProgram());
         startRefresher();
@@ -65,9 +66,24 @@ public class ProgramsTableController{
 
         new Thread(()->{
             System.out.println("[Dashboard] Selecting program = " + selectedProgram.name());
-            ServerRequestUtils.sendPost("/selected", body);
-            SelectedClientState.setProgram(selectedProgram.name());
-            Platform.runLater(() -> ScreenManager.showExecutionScreen());
+            JsonElement response =ServerRequestUtils.sendPost("/selected", body);
+
+            if (response != null && response.isJsonObject()) {
+                JsonObject obj = response.getAsJsonObject();
+
+                if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
+                    boolean ready = obj.get("ready").getAsBoolean();
+                    if (ready) {
+                        SelectedClientState.setProgram(selectedProgram.name());
+                        Platform.runLater(() -> ScreenManager.showExecutionScreen());
+                    } else {
+                        ServerResponseHandler.showAlert("Warning", "Engine not ready yet.", Alert.AlertType.WARNING);
+                    }
+                }
+            }else{
+                ServerResponseHandler.showAlert("ERROR",
+                        "Failed to contact server. Please try again.", Alert.AlertType.ERROR);
+            }
         }).start();
     }
 

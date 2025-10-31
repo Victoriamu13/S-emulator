@@ -7,15 +7,20 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.RunRecord;
 import logic.system.data.execution.runHistory.ReRunStateManager;
 import logic.system.data.expansion.DegreeManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
+import logic.system.user.engine.EngineFacadeManager;
 import logic.system.user.history.userHstory.UserHistoryManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @WebServlet("/reRunData")
 public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for user and loads inputs for client.
@@ -38,7 +43,8 @@ public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for
             }
         }
 
-        if (currentUser == null || runID == null || progName == null) {
+        // === Validate that all required cookies exist ===
+        if (currentUser == null || runID == null || progName == null || progType==null) {
             ResponseWriter.write(res, JsonResponseUtils.error("Missing ReRun cookies."));
             return;
         }
@@ -59,16 +65,26 @@ public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for
         }
 
 
-        // Update managers so the program context is correct
-        ReRunStateManager.setReRun(currentUser, true); // user is now in ReRun mode
-        DegreeManager.setDegree(currentUser, record.degree());
-        SelectedProgramManager.setSelectedProgram(currentUser, progType, progName);
+        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
+
+        if (engine != null) {
+            List<String> inputStrings = Arrays.stream(record.inputs())
+                    .mapToObj(String::valueOf)
+                    .collect(Collectors.toList());
+
+            engine.prepareInputsFields(record.degree(), inputStrings);
+            System.out.println("[ReRunData] Cached inputs injected into engine: " + inputStrings);
+        }else {
+            System.out.println("[ReRunData][WARN] EngineFacade not found for user=" + currentUser + " program=" + progName);
+        }
 
         // Build response
         JsonObject response = JsonResponseUtils.success("ReRun data fetched.");
         response.addProperty("degree", record.degree());
         response.add("inputs", new Gson().toJsonTree(record.inputs()));
 
+        System.out.println("[Server][DEBUG] Sending inputs JSON = " +
+                new Gson().toJson(record.inputs()));
         ResponseWriter.write(res, response);
 
         System.out.println("[Server] ReRunData sent for user=" + currentUser + ", runID=" + runIdInt);

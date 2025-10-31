@@ -121,8 +121,8 @@ public class HistoryChainController {
                 Platform.runLater(() -> {
                     System.out.println("[HistoryChain] highlightHistoryClear detected → removing highlight");
                     historyTable.setRowFactory(null);
-                    historyTable.getSelectionModel().clearSelection();
-                    historyTable.getItems().clear();
+                   historyTable.getSelectionModel().clearSelection();
+                   historyTable.getItems().clear();
                     historyTable.refresh();
 
                     new Thread(() -> {

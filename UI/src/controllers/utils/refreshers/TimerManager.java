@@ -2,6 +2,8 @@ package controllers.utils.refreshers;
 
 import java.util.*;
 
+import static controllers.screens.ScreenManager.EXECUTION;
+
 public class TimerManager {
     private static final Map<String, List<Timer>> timersByScreen = new HashMap<>();
     private static String currentScreen = null;
@@ -23,11 +25,15 @@ public class TimerManager {
     // Stop previous timers, keep new ones
     public static synchronized void switchScreen(String newScreenId) {
         if (currentScreen != null && !currentScreen.equals(newScreenId)) {
-            stop(currentScreen);
+            if (EXECUTION.equals(currentScreen)) {
+                stop(currentScreen);
+            } else {
+                System.out.println("[TimerManager] Keeping timers alive for screen: " + currentScreen);
+            }
         }
+
         currentScreen = newScreenId;
     }
-
     // Stop all timers globally
     public static synchronized void stopAll() {
         for (String screenId : timersByScreen.keySet()) {

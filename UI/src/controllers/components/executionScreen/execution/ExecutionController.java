@@ -34,7 +34,7 @@ public class ExecutionController {
     @FXML private Button btnBackToDashboard;
 
     private final Timer timer = new Timer(true);
-
+    private boolean newRunHandled = false;
 
     @FXML
     private void initialize() {
@@ -49,45 +49,139 @@ public class ExecutionController {
                     "program=" + SelectedClientState.getName());
         }
 
-
-        startInitExecutionRefresher();
-        setupInputs();
+       startInitExecutionRefresher();
         setupTable();
         btnBackToDashboard.setOnAction(e -> {
-            new Thread(() -> {
-                ServerRequestUtils.sendPost("/resetExecutionState", RequestBody.create(new byte[0]));
-            }).start();
-
+            new Thread(() ->
+                ServerRequestUtils.sendPost("/resetExecutionState", RequestBody.create(new byte[0]))).start();
             ScreenManager.showDashboardScreen();
         });
 
         // On init: clear view + load ReRun data if exists
-        new Thread(() -> {
-            var resp = ServerRequestUtils.sendGet("/isReRun");
-            boolean isReRun = resp != null && resp.getAsJsonObject().get("reRun").getAsBoolean();
-            System.out.println("[Execution] isReRun=" + isReRun);
-
-            Platform.runLater(() -> {
-                variablesTable.getItems().clear();
-                inputsList.getItems().clear();
-                lblCycles.setText("Cycles: 0");
-
-                if (isReRun){
-                    System.out.println("[Execution] Loading ReRun data...");
-                    loadReRunData();
-                }
-                System.out.println("[Execution] Starting new run watcher");
-
-                startNewRunWatcher();
-
-            });
-        }).start();
+        new Thread(() -> Platform.runLater(this::startNewRunWatcher)).start();
     }
 
     // ======== SETUP =======
     private void setupTable() {
         colVar.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().variable()));
         colValue.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().value()));
+    }
+
+
+    private void startNewRunWatcher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // Ask the server whether a new run was triggered
+                JsonElement resp = ServerRequestUtils.sendGet("/startNewRun");
+                if (resp == null || !resp.isJsonObject()) return;
+
+                boolean updated = resp.getAsJsonObject().get("updated").getAsBoolean();
+
+                // A new run has just started
+                if (updated && !newRunHandled) {
+                    newRunHandled = true;
+
+                    Platform.runLater(() -> {
+                        refreshInputsFromServer();
+
+                        // Check execution mode to determine refresher
+                        JsonElement response = ServerRequestUtils.sendGet("/getExecutionMode");
+                        if (response == null || !response.isJsonObject()) return;
+
+                        String mode = response.getAsJsonObject().get("mode").getAsString();
+
+                        if ("DEBUG".equalsIgnoreCase(mode)) {
+                            System.out.println("[Execution] 🟣 Debug flag raised → start debugResultsRefresher()");
+                            Platform.runLater(() -> startDebugResultsRefresher());
+
+                        } else {
+                            System.out.println("[Execution] 🟢 Normal flag raised → start resultsRefresher()");
+                            Platform.runLater(() -> startResultsRefresher());
+                        }
+                    });
+
+                    // Run flag has been cleared by the server
+                } else if (!updated && newRunHandled) {
+                    newRunHandled = false;
+                }
+            }
+           }, 0, 1000);
+        }
+
+
+    // ======= REFRESHERS =======
+//    private void startInputsRefresher() {
+//        timer.schedule(new GenericActionsRefresher("/inputsUpdated", this::refreshInputsFromServer), 0, 1000);
+//    }
+
+    private void startResultsRefresher() {
+        timer.schedule(new GenericActionsRefresher("/resultsUpdated", this::refreshResultsFromServer), 0, 1000);
+    }
+
+    private void startDebugResultsRefresher() {
+        timer.schedule(new GenericActionsRefresher("/debugResultsUpdated", this::refreshDebugResultsFromServer), 0, 1000);
+    }
+
+    private void startInitExecutionRefresher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/initExecutionUpdated");
+                if (resp != null && resp.getAsJsonObject().get("updated").getAsBoolean()) {
+                    Platform.runLater(() -> {
+                        inputsList.getItems().clear();
+                        variablesTable.getItems().clear();
+                        lblCycles.setText("Cycles: 0");
+                    });
+                }
+            }
+        }, 0, 1000);
+    }
+
+
+    // ======= DATA REFRESH =======
+    private void refreshInputsFromServer() {
+        new Thread(() -> {
+            // Sync selection first
+            if (!SelectedClientState.syncFromServer()) return;
+
+            JsonElement response = ServerRequestUtils.sendGet("/inputs");
+            if (response == null || !response.isJsonObject()) return;
+
+            var obj = response.getAsJsonObject();
+            var inputsEl  = obj.get("inputs");
+            var valuesEl = obj.get("values");
+
+            if (inputsEl  == null || !inputsEl .isJsonArray()) {
+                Platform.runLater(() -> {
+                    inputsList.getItems().clear();
+                    lblCycles.setText("Cycles: 0");
+                });
+                return;
+            }
+
+            // Update UI
+            var gson = new Gson();
+            var listType = new TypeToken<List<String>>(){}.getType();
+            List<String> names = gson.fromJson(inputsEl, listType);
+            List<String> values = (valuesEl != null && valuesEl.isJsonArray()) ? gson.fromJson(valuesEl, listType) : null;
+
+            Platform.runLater(() -> {
+                inputsList.getItems().setAll(
+                        IntStream.range(0, names.size())
+                                .mapToObj(i -> {
+                                    InputRow row = new InputRow(names.get(i));
+                                    String val = (values != null && values.size() > i) ? values.get(i) : "0";
+                                    row.setValue(val);
+                                    return row;
+                                })
+                                .toList()
+                );
+                setupInputs();
+                lblCycles.setText("Cycles: 0");
+            });
+        }).start();
     }
 
     private void setupInputs() {
@@ -127,146 +221,17 @@ public class ExecutionController {
         });
     }
 
-
-    private void startNewRunWatcher() {
-        // Watches for new runs triggered by /startNewRun
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                JsonElement resp = ServerRequestUtils.sendGet("/startNewRun");
-                if (resp == null || !resp.isJsonObject()) {
-                    System.out.println("[Execution] /startNewRun returned null or invalid");
-                    return;
-                }
-
-                boolean updated = resp.getAsJsonObject().get("updated").getAsBoolean();
-                if (updated) {
-                    System.out.println("[Execution] startNewRun flag detected → refreshing inputs/results");
-                    startInputsRefresher();
-                    startResultsRefresher();
-                    startDebugResultsRefresher();
-                } else {
-                    System.out.println("[Execution] No new run flag detected → skipping refresh setup");
-                }
-            }
-        }, 0, 1000);
-    }
-
-    // ======= REFRESHERS =======
-    private void startInputsRefresher() {
-        timer.schedule(new GenericActionsRefresher("/inputsUpdated", this::refreshInputsFromServer), 0, 1000);
-    }
-
-    private void startResultsRefresher() {
-        timer.schedule(new GenericActionsRefresher("/resultsUpdated", this::refreshResultsFromServer), 0, 1000);
-    }
-
-    private void startDebugResultsRefresher() {
-        timer.schedule(new GenericActionsRefresher("/debugResultsUpdated", this::refreshDebugResultsFromServer), 0, 1000);
-    }
-
-    private void startInitExecutionRefresher() {
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                JsonElement resp = ServerRequestUtils.sendGet("/initExecutionUpdated");
-                if (resp != null && resp.getAsJsonObject().get("updated").getAsBoolean()) {
-                    Platform.runLater(() -> {
-                        System.out.println("[Execution] initExecution flag detected → clearing inputs and variables");
-
-                        inputsList.getItems().clear();
-                        variablesTable.getItems().clear();
-                        lblCycles.setText("Cycles: 0");
-                    });
-                }
-            }
-        }, 0, 1000);
-    }
-
-
-
-    // ======= DATA REFRESH =======
-    private void refreshInputsFromServer() {
-        System.out.println("[Execution] ===== refreshInputsFromServer() called =====");
-
-        new Thread(() -> {
-            // Sync selection first
-            if (!SelectedClientState.syncFromServer()) {
-                System.out.println("[Execution] Failed to sync /selected → aborting inputs refresh");
-                return;
-            }
-
-            JsonElement response = ServerRequestUtils.sendGet("/inputs");
-            if (response == null || !response.isJsonObject()) {
-                System.out.println("[Execution] /inputs response is null or invalid");
-
-                return;
-            }
-
-            var obj = response.getAsJsonObject();
-            var inputsEl  = obj.get("inputs");
-            var valuesEl = obj.get("values");
-
-            if (inputsEl  == null || !inputsEl .isJsonArray()) {
-                System.out.println("[Execution] No inputs received -> clearing table");
-
-                Platform.runLater(() -> {
-                    inputsList.getItems().clear();
-                    lblCycles.setText("Cycles: 0");
-                });
-                return;
-            }
-
-            System.out.println("[Execution] Received " + inputsEl.getAsJsonArray().size() +
-                    " inputs from server → updating UI");
-            // Update UI
-            var gson = new Gson();
-            var listType = new TypeToken<List<String>>(){}.getType();
-            List<String> names = gson.fromJson(inputsEl, listType);
-            List<String> values = (valuesEl != null && valuesEl.isJsonArray())
-                    ? gson.fromJson(valuesEl, listType)
-                    : null;
-            System.out.println("[Execution] Updating inputs on screen with values: " + values);
-            Platform.runLater(() -> {
-                inputsList.getItems().setAll(
-                        IntStream.range(0, names.size())
-                                .mapToObj(i -> {
-                                    InputRow row = new InputRow(names.get(i));
-                                    String val = (values != null && values.size() > i) ? values.get(i) : "0";
-                                    row.setValue(val);
-                                    return row;
-                                })
-                                .toList()
-                );
-                variablesTable.getItems().clear();
-                lblCycles.setText("Cycles: 0");
-            });
-        }).start();
-    }
-
     private void refreshResultsFromServer() {
         new Thread(() -> {
-            if (!SelectedClientState.syncFromServer()) {
-                System.out.println("[Execution] /selected sync failed → skipping results refresh");
-                return;
-            }
-
-            System.out.println("[Execution] Checking results for selection=" +
-                    SelectedClientState.getName());
+            if (!SelectedClientState.syncFromServer()) return;
 
             JsonElement response = ServerRequestUtils.sendGet("/results");
-            if (response == null || !response.isJsonObject()) {
-                System.out.println("[Execution] /results response invalid");
-
-                return;
-            }
+            if (response == null || !response.isJsonObject()) return;
 
             JsonObject obj = response.getAsJsonObject();
             JsonElement reportJson = obj.get("report");
 
             if (reportJson == null || reportJson.isJsonNull()) {
-                System.out.println("[Execution] No results yet -> clearing variables table");
-
                 Platform.runLater(() -> {
                     variablesTable.getItems().clear();
                     lblCycles.setText("Cycles: 0");
@@ -275,7 +240,6 @@ public class ExecutionController {
             }
 
             ExecutionReport report = new Gson().fromJson(reportJson, ExecutionReport.class);
-            System.out.println("[Execution] Got results: " + report.finalVars().size() + " variables");
 
             Platform.runLater(() -> {
                 lblCycles.setText("Cycles: " + report.totalCycles());
@@ -291,7 +255,6 @@ public class ExecutionController {
     private void refreshDebugResultsFromServer() {
         new Thread(() -> {
             if (!SelectedClientState.syncFromServer()) return;
-            System.out.println("[Execution] Refreshing results for selection=" + SelectedClientState.getName());
 
             JsonElement response = ServerRequestUtils.sendGet("/debugResults");
             if (response == null || !response.isJsonObject()) return;
@@ -320,42 +283,8 @@ public class ExecutionController {
                 .map(InputRow::getValue)
                 .map(v -> v.isEmpty() ? "0" : v)
                 .collect(Collectors.joining(","));
-        System.out.println("[Execution] Sending inputs to server: " + csv); // ✅ NEW
 
         RequestBody body = new FormBody.Builder().add("inputs", csv).build();
-        new Thread(() -> {
-            JsonElement response = ServerRequestUtils.sendPost("/setInputs", body);
-            System.out.println("[Execution] Server responded to setInputs: " + response); // ✅ NEW
-
-        }).start();
+        new Thread(() -> ServerRequestUtils.sendPost("/setInputs", body)).start();
     }
-
-
-    // ======= RE-RUN MODE =======
-    public void loadReRunData() {
-        // Load ReRun data (degree + inputs array)
-        new Thread(() -> {
-            JsonElement response = ServerRequestUtils.sendGet("/reRunData");
-            if (response == null || !response.isJsonObject()) return;
-
-            JsonObject obj = response.getAsJsonObject();
-            if (!"SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) return;
-
-            int degree = obj.get("degree").getAsInt();
-            var gson = new Gson();
-            long[] inputs = gson.fromJson(obj.get("inputs"), long[].class);
-
-            Platform.runLater(() -> {
-                lblCycles.setText("Cycles: 0");
-                inputsList.getItems().clear();
-
-                for (int i = 0; i < inputs.length; i++) {
-                    InputRow row = new InputRow("x" + (i + 1));
-                    row.setValue(String.valueOf(inputs[i]));
-                    inputsList.getItems().add(row);
-                }
-            });
-        }).start();
-    }
-
 }

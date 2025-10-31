@@ -63,11 +63,11 @@ public class GenericRefresher<T> extends TimerTask {
         if (!autoUpdate.get()) return;
 
         boolean shouldFetch = firstLoad;
-
         JsonElement updateResponse = ServerRequestUtils.sendGet(updateEndpoint);
         if (updateResponse != null && updateResponse.isJsonObject()) {
             JsonObject obj = updateResponse.getAsJsonObject();
             if (obj.has("updated") && obj.get("updated").getAsBoolean()) {
+                System.out.println("[GenericRefresher] Updating list from " + dataEndpoint);
 
                 shouldFetch = true;
             }
@@ -97,6 +97,7 @@ public class GenericRefresher<T> extends TimerTask {
                     && newItems.containsAll(currentItems);
 
             if (sameContent) return;
+            System.out.println("[GenericRefresher] Updating table with " + newItems.size() + " items");
 
             table.setItems(FXCollections.observableArrayList(newItems));
         });

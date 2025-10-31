@@ -8,14 +8,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.ExecutionReport;
+import logic.engineFacade.model.RunRecord;
+import logic.system.data.expansion.DegreeManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
+import logic.system.user.history.userHstory.UserHistoryManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
+import logic.system.user.history.userHstory.UserHistory;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/resumeDebug")
 public class ResumeDebugServlet extends HttpServlet {
@@ -40,6 +45,20 @@ public class ResumeDebugServlet extends HttpServlet {
             return;
         }
 
+        int degree = DegreeManager.getDegree(username, program);
+        List<String> cachedInputs = engine.getCachedInputValues(degree);
+        long[] inputValues = cachedInputs.stream().mapToLong(Long::parseLong).toArray();
+
+
+        int nextRunId = UserHistoryManager.getUserExecHistories(username).size() + 1;
+        String progType = SelectedProgramManager.getSelectedType(username);
+
+        RunRecord record = new RunRecord(nextRunId, degree, inputValues, report.yValue(), report.totalCycles(), report.finalVars());
+
+        UserHistory history = new UserHistory(nextRunId, progType, program, null, record);
+        UserHistoryManager.addRun(username, history);
+
+        UpdateFlagsManager.markUpdated("history");
         UpdateFlagsManager.markUpdated("debugResults");
 
         JsonObject response = JsonResponseUtils.success("Program resumed to completion.");

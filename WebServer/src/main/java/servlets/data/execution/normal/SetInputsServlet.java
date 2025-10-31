@@ -14,6 +14,7 @@ import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @WebServlet("/setInputs")
 
@@ -21,6 +22,7 @@ public class SetInputsServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+
         String currentUser = ServletUserUtils.getUsernameFromCookies(req);
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
@@ -44,21 +46,23 @@ public class SetInputsServlet extends HttpServlet {
             inputsCsv = "0";
         }
 
-        int degree = DegreeManager.getDegree(currentUser);
-        long[] parsedInputs;
+        int degree = DegreeManager.getDegree(currentUser,progName);
+
         try {
-            parsedInputs = engine.parseInputsCsv(inputsCsv, degree);
+            long[] parsedInputs = engine.parseInputsCsv(inputsCsv, degree);
+            engine.prepareInputsFields(degree, java.util.Arrays.stream(parsedInputs)
+                    .mapToObj(String::valueOf)
+                    .toList());
+
+            System.out.println("[SetInputs][DEBUG] DegreeManager current degree = " + DegreeManager.getDegree(currentUser,progName));
+            System.out.println("[SetInputs][DEBUG] inputsCsv = " + inputsCsv);
+            System.out.println("[SetInputs][DEBUG] engine.cachedInputs keys = " + engine.getCachedInputValues(DegreeManager.getDegree(currentUser,progName)));
+
+            JsonObject response = JsonResponseUtils.success("Inputs saved successfully.");
+            response.addProperty("inputs", inputsCsv);
+            ResponseWriter.write(res, response);
         } catch (Exception e) {
             ResponseWriter.write(res, JsonResponseUtils.error("Failed to parse inputs: " + e.getMessage()));
-            return;
         }
-
-        engine.prepareInputsFields(degree, java.util.Arrays.stream(parsedInputs)
-                .mapToObj(String::valueOf)
-                .toList());
-
-        JsonObject response = JsonResponseUtils.success("Inputs saved successfully.");
-        response.addProperty("inputs", inputsCsv);
-        ResponseWriter.write(res, response);
     }
 }

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -27,12 +28,13 @@ public class SetReRunCookiesServlet extends HttpServlet {
         }
 
         // Create cookies for run parameters → accessible by all servlets
+        Cookie userCookie = new Cookie("username", ServletUserUtils.getUsernameFromCookies(req));
         Cookie runCookie = new Cookie("reRunID", runID);
         Cookie degreeCookie = new Cookie("reRunDegree", degree);
         Cookie progCookie = new Cookie("reRunProg", progName);
         Cookie typeCookie = new Cookie("reRunType", progType);
 
-        for (Cookie c : new Cookie[]{runCookie, degreeCookie, progCookie, typeCookie}) {
+        for (Cookie c : new Cookie[]{userCookie,runCookie, degreeCookie, progCookie, typeCookie}) {
             c.setPath("/");   // make cookie accessible from all endpoints
             res.addCookie(c);
         }

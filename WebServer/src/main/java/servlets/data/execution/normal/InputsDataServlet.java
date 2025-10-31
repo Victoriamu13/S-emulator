@@ -39,16 +39,12 @@ public class InputsDataServlet extends HttpServlet {
             return;
         }
 
-        int degree = DegreeManager.getDegree(currentUser);
+        int degree = DegreeManager.getDegree(currentUser,progName);
         var inputs = engine.getInputsUsed(degree);
         var values = engine.getCachedInputValues(degree);
 
-        if(inputs.size()==0){
-            System.out.println("[Inputs] No inputs for prog=" + progName + ", degree=" + degree);
-        }
-        System.out.println("[InputsDataServlet] user=" + currentUser +
-                ", program=" + progName +
-                ", engine exists=" + (engine != null));
+        System.out.println("[InputsDataServlet][DEBUG] degree=" + degree + " values=" + values);
+
 
         JsonObject out = JsonResponseUtils.success("Inputs fetched.");
         out.add("inputs", new Gson().toJsonTree(inputs));

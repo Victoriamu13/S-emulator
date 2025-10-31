@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
+import logic.system.data.execution.runHistory.ReRunStateManager;
 import logic.system.data.expansion.DegreeManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
@@ -17,6 +18,7 @@ import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/newRun")
 
@@ -24,6 +26,8 @@ public class NewRunServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        System.out.println("[NewRun] ENTERED");
+
         String currentUser = ServletUserUtils.getUsernameFromCookies(req);
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
@@ -42,8 +46,29 @@ public class NewRunServlet extends HttpServlet {
             return;
         }
 
-        engine.resetExpansionCache();
-        int degree = DegreeManager.getDegree(currentUser);
+//        //Reset cache only if in regular run
+//        if (!ReRunStateManager.isReRun(currentUser)) {/// /////////////////////////
+//            engine.resetExpansionCache();
+//        }
+        if (ReRunStateManager.isReRun(currentUser)) {
+            System.out.println("[NewRun] ⚙️ ReRun mode detected → reusing existing inputs from EngineFacade");
+
+            int degree = DegreeManager.getDegree(currentUser,progName);
+            List<String> inputs = engine.getCachedInputValues(degree);
+            System.out.println("[NewRun] cached inputs= " + inputs);
+
+            UpdateFlagsManager.markUpdated("inputs");
+            UpdateFlagsManager.markUpdated("startNewRun");
+
+            JsonObject response = JsonResponseUtils.success("ReRun mode — existing inputs preserved.");
+            response.add("inputs", new Gson().toJsonTree(inputs));
+            ResponseWriter.write(res, response);
+
+            System.out.println("[NewRun] ✅ Returning cached inputs: " + inputs);
+            return;
+        }
+
+        int degree = DegreeManager.getDegree(currentUser,progName);
         List<String> inputs = engine.loadInputVars(degree);
         System.out.println("[NewRun] prog=" + progName + ", degree=" + degree + ", inputs=" + inputs.size());
 

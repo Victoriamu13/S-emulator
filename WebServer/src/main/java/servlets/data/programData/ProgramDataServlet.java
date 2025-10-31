@@ -58,22 +58,22 @@ public class ProgramDataServlet extends HttpServlet {
         }
 
         // ===  Reset cache to ensure fresh data ===
-        try {
-            engine.resetExpansionCache();
-        } catch (Exception e) {
-            System.out.println("[ProgramDataServlet] Warning: failed to reset cache for user=" + currentUser + ": " + e.getMessage());
-        }
+//        try {
+//            engine.resetExpansionCache();
+//        } catch (Exception e) {
+//            System.out.println("[ProgramDataServlet] Warning: failed to reset cache for user=" + currentUser + ": " + e.getMessage());
+//        }
 
         System.out.println("[ProgramDataServlet] Using engine for user=" + currentUser + ", name=" + name);
 
         // ===  Parse degree parameter  ===
-        int degree = DegreeManager.getDegree(currentUser);
+        int degree = DegreeManager.getDegree(currentUser,name);
         String degreeParam = req.getParameter("degree");
 
         if (degreeParam != null) {
             try {
                 degree = Integer.parseInt(degreeParam);
-                DegreeManager.setDegree(currentUser, degree);
+                DegreeManager.setDegree(currentUser,name, degree);
             } catch (NumberFormatException ignored) {
                 ResponseWriter.write(res, JsonResponseUtils.error("Invalid degree parameter: " + degreeParam));
                 return;

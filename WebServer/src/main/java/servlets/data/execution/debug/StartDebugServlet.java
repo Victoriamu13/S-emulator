@@ -31,14 +31,19 @@ public class StartDebugServlet extends HttpServlet {
             return;
         }
 
-        String program = SelectedProgramManager.getSelectedProgram(username);
-        EngineFacade engine = EngineFacadeManager.getEngine(username, program);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
+        if (progName == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No active program selection."));
+            return;
+        }
+
+        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active engine for this program."));
             return;
         }
 
-        int degree = DegreeManager.getDegree(username);
+        int degree = DegreeManager.getDegree(username,progName);
         String csv = req.getParameter("inputs");
         long[] inputs;
         if (csv == null || csv.isBlank()) {

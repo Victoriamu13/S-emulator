@@ -13,7 +13,7 @@ public class EngineFacadeManager {
 
     public static synchronized void registerEngine(String username,String name, EngineFacade engine){
         if(username==null || name==null || engine ==null) return;
-        userEngines.computeIfAbsent(username,u->new ConcurrentHashMap<>()).put(name,engine);
+        userEngines.computeIfAbsent(username,u->new ConcurrentHashMap<>()).putIfAbsent(name,engine);
         System.out.println("[EngineFacadeManager] Registering new engine for user=" + username + ", program=" + name);
 
     }

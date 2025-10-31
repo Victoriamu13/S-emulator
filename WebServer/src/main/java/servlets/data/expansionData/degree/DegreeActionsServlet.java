@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.system.data.expansion.DegreeManager;
+import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
@@ -27,13 +28,20 @@ public class DegreeActionsServlet extends HttpServlet {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
+
+        String progName = SelectedProgramManager.getSelectedProgram(currentUser);
+        if (progName == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No active program selection."));
+            return;
+        }
+
         int newDegree = 0;
         try {
             newDegree = Integer.parseInt(req.getParameter("degree"));
 
         } catch (Exception ignored) {}
 
-        DegreeManager.setDegree(currentUser, newDegree);
+        DegreeManager.setDegree(currentUser,progName, newDegree);
         UpdateFlagsManager.markUpdated("degree");
         FinalIndexManager.clear(currentUser);
 

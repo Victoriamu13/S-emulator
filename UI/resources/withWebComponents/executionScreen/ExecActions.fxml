@@ -24,7 +24,6 @@
                     <Button fx:id="btnStop" text="Stop"/>
                     <Button fx:id="btnResume" text="Resume"/>
                     <Button fx:id="btnStepOver" text="Step Over"/>
-                    <Button fx:id="btnStepBack" text="Step Back"/>
                 </children>
             </HBox>
         </children>
