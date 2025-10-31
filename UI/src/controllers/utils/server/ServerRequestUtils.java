@@ -54,18 +54,24 @@ public class ServerRequestUtils {
                         String message = obj.has("message")
                                 ? obj.get("message").getAsString()
                                 : "Unknown server error";
+                        System.err.println("[SERVER ERROR] " + message);
 
-                        ServerResponseHandler.showAlert("Server Error", message, Alert.AlertType.ERROR);
+
+                       //ServerResponseHandler.showAlert("Server Error", message, Alert.AlertType.ERROR);
                     }
                 }
                 return json;
 
             } else {
-                ServerResponseHandler.showAlert("Error", "Server error: " + response.code(), Alert.AlertType.ERROR);
+                System.err.println("[SERVER RESPONSE] HTTP " + response.code() + " for " + request.url());
+
+              //  ServerResponseHandler.showAlert("Error", "Server error: " + response.code(), Alert.AlertType.ERROR);
             }
 
         } catch (IOException e) {
-            ServerResponseHandler.showAlert("Error", "Connection failed: " + e.getMessage(), Alert.AlertType.ERROR);
+            System.err.println("[CONNECTION FAILED] " + e.getMessage());
+
+           // ServerResponseHandler.showAlert("Error", "Connection failed: " + e.getMessage(), Alert.AlertType.ERROR);
         }
 
         return null;

@@ -31,7 +31,8 @@ public class InstructionsTableController {
 
     private GenericRefresher<InstructionDTO> refresher;
     private final BooleanProperty autoUpdate=new SimpleBooleanProperty(true);
-    private String lastHighlight = "";
+    private String lastHighlight = "";  // From highlight combo-box (yellow)
+    private int currentDebugIndex = -1;       // From active debug session (blue)
 
     @FXML private TableView<InstructionDTO> instructionsTable;
     @FXML private TableColumn<InstructionDTO, Number> colIndex;
@@ -45,10 +46,14 @@ public class InstructionsTableController {
         TimerManager.register(EXECUTION, timer);
 
         setupColumns();
-        startInstructionsRefresher();  // updates instruction table
-        startHighlightRefresher();     // listens for highlight changes
         setupSelectionListener();     // handles selections on table rows
-        startHighlightClearRefresher(); //clears highlighted instructions
+        setupUnifiedRowFactory();
+
+        startInstructionsRefresher();  // updates instruction table
+        startVariableHighlightRefresher();     // listens for highlight changes
+         startHighlightClearRefresher(); //clears highlighted instructions
+        startDebugInstructionClearRefresher();
+        startDebugModeWatcher();
 
     }
 
@@ -60,6 +65,39 @@ public class InstructionsTableController {
         colCycles.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().cyclesText()));
     }
 
+    private void setupUnifiedRowFactory() {
+        instructionsTable.setRowFactory(tv -> new TableRow<>() {
+            @Override
+            protected void updateItem(InstructionDTO item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setStyle("");
+                    return;
+                }
+
+                boolean isDebugRow = item.index() == currentDebugIndex;
+                boolean containsVar = lastHighlight != null && !lastHighlight.isBlank() &&
+                        ((item.command() != null && item.command().contains(lastHighlight))
+                                || (item.label() != null && item.label().equals(lastHighlight)));
+
+                // Apply combined styling rules
+                if (isDebugRow && containsVar) {
+                    // Both debug and variable highlight → green
+                    setStyle("-fx-background-color: #81C784; -fx-font-weight: bold;");
+                } else if (isDebugRow) {
+                    // Debug only → blue
+                    setStyle("-fx-background-color: #90CAF9; -fx-font-weight: bold;");
+                } else if (containsVar) {
+                    // Variable highlight only → yellow
+                    setStyle("-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;");
+                } else {
+                    setStyle("");
+                }
+            }
+        });
+    }
+
+
     // Refreshes the instructions table every 2 seconds if degree updated
     private void startInstructionsRefresher() {
         Type listType = new TypeToken<List<InstructionDTO>>(){}.getType();
@@ -68,6 +106,27 @@ public class InstructionsTableController {
                 instructionsTable, listType,"instructions");
 
         timer.schedule(refresher, 0, 2000);
+    }
+
+    private void startDebugModeWatcher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/getExecutionMode");
+                if (resp == null || !resp.isJsonObject()) return;
+
+                JsonObject obj = resp.getAsJsonObject();
+                if (!obj.has("mode")) return;
+
+                String mode = obj.get("mode").getAsString();
+                boolean isDebug = "DEBUG".equalsIgnoreCase(mode);
+
+                if (isDebug) {
+                  startInDebugHighlightRefresher();
+                    cancel();
+                }
+            }
+        }, 0, 1000);
     }
 
 
@@ -94,7 +153,7 @@ public class InstructionsTableController {
     }
 
     // Applies highlight color to matching rows
-    private void startHighlightRefresher() {
+    private void startVariableHighlightRefresher() {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -108,30 +167,26 @@ public class InstructionsTableController {
                 if (Objects.equals(var, lastHighlight)) return;
                 lastHighlight = var;
 
-                Platform.runLater(() -> {
-                    if (var == null || var.isBlank()) {
-                        instructionsTable.setRowFactory(null);
-                        instructionsTable.refresh();
-                        return;
-                    }
+                Platform.runLater(() -> instructionsTable.refresh());
 
-                    instructionsTable.setRowFactory(tv -> new TableRow<>() {
-                        @Override
-                        protected void updateItem(InstructionDTO item, boolean empty) {
-                            super.updateItem(item, empty);
-                            if (empty || item == null) {
-                                setStyle("");
-                                return;
-                            }
+            }
+        }, 0, 1000);
+    }
 
-                            boolean match = (item.command() != null && item.command().contains(var))
-                                    || (item.label() != null && item.label().equals(var));
-                            setStyle(match
-                                    ? "-fx-background-color: yellow; -fx-font-weight: bold; -fx-text-fill: black;" : "");
-                        }
-                    });
-                    instructionsTable.refresh();
-                });
+    private void startInDebugHighlightRefresher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/currentInstruction");
+                if (resp == null || !resp.isJsonObject()) return;
+
+                JsonObject obj = resp.getAsJsonObject();
+                if (!"SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) return;
+
+                int index = obj.get("index").getAsInt();
+
+                currentDebugIndex = index;
+                Platform.runLater(() -> instructionsTable.refresh());
             }
         }, 0, 1000);
     }
@@ -149,7 +204,8 @@ public class InstructionsTableController {
                 Platform.runLater(() -> {
                     System.out.println("[Instructions] highlightInstructionsClear detected → removing highlight");
                     lastHighlight = "";
-                    instructionsTable.setRowFactory(null);
+                    currentDebugIndex = -1;
+                   // instructionsTable.setRowFactory(null);
                     instructionsTable.refresh();
                 });
             }
@@ -168,4 +224,24 @@ public class InstructionsTableController {
 
         return obj.get("currentDegree").getAsInt();
     }
+
+    private void startDebugInstructionClearRefresher() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/debugInstructionClearUpdated");
+                if (resp == null || !resp.isJsonObject()) return;
+
+                boolean updated = resp.getAsJsonObject().get("updated").getAsBoolean();
+                if (!updated) return;
+
+                Platform.runLater(() -> {
+                    currentDebugIndex = -1; // remove blue highlight
+                    instructionsTable.refresh();
+                });
+            }
+        }, 0, 1000);
+    }
+
+
 }

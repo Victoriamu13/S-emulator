@@ -10,6 +10,7 @@ import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.ExecutionReport;
 import logic.engineFacade.model.RunRecord;
 import logic.system.data.expansion.DegreeManager;
+import logic.system.data.highlight.HighlightInstructionManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
@@ -41,7 +42,7 @@ public class StepOverServlet extends HttpServlet {
         }
 
         if (!engine.isDebugActive()) {
-            ResponseWriter.write(res, JsonResponseUtils.error("Debug session already finished. No more instructions to execute."));
+            ResponseWriter.write(res, JsonResponseUtils.error("Debug session finished. No more instructions to execute."));
             return;
         }
 
@@ -51,6 +52,11 @@ public class StepOverServlet extends HttpServlet {
             ResponseWriter.write(res, JsonResponseUtils.error("No active debug session."));
             return;
         }
+
+        //Send flag to highlight instruction in table
+        int currentPc = engine.getCurrentPc();
+        HighlightInstructionManager.setCurrentInstruction(username, program, currentPc);
+        UpdateFlagsManager.markUpdated("currentInstruction");
 
         // Mark results updated for the client
         UpdateFlagsManager.markUpdated("debugResults");
@@ -70,6 +76,10 @@ public class StepOverServlet extends HttpServlet {
             RunRecord record = new RunRecord(nextRunId, degree, inputValues, report.yValue(), report.totalCycles(), report.finalVars());
             UserHistory history = new UserHistory(nextRunId, progType, program, null, record);
             UserHistoryManager.addRun(username, history);
+
+            //Clear highlight
+            HighlightInstructionManager.clearCurrentInstruction(username, program);
+            UpdateFlagsManager.markUpdated("debugInstructionClear");
 
             // Add to history
             UpdateFlagsManager.markUpdated("history");

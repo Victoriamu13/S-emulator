@@ -10,6 +10,7 @@ import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.ExecutionReport;
 import logic.engineFacade.model.RunRecord;
 import logic.system.data.expansion.DegreeManager;
+import logic.system.data.highlight.HighlightInstructionManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
@@ -39,6 +40,11 @@ public class StopDebugServlet extends HttpServlet {
             return;
         }
 
+        if (!engine.isDebugActive()) {
+            ResponseWriter.write(res, JsonResponseUtils.error("Debug session finished. No more instructions to execute."));
+            return;
+        }
+
         ExecutionReport report = engine.stopDebugSession();
         if (report == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active debug session."));
@@ -55,6 +61,10 @@ public class StopDebugServlet extends HttpServlet {
 
         UserHistory history = new UserHistory(nextRunId, progType, program, null, record);
         UserHistoryManager.addRun(username, history);
+
+        //Clear highlight
+        HighlightInstructionManager.clearCurrentInstruction(username, program);
+        UpdateFlagsManager.markUpdated("debugInstructionClear");
 
         UpdateFlagsManager.markUpdated("history");
         UpdateFlagsManager.markUpdated("debugResults");

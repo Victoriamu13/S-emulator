@@ -1,4 +1,4 @@
-package servlets.highlight.clear;
+package servlets.highlight.clear.variable;
 
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,17 +10,16 @@ import servlets.utils.ResponseWriter;
 
 import java.io.IOException;
 
-@WebServlet("/HighlightComboClearUpdated")
-public class HighlightComboClearUpdatedServlet extends HttpServlet {
+@WebServlet("/highlightHistoryClearUpdated")
+public class HighlightHistoryClearUpdatedServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         JsonObject response = new JsonObject();
-        boolean updated = UpdateFlagsManager.hasUpdated("HighlightComboClear");
+        boolean updated = UpdateFlagsManager.hasUpdated("highlightHistoryClear");
         response.addProperty("updated", updated);
         if (updated) {
-            UpdateFlagsManager.clearFlag("HighlightComboClear");
+            UpdateFlagsManager.clearFlag("highlightHistoryClear");
         }
         ResponseWriter.write(res, response);
     }
-
 }
