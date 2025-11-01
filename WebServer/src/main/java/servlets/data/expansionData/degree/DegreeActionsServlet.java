@@ -48,6 +48,7 @@ public class DegreeActionsServlet extends HttpServlet {
         HighlightManager.clearHighlight(currentUser);
         UpdateFlagsManager.markUpdated("programVariables");
         UpdateFlagsManager.markUpdated("highlight");
+        UpdateFlagsManager.markUpdated("architectureSummary");
 
         JsonObject response = JsonResponseUtils.success("Degree updated successfully.");
         response.addProperty("degree", newDegree);

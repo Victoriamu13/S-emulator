@@ -6,7 +6,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.geometry.Insets?>
 
-<VBox xmlns="http://javafx.com/javafx/"  xmlns:fx="http://javafx.com/fxml" spacing="10"
+<?import javafx.scene.layout.HBox?>
+<VBox xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml" spacing="10"
       fx:controller="controllers.components.executionScreen.InstructionsTableController">
     <padding>
         <Insets top="10" right="20" bottom="15" left="20"/>
@@ -26,6 +27,12 @@
             <TableColumn  text="Architecture" />
         </columns>
       </TableView>
-      <Label text="Summary" />
+       <HBox spacing="20" alignment="CENTER_LEFT">
+           <Label text="Architecture : " />
+           <Label fx:id="lblArchI" text="I : " />
+           <Label fx:id="lblArchII" text="II : "/>
+           <Label fx:id="lblArchIII" text="III : " />
+           <Label fx:id="lblArchIV" text="IV : "/>
+       </HBox>
    </children>
 </VBox>

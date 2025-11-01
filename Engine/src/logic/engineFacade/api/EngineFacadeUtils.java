@@ -1,5 +1,6 @@
 package logic.engineFacade.api;
 
+import logic.domain.architecture.ArchitectureGen;
 import logic.domain.expand.expandProgram.ExpansionContext;
 import logic.domain.expand.expandProgram.ProgramExpander;
 import logic.domain.instructions.SInstruction;
@@ -158,4 +159,33 @@ public class EngineFacadeUtils {
         }
         return rawCommand;
     }
+
+
+    //Count supported instructions for a given architecture and degree.
+
+    private int countSupported(SProgram program, ArchitectureGen gen, int degree,int maxDegree) {
+        if (program == null || gen == null) return 0;
+
+        var info = getProgramInfo(program, maxDegree, degree);
+        int count = 0;
+        for (var inst : info.getInstructions()) {
+            if (gen.supports(inst)) count++;
+        }
+        return count;
+    }
+
+
+    //Count unsupported instructions for a given architecture and degree.
+    private int countUnsupported(SProgram program, ArchitectureGen gen, int degree,int maxDegree) {
+        if (program == null || gen == null) return 0;
+
+        var info = getProgramInfo(program, maxDegree, degree);
+        int count = 0;
+        for (var inst : info.getInstructions()) {
+            if (!gen.supports(inst)) count++;
+        }
+        return count;
+    }
+
+
 }

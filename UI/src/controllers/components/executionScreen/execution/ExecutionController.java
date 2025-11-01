@@ -14,6 +14,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import logic.domain.architecture.ArchitectureGen;
 import logic.engineFacade.model.ExecutionReport;
 import logic.system.data.variables.VariableRow;
 import okhttp3.FormBody;
@@ -32,24 +33,20 @@ public class ExecutionController {
     @FXML private Label lblCycles;
     @FXML private ListView<InputRow> inputsList;
     @FXML private Button btnBackToDashboard;
+    @FXML private ComboBox<String> cmbArchitecture;
 
     private final Timer timer = new Timer(true);
     private boolean newRunHandled = false;
 
     @FXML
     private void initialize() {
-        System.out.println("===== [Execution] INITIALIZE screen =====");
         TimerManager.register(EXECUTION, timer);
-
         // Sync selection at screen load
-        if (!SelectedClientState.syncFromServer()) {
-            System.out.println("[Execution] Failed to sync current selection from server");
-        }else {
-            System.out.println("[Execution] Synced selection from server → " +
-                    "program=" + SelectedClientState.getName());
-        }
+        SelectedClientState.syncFromServer();
 
+        setupArchitectureCombo();
        startInitExecutionRefresher();
+        startArchitectureComboClearRefresher();
         setupTable();
         btnBackToDashboard.setOnAction(e -> {
             new Thread(() ->
@@ -67,6 +64,47 @@ public class ExecutionController {
         colValue.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().value()));
     }
 
+    private void setupArchitectureCombo() {
+        cmbArchitecture.setPromptText("ARCHITECTURE");
+        cmbArchitecture.setButtonCell(new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null || item.isBlank()) {
+                    setText("Highlight");
+                    setStyle("-fx-text-fill: -fx-text-inner-color; -fx-opacity: 0.6;");
+                } else {
+                    setText(item);
+                    setStyle("");
+                }
+            }
+        });
+        cmbArchitecture.getItems().clear();
+        for (ArchitectureGen gen : ArchitectureGen.values()) {
+            cmbArchitecture.getItems().add(gen.name());
+        }
+
+        new Thread(() -> {
+            JsonElement resp = ServerRequestUtils.sendGet("/getSelectedArchitecture");
+            if (resp != null && resp.isJsonObject()) {
+                JsonObject obj = resp.getAsJsonObject();
+                if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString()) && obj.has("selected")) {
+                    String selected = obj.get("selected").getAsString();
+                    Platform.runLater(() -> cmbArchitecture.setValue(selected));
+                }
+            }
+        }).start();
+
+        cmbArchitecture.setOnAction(e -> {
+            String selected = cmbArchitecture.getValue();
+            if (selected == null || selected.isBlank()) return;
+
+            RequestBody body = new FormBody.Builder().add("architecture", selected).build();
+            new Thread(() -> ServerRequestUtils.sendPost("/setArchitecture", body)).start();
+        });
+    }
+
 
     private void startNewRunWatcher() {
         timer.schedule(new TimerTask() {
@@ -75,7 +113,6 @@ public class ExecutionController {
                 // Ask the server whether a new run was triggered
                 JsonElement resp = ServerRequestUtils.sendGet("/startNewRun");
                 if (resp == null || !resp.isJsonObject()) return;
-
                 boolean updated = resp.getAsJsonObject().get("updated").getAsBoolean();
 
                 // A new run has just started
@@ -88,19 +125,14 @@ public class ExecutionController {
                         // Check execution mode to determine refresher
                         JsonElement response = ServerRequestUtils.sendGet("/getExecutionMode");
                         if (response == null || !response.isJsonObject()) return;
-
                         String mode = response.getAsJsonObject().get("mode").getAsString();
 
                         if ("DEBUG".equalsIgnoreCase(mode)) {
-                            System.out.println("[Execution] 🟣 Debug flag raised → start debugResultsRefresher()");
                             Platform.runLater(() -> startDebugResultsRefresher());
-
                         } else {
-                            System.out.println("[Execution] 🟢 Normal flag raised → start resultsRefresher()");
                             Platform.runLater(() -> startResultsRefresher());
                         }
                     });
-
                     // Run flag has been cleared by the server
                 } else if (!updated && newRunHandled) {
                     newRunHandled = false;
@@ -111,10 +143,6 @@ public class ExecutionController {
 
 
     // ======= REFRESHERS =======
-//    private void startInputsRefresher() {
-//        timer.schedule(new GenericActionsRefresher("/inputsUpdated", this::refreshInputsFromServer), 0, 1000);
-//    }
-
     private void startResultsRefresher() {
         timer.schedule(new GenericActionsRefresher("/resultsUpdated", this::refreshResultsFromServer), 0, 1000);
     }
@@ -122,6 +150,7 @@ public class ExecutionController {
     private void startDebugResultsRefresher() {
         timer.schedule(new GenericActionsRefresher("/debugResultsUpdated", this::refreshDebugResultsFromServer), 0, 1000);
     }
+
 
     private void startInitExecutionRefresher() {
         timer.schedule(new TimerTask() {
@@ -286,5 +315,16 @@ public class ExecutionController {
 
         RequestBody body = new FormBody.Builder().add("inputs", csv).build();
         new Thread(() -> ServerRequestUtils.sendPost("/setInputs", body)).start();
+    }
+
+    private void startArchitectureComboClearRefresher() {
+        timer.schedule(new GenericActionsRefresher("/architectureComboClearUpdated", () -> {
+            Platform.runLater(() -> {
+                cmbArchitecture.getSelectionModel().clearSelection();
+                cmbArchitecture.setValue(null);
+                cmbArchitecture.setPromptText("ARCHITECTURE");
+                ServerRequestUtils.sendGet("/architectureSummaryUpdated");
+            });
+        }), 0, 1000);
     }
 }

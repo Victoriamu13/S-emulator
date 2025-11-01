@@ -1,4 +1,6 @@
 package logic.engineFacade.api;
+import logic.domain.architecture.ArchitectureAnalyzer;
+import logic.domain.architecture.ArchitectureGen;
 import logic.domain.execution.context.CurrentContext;
 import logic.domain.execution.context.CurrentContextImpl;
 import logic.domain.execution.executer.progExecuter.ProgramExecuterImpl;
@@ -7,6 +9,7 @@ import logic.domain.instructions.info.InstructionInfo;
 import logic.domain.program.SProgramImpl;
 import logic.domain.program.info.ExpandedProgramInfo;
 import logic.domain.variable.SVarsType;
+import logic.engineFacade.model.ArchitectureSummary;
 import logic.engineFacade.model.debug.DebugSession;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
@@ -21,6 +24,7 @@ import logic.domain.program.info.ProgramInfo;
 import java.io.InputStream;
 import java.util.*;
 
+import static logic.domain.architecture.ArchitectureAnalyzer.countSupported;
 import static logic.engineFacade.api.EngineFacadeUtils.*;
 import static logic.engineFacade.api.EngineFacadeUtils.toDto;
 
@@ -358,14 +362,33 @@ public class EngineFacadeImpl implements EngineFacade {
     public LoadOutcome loadExistingProgram(SProgram program) {
         if (program == null) {
             List<String> errors = new ArrayList<>();
-            errors.add("annot load program: program is null.");
+            errors.add("can't load program: program is null.");
             return LoadOutcome.fail(errors);
         }
-
         this.program=program;
         this.currentProgram = program;
         resetExpansionCache();
         return LoadOutcome.ok();
+    }
+
+    @Override
+    public Map<String, ArchitectureSummary> getArchitectureSummary(int degree) {
+        Map<String, ArchitectureSummary> result = new LinkedHashMap<>();
+        SProgram program = activeProgram();
+        if (program == null) return result;
+
+        int maxDegree = getMaxExpansionDegree();
+        int used = validDegree(degree, maxDegree);
+
+        SProgram expandedProgram = materializeProgram(program, used);
+        var info = getProgramInfo(program, maxDegree, used);
+        int total = info.getInstructions().size();
+
+        for (ArchitectureGen gen : ArchitectureGen.values()) {
+            int supported = ArchitectureAnalyzer.countSupported(expandedProgram, gen);
+            result.put(gen.name(), new ArchitectureSummary(gen.name(), supported, total));
+        }
+        return result;
     }
 
 }

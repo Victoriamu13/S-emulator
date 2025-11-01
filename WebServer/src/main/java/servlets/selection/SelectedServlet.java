@@ -31,10 +31,6 @@ public class SelectedServlet extends HttpServlet {
         String type = req.getParameter("type");     // program / function
         String name = req.getParameter("name");     // Name from client
 
-        System.out.println("[SelectedServlet] >>> incoming selection:");
-        System.out.println("    user=" + currentUser);
-        System.out.println("    type=" + type);
-        System.out.println("    name(raw)=" + name);
 
         if (currentUser == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));

@@ -31,6 +31,7 @@
 
       <VBox spacing="10" alignment="CENTER_LEFT">
          <children>
+            <ComboBox fx:id="cmbArchitecture" prefWidth="160"/>
             <Label text="Program Inputs"/>
             <ListView fx:id="inputsList" VBox.vgrow="ALWAYS"/>
             <Button fx:id="btnBackToDashboard" text="Back to Dashboard"/>

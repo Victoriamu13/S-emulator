@@ -28,4 +28,11 @@ public enum InstructionData {
     public String getName(){return name;}
     public int cycles() {return cycles;}
     public boolean isBasic() { return basic;}
+
+    public static InstructionData fromStringToData(String name) {
+        for (InstructionData d : values()) {
+            if (d.name().equalsIgnoreCase(name)) return d;
+        }
+        return null;
+    }
 }

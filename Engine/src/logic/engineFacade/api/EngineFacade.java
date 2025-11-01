@@ -1,5 +1,6 @@
 package logic.engineFacade.api;
 import logic.domain.program.SProgram;
+import logic.engineFacade.model.ArchitectureSummary;
 import logic.engineFacade.model.LoadOutcome;
 import logic.engineFacade.model.ExecutionReport;
 import logic.engineFacade.model.InstructionDTO;
@@ -7,6 +8,7 @@ import logic.engineFacade.model.InstructionDTO;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface EngineFacade {
@@ -62,5 +64,8 @@ public interface EngineFacade {
     // ==== Functions ===
     List<String> getFunctionNames();
     LoadOutcome loadExistingProgram(SProgram program);
+
+    // ==== Architecture ====
+    Map<String, ArchitectureSummary> getArchitectureSummary(int degree);
 
 }

@@ -3,6 +3,7 @@ package controllers.components.executionScreen;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import controllers.utils.refreshers.GenericActionsRefresher;
 import controllers.utils.refreshers.GenericRefresher;
 import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
@@ -12,9 +13,11 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import logic.domain.architecture.ArchitectureGen;
 import logic.engineFacade.model.InstructionDTO;
 import okhttp3.FormBody;
 import okhttp3.RequestBody;
@@ -40,6 +43,10 @@ public class InstructionsTableController {
     @FXML private TableColumn<InstructionDTO, String> colLabel;
     @FXML private TableColumn<InstructionDTO, String> colCommand;
     @FXML private TableColumn<InstructionDTO, String> colCycles;
+    @FXML private Label lblArchI;
+    @FXML private Label lblArchII;
+    @FXML private Label lblArchIII;
+    @FXML private Label lblArchIV;
 
     @FXML
     public void initialize() {
@@ -51,9 +58,12 @@ public class InstructionsTableController {
 
         startInstructionsRefresher();  // updates instruction table
         startVariableHighlightRefresher();     // listens for highlight changes
-         startHighlightClearRefresher(); //clears highlighted instructions
+        startHighlightClearRefresher(); //clears highlighted instructions
         startDebugInstructionClearRefresher();
         startDebugModeWatcher();
+        refreshArchitectureSummaryFromServer(); //Init architecture summary line
+        startArchitectureSummaryRefresher();
+        startArchitectureLabelClearRefresher();
 
     }
 
@@ -97,7 +107,6 @@ public class InstructionsTableController {
         });
     }
 
-
     // Refreshes the instructions table every 2 seconds if degree updated
     private void startInstructionsRefresher() {
         Type listType = new TypeToken<List<InstructionDTO>>(){}.getType();
@@ -108,6 +117,64 @@ public class InstructionsTableController {
         timer.schedule(refresher, 0, 2000);
     }
 
+    // ======= ARCHITECTURE SUMMARY LINE ======
+    private void startArchitectureSummaryRefresher() {
+        timer.schedule(
+                new GenericActionsRefresher("/architectureSummaryUpdated", this::refreshArchitectureSummaryFromServer),
+                0, 1500);
+    }
+
+    private void refreshArchitectureSummaryFromServer() {
+        JsonElement resp = ServerRequestUtils.sendGet("/architectureSummary");
+        if (resp == null || !resp.isJsonObject()) return;
+
+        JsonObject obj = resp.getAsJsonObject();
+        if (!"SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) return;
+
+        JsonObject architectures = obj.getAsJsonObject("architectures");
+        if (architectures == null) return;
+
+        String selectedArch = getSelectedArchitectureFromServer();
+
+        Platform.runLater(() -> {
+            updateArchLabel(lblArchI, architectures.getAsJsonObject("I"), selectedArch);
+            updateArchLabel(lblArchII, architectures.getAsJsonObject("II"), selectedArch);
+            updateArchLabel(lblArchIII, architectures.getAsJsonObject("III"), selectedArch);
+            updateArchLabel(lblArchIV, architectures.getAsJsonObject("IV"), selectedArch);
+        });
+    }
+
+    private String getSelectedArchitectureFromServer() {
+        JsonElement selEl = ServerRequestUtils.sendGet("/getSelectedArchitecture");
+        if (selEl == null || !selEl.isJsonObject()) return null;
+
+        JsonObject selObj = selEl.getAsJsonObject();
+        if (!"SUCCESS".equalsIgnoreCase(selObj.get("state").getAsString())) return null;
+
+        return selObj.has("selected") ? selObj.get("selected").getAsString() : null;
+    }
+
+    private void updateArchLabel(Label label, JsonObject info,String selectedArch) {
+        if (info == null) return;
+
+        final String RED = "-fx-text-fill: red; -fx-font-weight: bold;";
+        final String BLACK = "-fx-text-fill: black; -fx-font-weight: normal;";
+
+        int supported = info.get("supported").getAsInt();
+        String archName = info.get("archName").getAsString();
+
+        label.setText(archName + ": " + supported);
+
+        if (selectedArch == null || selectedArch.isBlank()) {
+            label.setStyle(BLACK);
+            return;
+        }
+        int currentLevel  = ArchitectureGen.valueOf(archName).ordinal();
+        int selectedLevel = ArchitectureGen.valueOf(selectedArch).ordinal();
+        label.setStyle((currentLevel > selectedLevel) ?RED : BLACK);
+    }
+
+    // ======= DEBUG HIGHLIGHT =======
     private void startDebugModeWatcher() {
         timer.schedule(new TimerTask() {
             @Override
@@ -202,11 +269,27 @@ public class InstructionsTableController {
                 if (!updated) return;
 
                 Platform.runLater(() -> {
-                    System.out.println("[Instructions] highlightInstructionsClear detected → removing highlight");
                     lastHighlight = "";
                     currentDebugIndex = -1;
-                   // instructionsTable.setRowFactory(null);
                     instructionsTable.refresh();
+                });
+            }
+        }, 0, 1000);
+    }
+
+    private void startArchitectureLabelClearRefresher(){
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                JsonElement resp = ServerRequestUtils.sendGet("/architectureLabelClearUpdated");
+                if (resp == null || !resp.isJsonObject()) return;
+
+                boolean updated = resp.getAsJsonObject().get("updated").getAsBoolean();
+                if (!updated) return;
+
+                Platform.runLater(() -> {
+                    List<Label> allLabels = List.of(lblArchI, lblArchII, lblArchIII, lblArchIV);
+                    allLabels.forEach(lbl -> lbl.setStyle("-fx-text-fill: black; -fx-font-weight: normal;"));
                 });
             }
         }, 0, 1000);

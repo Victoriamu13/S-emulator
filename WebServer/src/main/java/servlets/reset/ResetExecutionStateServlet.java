@@ -40,8 +40,8 @@ public class ResetExecutionStateServlet extends HttpServlet {
         UpdateFlagsManager.markUpdated("highlightInstructionsClear");
         UpdateFlagsManager.markUpdated("highlightHistoryClear");
         UpdateFlagsManager.markUpdated("HighlightComboClear");
-
-        System.out.println("[ResetExecutionStateServlet] Fully cleared execution state for user=" + currentUser);
+        UpdateFlagsManager.markUpdated("architectureComboClear");
+        UpdateFlagsManager.markUpdated("architectureLabelClear");
 
         ResponseWriter.write(res, JsonResponseUtils.success("Execution state reset successfully."));
     }
