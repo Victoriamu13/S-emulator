@@ -160,10 +160,10 @@ public class InstructionsTableController {
         final String RED = "-fx-text-fill: red; -fx-font-weight: bold;";
         final String BLACK = "-fx-text-fill: black; -fx-font-weight: normal;";
 
-        int supported = info.get("supported").getAsInt();
+        int required  = info.get("supported").getAsInt();
         String archName = info.get("archName").getAsString();
 
-        label.setText(archName + ": " + supported);
+        label.setText(archName + ": " + required );
 
         if (selectedArch == null || selectedArch.isBlank()) {
             label.setStyle(BLACK);
@@ -171,7 +171,11 @@ public class InstructionsTableController {
         }
         int currentLevel  = ArchitectureGen.valueOf(archName).ordinal();
         int selectedLevel = ArchitectureGen.valueOf(selectedArch).ordinal();
-        label.setStyle((currentLevel > selectedLevel) ?RED : BLACK);
+        if (currentLevel > selectedLevel && required > 0) {
+            label.setStyle(RED);
+        } else {
+            label.setStyle(BLACK);
+        }
     }
 
     // ======= DEBUG HIGHLIGHT =======

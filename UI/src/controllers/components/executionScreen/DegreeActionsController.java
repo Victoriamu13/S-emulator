@@ -39,12 +39,7 @@ public class DegreeActionsController {
     private void initialize() {
         TimerManager.register(EXECUTION, timer);
 
-        if (!SelectedClientState.syncFromServer()) {
-            System.out.println("[DegreeActions] Failed to sync current selection");
-        } else {
-            System.out.println("[DegreeActions] Using program = " + SelectedClientState.getName());
-        }
-
+        SelectedClientState.syncFromServer();
         loadDegreeFromServer();
         setupButtons();
         setupHighlightComboBox();
@@ -152,7 +147,7 @@ public class DegreeActionsController {
                 super.updateItem(item, empty);
 
                 if (empty || item == null || item.isBlank()) {
-                    setText("Highlight");
+                    setText("HIGHLIGHT");
                     setStyle("-fx-text-fill: -fx-text-inner-color; -fx-opacity: 0.6;");
                 } else {
                     setText(item);

@@ -4,12 +4,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import controllers.utils.server.ServerRequestUtils;
 import controllers.utils.server.ServerResponseHandler;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Button;
 import javafx.stage.FileChooser;
+import logic.system.api.SelectedClientState;
 import okhttp3.*;
 import javafx.scene.paint.Color;
 
@@ -22,7 +24,6 @@ public class DashHeaderController {
     @FXML private Label loadStatusLabel;
     @FXML private TextField userNameField;
     @FXML private Button btnChargeCredits;
-    @FXML private Button btnAdd500Credits;
     @FXML private TextField creditsField;
     @FXML private TextField creditsInputField;
 
@@ -30,7 +31,6 @@ public class DashHeaderController {
     private void initialize() {
         btnLoadFile.setOnAction(e -> onLoadFile());
         btnChargeCredits.setOnAction(e -> onChargeCredits());
-        btnAdd500Credits.setOnAction(e -> onAdd500Credits());
 
         JsonElement response = ServerRequestUtils.sendGet("/currentUser");
 
@@ -41,11 +41,14 @@ public class DashHeaderController {
                 String state = obj.get("state").getAsString();
 
                 if ("SUCCESS".equalsIgnoreCase(state)) {
-                    String username = obj.has("username") ? obj.get("username").getAsString() : "Unknown";
-                    String credits = obj.has("credits") ? obj.get("credits").getAsString() : "0";
+                    String username = obj.get("username").getAsString();
+                    int credits = obj.get("credits").getAsInt();
 
                     userNameField.setText(username);
-                    creditsField.setText(credits);
+                    creditsField.setText(String.valueOf(credits));
+
+                    SelectedClientState.setCurrentUser(username);
+                    SelectedClientState.setCurrentCredits(credits);
                 } else {
                     userNameField.setText("Unknown");
                     creditsField.setText("0");
@@ -95,56 +98,55 @@ public class DashHeaderController {
 
 
     private void onChargeCredits() {
-        String user = userNameField.getText();
         String amountCredits = creditsInputField.getText();
 
-        RequestBody body = new FormBody.Builder()
-                .add("user", user)
-                .add("credits", amountCredits)
-                .add("action", "DEDUCT")
-                .build();
-
-        JsonElement response = ServerRequestUtils.sendPost("/chargeCredits", body);
-        if (response != null && response.isJsonObject()) {
-            JsonObject obj = response.getAsJsonObject();
-
-            if (obj.has("state")) {
-                String state = obj.get("state").getAsString();
-
-                if ("SUCCESS".equalsIgnoreCase(state)) {
-                    String newCredits = obj.has("credits") ? obj.get("credits").getAsString() : "";
-                    creditsField.setText(newCredits);
-                }
+        int amount;
+        try {
+            amount = Integer.parseInt(amountCredits);
+            if (amount <= 0) {
+                ServerResponseHandler.showAlert("Input Error", "Please enter a positive number.", Alert.AlertType.WARNING);
+                return;
             }
-        } else {
-            ServerResponseHandler.showAlert("Error", "No response from server.", Alert.AlertType.ERROR);
+        } catch (NumberFormatException e) {
+            ServerResponseHandler.showAlert("Input Error", "Invalid number format.", Alert.AlertType.WARNING);
+            return;
         }
-    }
 
-    private void onAdd500Credits() {
-        String user = userNameField.getText();
+        new Thread(() -> {
+            JsonElement userResp = ServerRequestUtils.sendGet("/currentUser");
+            if (userResp == null || !userResp.isJsonObject()) return;
 
-        RequestBody body = new FormBody.Builder()
-                .add("user", user)
-                .add("credits", "500")
-                .add("action", "ADD")
-                .build();
+            JsonObject userObj = userResp.getAsJsonObject();
+            if (!"SUCCESS".equalsIgnoreCase(userObj.get("state").getAsString())) {
+                Platform.runLater(() ->
+                        ServerResponseHandler.showAlert("Error", "No active user session.", Alert.AlertType.ERROR));
+                return;
+            }
 
-        JsonElement response = ServerRequestUtils.sendPost("/chargeCredits", body);
-        if (response != null && response.isJsonObject()) {
-            JsonObject obj = response.getAsJsonObject();
-            if (obj.has("state")) {
-                String state = obj.get("state").getAsString();
+            String user = userObj.get("username").getAsString();
+            RequestBody body = new FormBody.Builder().add("user", user).add("credits", String.valueOf(amount))
+                    .add("action", "ADD").build();
 
-                if ("SUCCESS".equalsIgnoreCase(state)) {
-                    String newCredits = obj.has("credits") ? obj.get("credits").getAsString() : "";
+            JsonElement resp = ServerRequestUtils.sendPost("/chargeCredits", body);
+            if (resp == null || !resp.isJsonObject()) return;
+
+            JsonObject obj = resp.getAsJsonObject();
+            String state = obj.has("state") ? obj.get("state").getAsString() : "";
+
+            if ("SUCCESS".equalsIgnoreCase(state)) {
+                String newCredits = obj.has("credits") ? obj.get("credits").getAsString() : "";
+                Platform.runLater(() -> {
                     creditsField.setText(newCredits);
-                }
-
+                    ServerResponseHandler.showAlert("Credits Updated",
+                            "Successfully added " + amount + " credits.\nNew balance: " + newCredits,
+                            Alert.AlertType.INFORMATION);
+                });
             } else {
-                ServerResponseHandler.showAlert("Error", "No response from server.", Alert.AlertType.ERROR);
+                String msg = obj.has("message") ? obj.get("message").getAsString() : "Operation failed.";
+                Platform.runLater(() ->
+                        ServerResponseHandler.showAlert("Error", msg, Alert.AlertType.ERROR));
             }
-        }
+        }).start();
     }
 }
 

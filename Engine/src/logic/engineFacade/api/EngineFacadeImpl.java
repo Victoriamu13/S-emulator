@@ -24,7 +24,6 @@ import logic.domain.program.info.ProgramInfo;
 import java.io.InputStream;
 import java.util.*;
 
-import static logic.domain.architecture.ArchitectureAnalyzer.countSupported;
 import static logic.engineFacade.api.EngineFacadeUtils.*;
 import static logic.engineFacade.api.EngineFacadeUtils.toDto;
 
@@ -384,11 +383,33 @@ public class EngineFacadeImpl implements EngineFacade {
         var info = getProgramInfo(program, maxDegree, used);
         int total = info.getInstructions().size();
 
+        Map<ArchitectureGen, Integer> requiredMap = ArchitectureAnalyzer.countFromArchitecture(expandedProgram);
         for (ArchitectureGen gen : ArchitectureGen.values()) {
-            int supported = ArchitectureAnalyzer.countSupported(expandedProgram, gen);
+            int supported = requiredMap.getOrDefault(gen, 0);;
             result.put(gen.name(), new ArchitectureSummary(gen.name(), supported, total));
         }
         return result;
+    }
+
+    @Override
+    public boolean isArchitectureCompatible(String architectureName, int degree) {
+        if (program == null) return false;
+        if (architectureName == null || architectureName.isBlank()) return false;
+
+        ArchitectureGen selectedGen = ArchitectureGen.valueOf(architectureName);
+        int maxDegree = getMaxExpansionDegree();
+        int used = validDegree(degree, maxDegree);
+
+        // Use expanded program for current degree
+        SProgram expanded = materializeProgram(activeProgram(), used);
+        if (expanded == null) return false;
+
+        for (var inst : expanded.getInstructions()) {
+            if (!selectedGen.getSupportedInstructions().contains(inst.getData())) {
+                return false; // found unsupported instruction
+            }
+        }
+        return true;
     }
 
 }

@@ -43,13 +43,13 @@ public enum ArchitectureGen {
     }
 
     public boolean supports(SInstruction inst) {
-        return instructions.contains(inst.getData());
+        return  getSupportedInstructions().contains(inst.getData());
     }
 
     public boolean supports(InstructionInfo info) {
         if (info == null) return false;
         InstructionData data = InstructionData.fromStringToData(info.getName());
-        return instructions.contains(data);
+        return getSupportedInstructions().contains(data);
     }
 
 }

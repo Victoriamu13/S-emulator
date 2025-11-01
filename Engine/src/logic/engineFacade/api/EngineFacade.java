@@ -67,5 +67,6 @@ public interface EngineFacade {
 
     // ==== Architecture ====
     Map<String, ArchitectureSummary> getArchitectureSummary(int degree);
+    boolean isArchitectureCompatible(String architectureName, int degree);
 
 }

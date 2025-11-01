@@ -4,6 +4,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import logic.system.data.architecture.ArchitectureManager;
 import logic.system.data.expansion.DegreeManager;
 import logic.system.data.highlight.HighlightManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
@@ -33,6 +34,7 @@ public class ResetExecutionStateServlet extends HttpServlet {
 
         DegreeManager.resetDegree(currentUser,progName);
         HighlightManager.clearHighlight(currentUser);
+        ArchitectureManager.clearUserArchitecture(currentUser,progName);
 
 
         UpdateFlagsManager.markUpdated("initExecution");

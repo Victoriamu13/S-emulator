@@ -1,23 +1,18 @@
 package controllers.components.executionScreen.execution;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import controllers.components.executionScreen.execution.execActionsUtils.NewRunUtils;
 import controllers.utils.server.ServerRequestUtils;
 import controllers.utils.server.ServerResponseHandler;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
+import logic.domain.architecture.ArchitectureGen;
 import okhttp3.FormBody;
 import okhttp3.RequestBody;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
-import static controllers.utils.server.ServerResponseHandler.gson;
+import static controllers.components.executionScreen.execution.execActionsUtils.NewRunUtils.*;
 
 public class ExecActionsController {
     @FXML private RadioButton normalMode;
@@ -112,39 +107,46 @@ public class ExecActionsController {
      //------------------------- EXECUTION ACTIONS -------------------------
 
     private void handleNewRun() {
-        // Detect ReRun mode before resetting inputs
         new Thread(() -> {
-            JsonElement resp = ServerRequestUtils.sendGet("/isReRun");
-            boolean isReRun = resp != null && resp.getAsJsonObject().get("reRun").getAsBoolean();
-
-            if (isReRun) {   // In Re-Run mode-> fetch Re-Run inputs
-                JsonElement data = ServerRequestUtils.sendGet("/reRunData");
-                if (data != null && data.isJsonObject()) {
-                    JsonObject obj = data.getAsJsonObject();
-
-                    if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
-                        long[] inputs = new Gson().fromJson(obj.get("inputs"), long[].class);
-
-                        String csv = Arrays.stream(inputs).mapToObj(String::valueOf).collect(Collectors.joining(","));
-                        RequestBody body = new FormBody.Builder().add("inputs", csv).build();
-
-                        // Save these inputs to the active EngineFacade on server
-                        JsonElement setResp = ServerRequestUtils.sendPost("/setInputs", body);
-                        boolean success = setResp != null && setResp.isJsonObject() && "SUCCESS".equalsIgnoreCase(
-                                setResp.getAsJsonObject().get("state").getAsString());
-
-                        if (success) {
-                            // Trigger newRun flag
-                            ServerRequestUtils.sendGet("/newRun");
-                        }
-                    }
-                }
-            } else {
-                // In normal mode-> behave as usual
-                ServerRequestUtils.sendGet("/newRun");
+            // Check architecture compatibility
+            String archError = checkArchitectureCompatibility();
+            if (archError != null) {
+                Platform.runLater(() -> {
+                    ServerResponseHandler.showAlert("Architecture Error", archError, Alert.AlertType.WARNING);
+                });
+                return;
             }
+            // Receive chosen architecture from user
+            String arch = NewRunUtils.getSelectedArchitecture();
+            if (arch == null) {
+                Platform.runLater(() ->
+                        ServerResponseHandler.showAlert("Error", "No architecture selected.", Alert.AlertType.ERROR));
+                return;
+            }
+            int cost = ArchitectureGen.valueOf(arch).getBaseCost();
+
+            //Check if user has enough credits for payment
+            boolean enough = NewRunUtils.hasEnoughCredits(arch);
+            if (!enough) return;
+
+            //Ask for permission to charge
+            final boolean[] confirmed = {false};
+            final Object lock = new Object();
+            Platform.runLater(() -> {
+                confirmed[0] = NewRunUtils.showPaymentWindow(arch, cost);
+                synchronized (lock) { lock.notify(); }
+            });
+            synchronized (lock) {
+                try { lock.wait(); } catch (InterruptedException ignored) {}
+            }
+            if (!confirmed[0]) return;
+
+            // 4) Charge
+            boolean paid = NewRunUtils.chargeArchitecture(arch);
+            if (paid) NewRunUtils.startRunAfterPayment();
         }).start();
     }
+
 
     private void handleRunNormal() {
         new Thread(() -> {
@@ -181,20 +183,6 @@ public class ExecActionsController {
             var response = ServerRequestUtils.sendPost("/stepOver", body);
            checkDebugError(response);
         }).start();
-    }
-
-
-
-     //------------------------- DEBUG ERROR HANDLER -------------------------
-
-    private void checkDebugError(JsonElement response) {
-        if (response != null && response.isJsonObject()) {
-            var obj = response.getAsJsonObject();
-            if (obj.has("state") && "ERROR".equalsIgnoreCase(obj.get("state").getAsString())) {
-                String msg = obj.has("message") ? obj.get("message").getAsString() : "";
-                Platform.runLater(() -> ServerResponseHandler.showAlert("Debug Error", msg, Alert.AlertType.ERROR));
-            }
-        }
     }
 }
 

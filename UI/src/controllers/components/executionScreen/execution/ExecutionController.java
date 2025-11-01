@@ -72,7 +72,7 @@ public class ExecutionController {
                 super.updateItem(item, empty);
 
                 if (empty || item == null || item.isBlank()) {
-                    setText("Highlight");
+                    setText("ARCHITECTURE");
                     setStyle("-fx-text-fill: -fx-text-inner-color; -fx-opacity: 0.6;");
                 } else {
                     setText(item);
@@ -85,6 +85,7 @@ public class ExecutionController {
             cmbArchitecture.getItems().add(gen.name());
         }
 
+        // Load selected architecture from server
         new Thread(() -> {
             JsonElement resp = ServerRequestUtils.sendGet("/getSelectedArchitecture");
             if (resp != null && resp.isJsonObject()) {

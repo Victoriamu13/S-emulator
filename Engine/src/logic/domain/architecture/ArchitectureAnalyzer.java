@@ -4,10 +4,7 @@ import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.data.InstructionData;
 import logic.domain.program.SProgram;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ArchitectureAnalyzer {
 
@@ -21,33 +18,49 @@ public class ArchitectureAnalyzer {
         return instructionsSet;
     }
 
-    public static ArchitectureGen minimalCompatibleGen(SProgram program){
-        Set<InstructionData> instructionDataSet=createInstructionsDataSet(program);
+    //Counts how many instructions in the program are SUPPORTED by each architecture.
+    public static Map<ArchitectureGen, Integer> countSupportedByArchitecture(SProgram program) {
+        Map<ArchitectureGen, Integer> result = new LinkedHashMap<>();
+
+        //Init number instructions in every architecture set
+        for (ArchitectureGen gen : ArchitectureGen.values()) {
+            result.put(gen, 0);
+        }
+
+        // For each architecture, count how many instructions it supports
+        for (ArchitectureGen gen : ArchitectureGen.values()) {
+            int count = 0;
+            for (SInstruction inst : program.getInstructions()) {
+                if (gen.getSupportedInstructions().contains(inst.getData())) count++;
+            }
+            result.put(gen, count);
+        }
+        return result;
+    }
+
+    //  Counts how many instructions require each architecture as their minimal generation.
+    public static Map<ArchitectureGen, Integer> countFromArchitecture(SProgram program) {
+        Map<ArchitectureGen, Integer> result = new LinkedHashMap<>();
+
+        for (ArchitectureGen gen : ArchitectureGen.values()) {
+            result.put(gen, 0);  //Init number instructions in every architecture set
+        }
+        for (SInstruction inst : program.getInstructions()) {
+            ArchitectureGen requiredGen = minCompatibleArchitecture(EnumSet.of(inst.getData()));
+            if (requiredGen != null) {
+                result.put(requiredGen, result.get(requiredGen) + 1);
+            }
+        }
+        return result;
+    }
+
+    public static ArchitectureGen minCompatibleArchitecture(Set<InstructionData> singleSet){
         for(ArchitectureGen gen : ArchitectureGen.values()){
-            if(gen.getSupportedInstructions().containsAll(instructionDataSet)){
+            if(gen.getSupportedInstructions().containsAll(singleSet)){
                 return gen;
             }
         }
         return null;
     }
 
-    public static int countSupported(SProgram program,ArchitectureGen gen){
-        int count=0;
-        for(SInstruction inst:program.getInstructions()){
-            if(gen.supports(inst)) count++;
-        }
-        return count;
-    }
-
-    public static List<InstructionData> unsupportedInstructions(SProgram program,ArchitectureGen gen){
-        List<InstructionData> unsupported=new ArrayList<>();
-        for(SInstruction inst :program.getInstructions()){
-            if(!gen.supports(inst)) unsupported.add(inst.getData());
-        }
-        return unsupported;
-    }
-
-    public static boolean isCompatible(SProgram program, ArchitectureGen gen) {
-        return unsupportedInstructions(program, gen).isEmpty();
-    }
 }
