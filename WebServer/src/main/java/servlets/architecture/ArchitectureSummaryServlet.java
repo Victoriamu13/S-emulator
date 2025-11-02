@@ -41,7 +41,17 @@ public class ArchitectureSummaryServlet extends HttpServlet {
         }
 
         int degree = DegreeManager.getDegree(user, progName);
-        Map<String, ArchitectureSummary> summaries = engine.getArchitectureSummary(degree);
+        System.out.println("[DEBUG] user=" + user + ", prog=" + progName + ", degree=" + degree);
+
+        //Map<String, ArchitectureSummary> summaries = engine.getArchitectureSummary(degree);
+        Map<String, ArchitectureSummary> summaries;
+        try {
+            summaries = engine.getArchitectureSummary(degree);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ResponseWriter.write(res, JsonResponseUtils.error("Failed to build architecture summary: " + e.getMessage()));
+            return;
+        }
 
         JsonObject architectures = new JsonObject();
         summaries.forEach((name, summary) -> {

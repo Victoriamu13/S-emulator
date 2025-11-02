@@ -40,6 +40,7 @@ public interface EngineFacade {
 
     // ==== Execution ====
     ExecutionReport runWithReport(int degree, long... inputs);
+    ExecutionReport runWithReportForUser(String username, int degree, long... inputs);
     List<String> getInputsUsed(int degree);
     public List<String> loadInputVars(int degree);
     long[] parseInputsCsv(String csv, int degree);
@@ -51,6 +52,7 @@ public interface EngineFacade {
     boolean isDebugActive();
     int getCurrentPc();
     boolean startDebugSession(int degree, long... inputs);
+    boolean startDebugSessionForUser(String username,int degree, long... inputs);
     ExecutionReport stepOver();
     ExecutionReport stepBack();
     ExecutionReport resume();

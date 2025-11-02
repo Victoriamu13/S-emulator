@@ -9,6 +9,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import logic.domain.architecture.ArchitectureGen;
+import logic.system.api.SelectedClientState;
 import okhttp3.FormBody;
 import okhttp3.RequestBody;
 
@@ -150,7 +151,21 @@ public class ExecActionsController {
 
     private void handleRunNormal() {
         new Thread(() -> {
-            ServerRequestUtils.sendPost("/runProgram", RequestBody.create(null, new byte[0]));
+            JsonElement resp = ServerRequestUtils.sendPost("/runProgram", RequestBody.create(null, new byte[0]));
+            if (resp == null || !resp.isJsonObject()) return;
+
+            JsonObject obj = resp.getAsJsonObject();
+            String state = obj.has("state") ? obj.get("state").getAsString() : "";
+            String msg = obj.has("message") ? obj.get("message").getAsString() : "";
+
+            if ("SUCCESS".equalsIgnoreCase(state) && "OUT_OF_CREDITS".equalsIgnoreCase(msg)) {
+                showOutOfCreditsAlert();
+            }
+            else if ("ERROR".equalsIgnoreCase(state)) {
+                Platform.runLater(() ->
+                        ServerResponseHandler.showAlert("Error", msg, Alert.AlertType.ERROR)
+                );
+            }
         }).start();
     }
 
@@ -173,7 +188,20 @@ public class ExecActionsController {
         new Thread(() -> {
             var body = new FormBody.Builder().build();
             var response = ServerRequestUtils.sendPost("/resumeDebug", body);
-            checkDebugError(response);
+            if (response == null || !response.isJsonObject()) return;
+
+            JsonObject obj = response.getAsJsonObject();
+            String state = obj.has("state") ? obj.get("state").getAsString() : "";
+            String msg = obj.has("message") ? obj.get("message").getAsString() : "";
+
+            if ("ERROR".equalsIgnoreCase(state)) {
+                if ("OUT_OF_CREDITS".equalsIgnoreCase(msg)) {
+                    showOutOfCreditsAlert();
+                    return;
+                } else {
+                    checkDebugError(response);
+                }
+            }
         }).start();
     }
 
@@ -181,7 +209,20 @@ public class ExecActionsController {
         new Thread(() -> {
             var body = new FormBody.Builder().build();
             var response = ServerRequestUtils.sendPost("/stepOver", body);
-           checkDebugError(response);
+            if (response == null || !response.isJsonObject()) return;
+
+            JsonObject obj = response.getAsJsonObject();
+            String state = obj.has("state") ? obj.get("state").getAsString() : "";
+            String msg = obj.has("message") ? obj.get("message").getAsString() : "";
+
+            if ("ERROR".equalsIgnoreCase(state)) {
+                if ("OUT_OF_CREDITS".equalsIgnoreCase(msg)) {
+                    showOutOfCreditsAlert();
+                    return;
+                }else{
+                    checkDebugError(response);
+                }
+            }
         }).start();
     }
 }

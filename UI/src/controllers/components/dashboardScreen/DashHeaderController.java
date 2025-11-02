@@ -137,6 +137,7 @@ public class DashHeaderController {
                 String newCredits = obj.has("credits") ? obj.get("credits").getAsString() : "";
                 Platform.runLater(() -> {
                     creditsField.setText(newCredits);
+                    creditsInputField.clear();
                     ServerResponseHandler.showAlert("Credits Updated",
                             "Successfully added " + amount + " credits.\nNew balance: " + newCredits,
                             Alert.AlertType.INFORMATION);

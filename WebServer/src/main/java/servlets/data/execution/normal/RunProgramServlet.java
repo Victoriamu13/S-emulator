@@ -30,11 +30,6 @@ public class RunProgramServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException{
-        System.out.println("=== ENTERED RunProgramServlet ===");
-        System.out.println("[Server] Method: " + req.getMethod());
-        System.out.println("[Server] Params: " + req.getParameterMap().keySet());
-        System.out.println("[Server] User cookie: " + ServletUserUtils.getUsernameFromCookies(req));
-
         String currentUser= ServletUserUtils.getUsernameFromCookies(req);
         if(currentUser==null){
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
@@ -53,41 +48,40 @@ public class RunProgramServlet extends HttpServlet {
             return;
         }
 
-
         int degree = DegreeManager.getDegree(currentUser,progName);
         String inputsCsv = req.getParameter("inputs");
-        System.out.println("[Server] /runProgram received inputsCsv = " + inputsCsv);
-        System.out.println("[RunProgram] inputsCsv=" + inputsCsv);
-        System.out.println("[RunProgram] Cached values: " + engine.getCachedInputValues(degree));
-        System.out.println("[RunProgram][DEBUG] inputsCsv param = " + req.getParameter("inputs"));
-        System.out.println("[RunProgram][DEBUG] current degree = " + DegreeManager.getDegree(currentUser,progName));
+
         long[] inputs;
 
         // Load existing or cached inputs
         if (inputsCsv == null || inputsCsv.isBlank()) {
             List<String> cached = engine.getCachedInputValues(degree);
-            System.out.println("[RunProgram][DEBUG] Using cached inputs from previous /setInputs: " + inputsCsv);
-
             inputs = engine.prepareInputsFields(degree, cached);
         } else {
             inputs = engine.parseInputsCsv(inputsCsv, degree);
-            System.out.println("[RunProgram][DEBUG] Using direct inputs from request: " + inputsCsv);
 
         }
 
         ExecutionReport report;
         try {
-            System.out.println("[Server] Parsed inputs = " + Arrays.toString(inputs));
-            report = engine.runWithReport(degree, inputs);
+            report = engine.runWithReportForUser(currentUser,degree, inputs);
         } catch (Exception e) {
             ResponseWriter.write(res, JsonResponseUtils.error("Program execution failed: " + e.getMessage()));
             return;
         }
 
-        if (report == null) {
+        if (report == null ) {
             ResponseWriter.write(res, JsonResponseUtils.error("No execution report generated."));
             return;
         }
+
+        if (report.totalCycles() == -1) {
+            JsonObject out = JsonResponseUtils.success("OUT_OF_CREDITS");
+            out.add("report", new Gson().toJsonTree(report));
+            ResponseWriter.write(res, out);
+            return;
+        }
+
 
         // Save run info into user's history
        int nextRunID = UserHistoryManager.getUserExecHistories(currentUser).size() + 1;
@@ -96,12 +90,10 @@ public class RunProgramServlet extends HttpServlet {
 
         UserHistory history = new UserHistory(nextRunID, type, progName, null, runRecord);
        UserHistoryManager.addRun(currentUser, history);
-        System.out.println("[RunProgram] Added run for user=" + currentUser +
-                " | total histories=" + UserHistoryManager.getUserExecHistories(currentUser).size());
+
         // Clear ReRun mode (if it was active)
         if (ReRunStateManager.isReRun(currentUser)) {
             ReRunStateManager.clear(currentUser);
-            System.out.println("[Server] ReRun completed → cleared ReRun state for " + currentUser);
         }
 
         // Mark update flags

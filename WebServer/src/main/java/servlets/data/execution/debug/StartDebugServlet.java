@@ -53,7 +53,7 @@ public class StartDebugServlet extends HttpServlet {
             inputs = engine.parseInputsCsv(csv, degree);
         }
 
-        engine.startDebugSession(degree, inputs);
+        engine.startDebugSessionForUser(username,degree, inputs);
         ExecutionReport initial = engine.buildInitialReport();
 
         UpdateFlagsManager.markUpdated("debugResults");

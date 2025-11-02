@@ -51,6 +51,14 @@ public class ResumeDebugServlet extends HttpServlet {
             return;
         }
 
+        //Case run out of credits
+        if (report.totalCycles() == -1) {
+            JsonObject out = JsonResponseUtils.error("OUT_OF_CREDITS");
+            out.add("report", new Gson().toJsonTree(report));
+            ResponseWriter.write(res, out);
+            return;
+        }
+
         int degree = DegreeManager.getDegree(username, program);
         List<String> cachedInputs = engine.getCachedInputValues(degree);
         long[] inputValues = cachedInputs.stream().mapToLong(Long::parseLong).toArray();

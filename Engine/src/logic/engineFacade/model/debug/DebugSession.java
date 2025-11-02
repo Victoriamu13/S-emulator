@@ -6,12 +6,14 @@ import logic.domain.label.SLabel;
 import logic.domain.label.SpecialLabels;
 import logic.domain.variable.SVars;
 import logic.engineFacade.model.ExecutionReport;
+import logic.system.user.credits.CreditManager;
 
 import java.util.*;
 
 public class DebugSession {
     private final List<SInstruction> instructions;
     private final CurrentContext ctx;
+    private final String username;
     private int pc;
     private long totalCycles;
     private boolean finished;
@@ -21,8 +23,12 @@ public class DebugSession {
 
 
     // ==== Constructors ====
-
     public DebugSession(List<SInstruction> instructions, CurrentContext ctx) {
+        this(null, instructions, ctx);
+    }
+
+    public DebugSession(String username,List<SInstruction> instructions, CurrentContext ctx) {
+        this.username = username;
         this.instructions = instructions;    //instructions
         this.ctx = ctx;                      //variables context
         this.pc = 0;                         //program counter
@@ -42,6 +48,14 @@ public class DebugSession {
 
         SInstruction inst=instructions.get(pc);  //fetch instruction
         totalCycles+=inst.cycles();               //update cycles
+
+        // Decrease credits according to cycles
+        CreditManager.consumeCredit(username, inst.cycles());
+        if (CreditManager.getCredits(username) <= 0) {
+            finished = true;
+            totalCycles = -1; // signal OUT_OF_CREDITS
+            return buildReport(Set.of());
+        }
 
         SLabel next=inst.executeOperation(ctx);  //execute instruction
         if(next== SpecialLabels.EXIT){

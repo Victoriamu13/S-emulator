@@ -39,6 +39,11 @@ public class DebugResultsServlet extends HttpServlet {
             return;
         }
 
+        if (report.totalCycles() == -1) { //Check if user run out of credits
+            ResponseWriter.write(res, JsonResponseUtils.error("OUT_OF_CREDITS"));
+            return;
+        }
+
         JsonObject response = JsonResponseUtils.success("Debug results fetched.");
         response.add("report", new Gson().toJsonTree(report));
         ResponseWriter.write(res, response);

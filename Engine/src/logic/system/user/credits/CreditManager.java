@@ -34,4 +34,17 @@ public class CreditManager {
         return true;
     }
 
+    public static boolean consumeCredit(String user,long amount){
+        if(amount<=0) return true;
+        int current=getCredits(user);
+
+        if(current<amount){
+            userCredits.put(user,0);
+            return false;
+        }else{
+            userCredits.put(user,(int)(current-amount));
+            return true;
+        }
+    }
+
 }

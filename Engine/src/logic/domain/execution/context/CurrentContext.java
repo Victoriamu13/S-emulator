@@ -13,4 +13,7 @@ public interface CurrentContext {
     FunctionLookup getFunctionLookup();
     void addCycles(long cycles);
     long getCycles();
+    String getUsername();
+    boolean isOutOfCredits();
+    void markOutOfCredits();
 }

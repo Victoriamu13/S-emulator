@@ -249,6 +249,19 @@ public class EngineFacadeImpl implements EngineFacade {
     }
 
     @Override
+    public ExecutionReport runWithReportForUser(String username, int degree, long... inputs) {
+        int maxDegree = getMaxExpansionDegree();
+        int used = validDegree(degree, maxDegree);
+        SProgram materialized = materializeProgram(activeProgram(), used);
+
+        ExecutionReport report = new ProgramExecuterImpl(materialized, username)
+                .runWithReport(breakpoints, inputs);
+
+        this.lastReport = report;
+        return report;
+    }
+
+    @Override
     public ExecutionReport getLastReport() { return lastReport; }
 
     // ==== Debug =====
@@ -264,6 +277,23 @@ public class EngineFacadeImpl implements EngineFacade {
         List<SInstruction> instructions=prog.getInstructions();
 
         activeDebug=new DebugSession(instructions,ctx);
+        activeDebug.setBreakpoints(new HashSet<>(this.breakpoints));
+        this.lastReport = activeDebug.buildInitialReport();
+
+        return true;
+    }
+
+    @Override
+    public boolean startDebugSessionForUser(String username,int degree, long... inputs) {
+        activeDebug = null;
+        int maxDegree=getMaxExpansionDegree();
+        int used = validDegree(degree,maxDegree);
+        SProgram prog = materializeProgram(activeProgram(),used);
+
+        CurrentContext ctx = new CurrentContextImpl(inputs, prog.getFunctionLookup());
+        List<SInstruction> instructions=prog.getInstructions();
+
+        activeDebug=new DebugSession(username,instructions,ctx);
         activeDebug.setBreakpoints(new HashSet<>(this.breakpoints));
         this.lastReport = activeDebug.buildInitialReport();
 

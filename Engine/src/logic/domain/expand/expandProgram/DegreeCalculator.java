@@ -37,6 +37,7 @@ public final class DegreeCalculator {
                     next.addAll(expanded);
                 }
             }
+
             if (allBasic) {break;}    // all are basic → stop
             degree++;      // one more round
             current = next; // continue to next round with collected instructions

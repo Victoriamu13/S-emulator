@@ -4,6 +4,7 @@ import logic.domain.expand.expandProgram.ExpansionContext;
 import logic.domain.expand.instructionsExpanded.InstructionExpander;
 import logic.domain.instructions.SInstruction;
 import logic.domain.instructions.basic.bNoJumpInst.IncreaseInst;
+import logic.domain.instructions.basic.bNoJumpInst.NeutralInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.ConstantAssignmentInst;
 import logic.domain.instructions.synthetic.sNoJumpInst.ZeroVariableInst;
 import logic.domain.variable.SVars;
@@ -15,6 +16,7 @@ public final class ConstAssignmentExpander implements InstructionExpander {
 
     @Override
     public List<SInstruction> expand(SInstruction inst, ExpansionContext ctx) {
+
         ConstantAssignmentInst c = (ConstantAssignmentInst) inst;
         SVars var = inst.getVariable();
         long k  = c.getConstantValue();

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import controllers.components.executionScreen.execution.execActionsUtils.NewRunUtils;
 import controllers.screens.ScreenManager;
 import controllers.utils.client.SelectedClientState;
 import controllers.utils.refreshers.GenericActionsRefresher;
@@ -24,6 +25,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static controllers.components.executionScreen.execution.execActionsUtils.NewRunUtils.showOutOfCreditsAlert;
 import static controllers.screens.ScreenManager.EXECUTION;
 
 public class ExecutionController {
@@ -119,6 +122,11 @@ public class ExecutionController {
                 // A new run has just started
                 if (updated && !newRunHandled) {
                     newRunHandled = true;
+                    Platform.runLater(() -> {
+                        variablesTable.getItems().clear();
+                        inputsList.getItems().clear();
+                        lblCycles.setText("Cycles: 0");
+                    });
 
                     Platform.runLater(() -> {
                         refreshInputsFromServer();
@@ -253,24 +261,18 @@ public class ExecutionController {
 
     private void refreshResultsFromServer() {
         new Thread(() -> {
-            if (!SelectedClientState.syncFromServer()) return;
-
             JsonElement response = ServerRequestUtils.sendGet("/results");
             if (response == null || !response.isJsonObject()) return;
 
             JsonObject obj = response.getAsJsonObject();
-            JsonElement reportJson = obj.get("report");
+            String state = obj.has("state") ? obj.get("state").getAsString() : "";
+            if (!"SUCCESS".equalsIgnoreCase(state)) return;
 
-            if (reportJson == null || reportJson.isJsonNull()) {
-                Platform.runLater(() -> {
-                    variablesTable.getItems().clear();
-                    lblCycles.setText("Cycles: 0");
-                });
-                return;
-            }
+            // === Successful Execution ===
+            JsonElement reportJson = obj.get("report");
+            if (reportJson == null || reportJson.isJsonNull()) return;
 
             ExecutionReport report = new Gson().fromJson(reportJson, ExecutionReport.class);
-
             Platform.runLater(() -> {
                 lblCycles.setText("Cycles: " + report.totalCycles());
                 variablesTable.getItems().setAll(
@@ -279,6 +281,7 @@ public class ExecutionController {
                                 .toList()
                 );
             });
+            NewRunUtils.refreshCreditsFromServer();
         }).start();
     }
 
@@ -290,11 +293,14 @@ public class ExecutionController {
             if (response == null || !response.isJsonObject()) return;
 
             JsonObject obj = response.getAsJsonObject();
+            String state = obj.has("state") ? obj.get("state").getAsString() : "";
+            if (!"SUCCESS".equalsIgnoreCase(state)) return;
+
+            // === Successful Debug ===
             JsonElement reportJson = obj.get("report");
             if (reportJson == null) return;
 
             ExecutionReport report = new Gson().fromJson(reportJson, ExecutionReport.class);
-
             Platform.runLater(() -> {
                 lblCycles.setText("Cycles: " + report.totalCycles());
                 variablesTable.getItems().setAll(
@@ -303,6 +309,7 @@ public class ExecutionController {
                                 .toList()
                 );
             });
+            NewRunUtils.refreshCreditsFromServer();
         }).start();
     }
 

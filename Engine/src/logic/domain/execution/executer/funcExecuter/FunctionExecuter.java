@@ -15,6 +15,7 @@ import logic.infrastructure.io.xml.build.BuildUtils;
 import logic.infrastructure.io.xml.parser.composition.ComposeArgument;
 import logic.infrastructure.io.xml.parser.composition.FuncCallArgument;
 import logic.infrastructure.io.xml.parser.composition.VarArgument;
+import logic.system.user.credits.CreditManager;
 
 import java.util.List;
 import java.util.Map;
@@ -39,14 +40,36 @@ public class FunctionExecuter { //Run functions as "Black Box"
             long childCycles = childResults.stream().mapToLong(FunctionResult::cycles).sum();
             List<Long> childVals = childResults.stream().map(FunctionResult::value).toList();
 
+            if (ctx.isOutOfCredits()) {
+                System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" +  childCycles+ ")");
+
+                return new FunctionResult(0, childCycles); // if run out of credits before executing operation
+            }
+
             // Execute the inner function body as black box
             FunctionResult fr = executeFunctionBody(fnLookup.bodyOf(func.getFunctionName()), childVals, fnLookup);
-            return new FunctionResult(fr.value(), ExecutionUtils.accumulateCycles(childCycles, fr.cycles()));
+
+            if (ctx.isOutOfCredits()) { //check if run out of credits
+                System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" +  fr.cycles()+ ")");
+
+                return new FunctionResult(0, ExecutionUtils.accumulateCycles(childCycles, fr.cycles()));
+            }
+
+            if (!CreditManager.consumeCredit(ctx.getUsername(), fr.cycles())) { //check credits for operation
+                System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" +  fr.cycles()+ ")");
+
+                ctx.markOutOfCredits();
+                return new FunctionResult(0, ExecutionUtils.accumulateCycles(childCycles, fr.cycles()));
+            }
+
+            long total = ExecutionUtils.accumulateCycles(childCycles, fr.cycles());
+            return new FunctionResult(fr.value(), total);
         }
+
         return new FunctionResult(0, 0);
     }
 
-
+    // Evaluate a full function call with arguments
     public static FunctionResult evaluateFunctionCall(CurrentContext ctx, String fnName, List<ComposeArgument> args) {
         FunctionLookup fnLookup = ctx.getFunctionLookup();   // repository
 
@@ -55,13 +78,31 @@ public class FunctionExecuter { //Run functions as "Black Box"
                 .toList();
 
         long argsCycles = argResults.stream().mapToLong(FunctionResult::cycles).sum();
+        List<Long> argVals = argResults.stream().map(FunctionResult::value).toList();
 
-        List<Long> argVals = argResults.stream()
-                .map(FunctionResult::value)
-                .toList();
+        if (ctx.isOutOfCredits()) {
+            System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" +  argsCycles+ ")");
+
+            return new FunctionResult(0, argsCycles);
+        }
+
 
         FunctionResult fr = executeFunctionBody(fnLookup.bodyOf(fnName), argVals, fnLookup);
-        return new FunctionResult(fr.value(), ExecutionUtils.accumulateCycles(argsCycles, fr.cycles()));
+
+        if (ctx.isOutOfCredits()) {
+            System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" +  argsCycles+ ")");
+            return new FunctionResult(0, ExecutionUtils.accumulateCycles(argsCycles, fr.cycles()));
+        }
+
+        if (!CreditManager.consumeCredit(ctx.getUsername(), fr.cycles())) { //Check if user run out of credits
+            System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" +  fr.cycles()+ ")");
+
+            ctx.markOutOfCredits();
+            return new FunctionResult(0, ExecutionUtils.accumulateCycles(argsCycles, fr.cycles()));
+        }
+
+        long total = ExecutionUtils.accumulateCycles(argsCycles, fr.cycles());
+        return new FunctionResult(fr.value(), total);
     }
 
 
@@ -81,6 +122,13 @@ public class FunctionExecuter { //Run functions as "Black Box"
             // Add instruction intrinsic cycles
             local.addCycles(inst.cycles());
 
+            if (!CreditManager.consumeCredit(local.getUsername(), inst.cycles())) { //Check if user run out of credits
+                System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" +  local.getCycles() + ")");
+
+                local.markOutOfCredits();
+                break;
+            }
+
             if (inst instanceof QuoteInst q) {
                 // Evaluate QUOTE arguments
 
@@ -91,9 +139,21 @@ public class FunctionExecuter { //Run functions as "Black Box"
                 long argCycles = qArgs.stream().mapToLong(FunctionResult::cycles).sum();
                 List<Long> argVals = qArgs.stream().map(FunctionResult::value).toList();
 
+                if (local.isOutOfCredits()) {
+                    System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" + argCycles + ")");
+
+                    break;
+                }
+
                 // Run quoted function
-                FunctionResult fr = executeFunctionBody(
-                        fnLookup.bodyOf(q.getFunctionName()), argVals, fnLookup);
+                FunctionResult fr = executeFunctionBody(fnLookup.bodyOf(q.getFunctionName()), argVals, fnLookup);
+                if (local.isOutOfCredits()) break;
+                if (!CreditManager.consumeCredit(local.getUsername(), fr.cycles())) {
+                    System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" + fr.cycles() + ")");
+
+                    local.markOutOfCredits();
+                    break;
+                }
 
                 local.updateVariable(q.getVariable(), fr.value());
                 local.addCycles(ExecutionUtils.accumulateCycles(argCycles, fr.cycles()));
@@ -109,11 +169,26 @@ public class FunctionExecuter { //Run functions as "Black Box"
                 long argCycles = jArgs.stream().mapToLong(FunctionResult::cycles).sum();
                 List<Long> argVals = jArgs.stream().map(FunctionResult::value).toList();
 
-                FunctionResult fr = executeFunctionBody(
-                        fnLookup.bodyOf(jef.getFunctionName()), argVals, fnLookup);
+                if (local.isOutOfCredits()) {
+                    System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" + argCycles + ")");
+
+                    break;
+                }
+
+                FunctionResult fr = executeFunctionBody(fnLookup.bodyOf(jef.getFunctionName()), argVals, fnLookup);
+                if (local.isOutOfCredits()){
+                    System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" + fr.cycles() + ")");
+
+                    break;
+                }
+
+                if (!CreditManager.consumeCredit(local.getUsername(), fr.cycles())) {
+                    System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" + fr.cycles() + ")");
+                    local.markOutOfCredits();
+                    break;
+                }
 
                 long vVal = local.getVariableValue(jef.getVariable());
-
                 local.addCycles(ExecutionUtils.accumulateCycles(argCycles, fr.cycles()));  // add nested cycles
                 next = (vVal == fr.value()) ? jef.getTargetLabel() : SpecialLabels.EMPTY;
             }
@@ -121,11 +196,16 @@ public class FunctionExecuter { //Run functions as "Black Box"
                 next = inst.executeOperation(local);
             }
 
+            if (local.isOutOfCredits()) {
+                System.out.println("[DEBUG: ProgramExecuterImpl] Out of credits (nested function or after cycles=" + local.getCycles() + ")");
+
+                break;
+            }
+
             // Compute next pc
             pc = ExecutionUtils.safeJump(pc, next, labelIndex);
             if (pc == Integer.MIN_VALUE) break;
         }
-
         return new FunctionResult(local.getVariableValue(SVars.RESULT), local.getCycles());
     }
 

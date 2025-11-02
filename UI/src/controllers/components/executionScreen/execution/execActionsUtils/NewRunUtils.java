@@ -176,4 +176,17 @@ public class NewRunUtils {
         }
     }
 
+    public static void showOutOfCreditsAlert() {
+        Platform.runLater(() -> {
+            NewRunUtils.refreshCreditsFromServer();
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Run Out Of Credits");
+            alert.setHeaderText("There are not enough credits to run the program.");
+            alert.setContentText("Add more credits before running again.");
+            alert.showAndWait();
+        });
+    }
+
+
+
 }

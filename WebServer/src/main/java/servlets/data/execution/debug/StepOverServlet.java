@@ -13,6 +13,7 @@ import logic.system.data.expansion.DegreeManager;
 import logic.system.data.highlight.HighlightInstructionManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
+import logic.system.user.credits.CreditManager;
 import logic.system.user.engine.EngineFacadeManager;
 import logic.system.user.history.userHstory.UserHistory;
 import logic.system.user.history.userHstory.UserHistoryManager;
@@ -53,6 +54,17 @@ public class StepOverServlet extends HttpServlet {
             return;
         }
 
+        //Case run out of credits
+        if (report.totalCycles() == -1) {
+            engine.stopDebugSession();
+            JsonObject out = JsonResponseUtils.error("OUT_OF_CREDITS");
+            out.addProperty("credits", 0);
+            out.add("report", new Gson().toJsonTree(report));
+            ResponseWriter.write(res, out);
+            return;
+        }
+
+
         //Send flag to highlight instruction in table
         int currentPc = engine.getCurrentPc();
         HighlightInstructionManager.setCurrentInstruction(username, program, currentPc);
@@ -62,12 +74,9 @@ public class StepOverServlet extends HttpServlet {
         UpdateFlagsManager.markUpdated("debugResults");
 
         //If finish debug session
-        if (!engine.isDebugActive()) {
-            System.out.println("[StepOver] 🟢 Debug session finished — saving run to history.");
-
+        if (!engine.isDebugActive() && !(report.totalCycles() == -1)) {
             int degree = DegreeManager.getDegree(username, program);
             List<String> cachedInputs = engine.getCachedInputValues(degree);
-
             long[] inputValues = cachedInputs.stream().mapToLong(Long::parseLong).toArray();
 
             int nextRunId = UserHistoryManager.getUserExecHistories(username).size() + 1;
@@ -83,7 +92,6 @@ public class StepOverServlet extends HttpServlet {
 
             // Add to history
             UpdateFlagsManager.markUpdated("history");
-            System.out.println("[StepOver] ✅ Added finished debug run to user history (" + username + ")");
         }
         JsonObject response = JsonResponseUtils.success("Step executed successfully.");
         response.add("report", new Gson().toJsonTree(report));
