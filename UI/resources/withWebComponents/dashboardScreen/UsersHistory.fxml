@@ -17,7 +17,7 @@
     <columns>
       <TableColumn fx:id="colRunID" text="Run Number" />
       <TableColumn fx:id="colType" text="Run Type" />
-      <TableColumn fx:id="colName" text="Program / Function" />
+      <TableColumn fx:id="colName" text="Name" />
       <TableColumn fx:id="colArch" text="Architecture Type" />
       <TableColumn fx:id="colDegree" text="Run Level" />
       <TableColumn fx:id="colYVal" text="Y Value" />

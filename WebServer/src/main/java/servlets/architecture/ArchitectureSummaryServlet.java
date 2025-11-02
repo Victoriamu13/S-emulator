@@ -22,33 +22,31 @@ import java.util.Map;
 public class ArchitectureSummaryServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String user = ServletUserUtils.getUsernameFromCookies(req);
-        if (user == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active session."));
             return;
         }
 
-        String progName = SelectedProgramManager.getSelectedProgram(user);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
         if (progName == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active program selection."));
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(user,progName);
+        EngineFacade engine = EngineFacadeManager.getEngine(username,progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No engine for user."));
             return;
         }
 
-        int degree = DegreeManager.getDegree(user, progName);
-        System.out.println("[DEBUG] user=" + user + ", prog=" + progName + ", degree=" + degree);
+        int degree = DegreeManager.getDegree(username, progName);
 
         //Map<String, ArchitectureSummary> summaries = engine.getArchitectureSummary(degree);
         Map<String, ArchitectureSummary> summaries;
         try {
             summaries = engine.getArchitectureSummary(degree);
         } catch (Exception e) {
-            e.printStackTrace();
             ResponseWriter.write(res, JsonResponseUtils.error("Failed to build architecture summary: " + e.getMessage()));
             return;
         }
@@ -64,7 +62,6 @@ public class ArchitectureSummaryServlet extends HttpServlet {
 
         JsonObject response = JsonResponseUtils.success("Architecture Summary");
         response.add("architectures", architectures);
-
         ResponseWriter.write(res, response);
     }
 }

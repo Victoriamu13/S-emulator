@@ -40,9 +40,11 @@ public class CreditManager {
 
         if(current<amount){
             userCredits.put(user,0);
+            usedCredits.put(user, getUsedCredits(user) + current);
             return false;
         }else{
-            userCredits.put(user,(int)(current-amount));
+            userCredits.put(user, current - (int) amount);
+            usedCredits.put(user, getUsedCredits(user) + (int) amount);
             return true;
         }
     }

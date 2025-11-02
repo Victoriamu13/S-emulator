@@ -59,8 +59,8 @@ public class InstructionsTableController {
         startInstructionsRefresher();  // updates instruction table
         startVariableHighlightRefresher();     // listens for highlight changes
         startHighlightClearRefresher(); //clears highlighted instructions
-        startDebugInstructionClearRefresher();
         startDebugModeWatcher();
+        startDebugInstructionClearRefresher();
         refreshArchitectureSummaryFromServer(); //Init architecture summary line
         startArchitectureSummaryRefresher();
         startArchitectureLabelClearRefresher();
@@ -323,6 +323,7 @@ public class InstructionsTableController {
                 if (!updated) return;
 
                 Platform.runLater(() -> {
+                    lastHighlight = "";
                     currentDebugIndex = -1; // remove blue highlight
                     instructionsTable.refresh();
                 });

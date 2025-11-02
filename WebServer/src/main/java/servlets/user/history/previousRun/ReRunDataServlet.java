@@ -64,18 +64,13 @@ public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for
             return;
         }
 
-
         EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
-
         if (engine != null) {
             List<String> inputStrings = Arrays.stream(record.inputs())
                     .mapToObj(String::valueOf)
                     .collect(Collectors.toList());
 
             engine.prepareInputsFields(record.degree(), inputStrings);
-            System.out.println("[ReRunData] Cached inputs injected into engine: " + inputStrings);
-        }else {
-            System.out.println("[ReRunData][WARN] EngineFacade not found for user=" + currentUser + " program=" + progName);
         }
 
         // Build response
@@ -83,10 +78,7 @@ public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for
         response.addProperty("degree", record.degree());
         response.add("inputs", new Gson().toJsonTree(record.inputs()));
 
-        System.out.println("[Server][DEBUG] Sending inputs JSON = " +
-                new Gson().toJson(record.inputs()));
         ResponseWriter.write(res, response);
 
-        System.out.println("[Server] ReRunData sent for user=" + currentUser + ", runID=" + runIdInt);
     }
 }

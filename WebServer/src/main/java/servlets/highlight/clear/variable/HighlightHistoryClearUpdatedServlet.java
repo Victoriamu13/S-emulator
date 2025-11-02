@@ -6,7 +6,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.system.updates.UpdateFlagsManager;
+import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -15,10 +17,16 @@ public class HighlightHistoryClearUpdatedServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         JsonObject response = new JsonObject();
-        boolean updated = UpdateFlagsManager.hasUpdated("highlightHistoryClear");
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No active session."));
+            return;
+        }
+
+        boolean updated = UpdateFlagsManager.hasUpdated("highlightHistoryClear",username);
         response.addProperty("updated", updated);
         if (updated) {
-            UpdateFlagsManager.clearFlag("highlightHistoryClear");
+            UpdateFlagsManager.clearFlag("highlightHistoryClear",username);
         }
         ResponseWriter.write(res, response);
     }

@@ -17,17 +17,22 @@ import java.io.IOException;
 public class CheckCreditsForArchitectureServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String user = ServletUserUtils.getUsernameFromCookies(req);
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No active session."));
+            return;
+        }
+
         String arch = req.getParameter("architecture");
 
-        if (user == null || arch == null) {
-            JsonObject error = JsonResponseUtils.error("Missing parameters.");
+        if (arch == null) {
+            JsonObject error = JsonResponseUtils.error("Missing architecture parameter.");
             ResponseWriter.write(res, error);
             return;
         }
 
         int cost = ArchitectureGen.valueOf(arch).getBaseCost();
-        int credits = CreditManager.getCredits(user);
+        int credits = CreditManager.getCredits(username);
 
         if (credits < cost) {
             JsonObject error = JsonResponseUtils.error("Not enough credits for " + arch + " (" + credits + "/" + cost + ").");

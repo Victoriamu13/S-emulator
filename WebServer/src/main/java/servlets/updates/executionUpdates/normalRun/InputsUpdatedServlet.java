@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -16,13 +17,18 @@ public class InputsUpdatedServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        JsonObject response = new JsonObject();
-        boolean updated = UpdateFlagsManager.hasUpdated("inputs");
+        JsonObject response=new JsonObject();
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
+            response.addProperty("updated", false);
+            ResponseWriter.write(res, response);
+            return;
+        }
+
+        boolean updated = UpdateFlagsManager.hasUpdated("inputs", username);
         response.addProperty("updated", updated);
 
-        if (updated) {
-            UpdateFlagsManager.clearFlag("inputs");
-        }
+        if (updated) UpdateFlagsManager.clearFlag("inputs", username);
         ResponseWriter.write(res, response);
     }
 }

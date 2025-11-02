@@ -36,7 +36,7 @@ public class ProgramRepository {
                 0.0
         ));
         EngineFacadeManager.registerEngine(user, programName, engine);
-        UpdateFlagsManager.markUpdated("programs");
+        UpdateFlagsManager.markUpdated("programs",user);
     }
 
     public static synchronized EngineFacade getEngineForProgram(String user, String progName) {

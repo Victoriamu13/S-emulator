@@ -27,13 +27,13 @@ public class ProgramVarsServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
-        String progName= SelectedProgramManager.getSelectedProgram(currentUser);
-        String type = SelectedProgramManager.getSelectedType(currentUser);
+        String progName= SelectedProgramManager.getSelectedProgram(username);
+        String type = SelectedProgramManager.getSelectedType(username);
 
         if(progName==null || type==null){
             ResponseWriter.write(res,JsonResponseUtils.error("No program selected."));
@@ -42,9 +42,9 @@ public class ProgramVarsServlet extends HttpServlet {
         EngineFacade engine = null;
 
         if ("program".equalsIgnoreCase(type)) {
-            engine = ProgramRepository.getEngineForProgram(currentUser, progName);
+            engine = ProgramRepository.getEngineForProgram(username, progName);
         } else if ("function".equalsIgnoreCase(type)) {
-            engine = FunctionRepository.getEngineForFunction(currentUser, progName);
+            engine = FunctionRepository.getEngineForFunction(username, progName);
         }
 
         if (engine == null) {
@@ -62,12 +62,12 @@ public class ProgramVarsServlet extends HttpServlet {
             if (indexParam != null && !indexParam.isBlank()) {
                 finalIndex = Integer.parseInt(indexParam);
             } else {
-                finalIndex = FinalIndexManager.get(currentUser);
+                finalIndex = FinalIndexManager.get(username);
             }
         } catch (NumberFormatException ignored) {}
 
-        Integer prevFinalIndex = FinalIndexManager.get(currentUser);
-        if (finalIndex != null) FinalIndexManager.set(currentUser, finalIndex);
+        Integer prevFinalIndex = FinalIndexManager.get(username);
+        if (finalIndex != null) FinalIndexManager.set(username, finalIndex);
 
         // === Collect Variables ===
         Set<String> all = new LinkedHashSet<>();
@@ -80,11 +80,11 @@ public class ProgramVarsServlet extends HttpServlet {
         JsonObject response = JsonResponseUtils.success("Fetched variable list.");
         response.add("variables", new Gson().toJsonTree(all));
 
-        boolean degreeChanged = UpdateFlagsManager.hasUpdated("degree");
+        boolean degreeChanged = UpdateFlagsManager.hasUpdated("degree",username);
         boolean finalIndexChanged =(!Objects.equals(prevFinalIndex, finalIndex));
 
         if (degreeChanged || finalIndexChanged) {
-            UpdateFlagsManager.markUpdated("programVariables");
+            UpdateFlagsManager.markUpdated("programVariables",username);
         }
         ResponseWriter.write(res, response);
     }

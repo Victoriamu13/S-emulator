@@ -65,7 +65,6 @@ public class ProgramsTableController{
                 .build();
 
         new Thread(()->{
-            System.out.println("[Dashboard] Selecting program = " + selectedProgram.name());
             JsonElement response =ServerRequestUtils.sendPost("/selected", body);
 
             if (response != null && response.isJsonObject()) {

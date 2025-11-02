@@ -9,14 +9,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.ExecutionReport;
 import logic.engineFacade.model.RunRecord;
+import logic.system.data.architecture.ArchitectureManager;
 import logic.system.data.expansion.DegreeManager;
-import logic.system.data.highlight.HighlightInstructionManager;
+import logic.system.data.highlight.DebugHighlightManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
-import logic.system.user.credits.CreditManager;
 import logic.system.user.engine.EngineFacadeManager;
 import logic.system.user.history.userHstory.UserHistory;
 import logic.system.user.history.userHstory.UserHistoryManager;
+import logic.system.user.info.UserInfoManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -57,6 +58,8 @@ public class StepOverServlet extends HttpServlet {
         //Case run out of credits
         if (report.totalCycles() == -1) {
             engine.stopDebugSession();
+            DebugHighlightManager.clearHighlight(username);
+            UpdateFlagsManager.markUpdated("debugInstructionClear",username);
             JsonObject out = JsonResponseUtils.error("OUT_OF_CREDITS");
             out.addProperty("credits", 0);
             out.add("report", new Gson().toJsonTree(report));
@@ -67,11 +70,11 @@ public class StepOverServlet extends HttpServlet {
 
         //Send flag to highlight instruction in table
         int currentPc = engine.getCurrentPc();
-        HighlightInstructionManager.setCurrentInstruction(username, program, currentPc);
-        UpdateFlagsManager.markUpdated("currentInstruction");
+        DebugHighlightManager.setCurrentInstruction(username, program, currentPc);
+        UpdateFlagsManager.markUpdated("currentInstruction",username);
 
         // Mark results updated for the client
-        UpdateFlagsManager.markUpdated("debugResults");
+        UpdateFlagsManager.markUpdated("debugResults",username);
 
         //If finish debug session
         if (!engine.isDebugActive() && !(report.totalCycles() == -1)) {
@@ -81,17 +84,20 @@ public class StepOverServlet extends HttpServlet {
 
             int nextRunId = UserHistoryManager.getUserExecHistories(username).size() + 1;
             String progType = SelectedProgramManager.getSelectedType(username);
+            String architecture = ArchitectureManager.getArchitecture(username, program);
 
             RunRecord record = new RunRecord(nextRunId, degree, inputValues, report.yValue(), report.totalCycles(), report.finalVars());
-            UserHistory history = new UserHistory(nextRunId, progType, program, null, record);
+            UserHistory history = new UserHistory(nextRunId, progType, program, architecture, record);
             UserHistoryManager.addRun(username, history);
+            UserInfoManager.addExecution(username);
 
             //Clear highlight
-            HighlightInstructionManager.clearCurrentInstruction(username, program);
-            UpdateFlagsManager.markUpdated("debugInstructionClear");
+           DebugHighlightManager.clearHighlight(username);
 
             // Add to history
             UpdateFlagsManager.markUpdated("history");
+            UpdateFlagsManager.markUpdated("users");
+            UpdateFlagsManager.markUpdated("debugInstructionClear",username);
         }
         JsonObject response = JsonResponseUtils.success("Step executed successfully.");
         response.add("report", new Gson().toJsonTree(report));

@@ -3,10 +3,10 @@ package logic.system.data.highlight;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HighlightManager {
+public class HighlightVariableManager {
     private static final Map<String,String> userHighlights=new ConcurrentHashMap<>();
 
-    private HighlightManager() {}
+    private HighlightVariableManager() {}
 
     public static void setHighlight(String username,String variable){
         if(username==null) return;

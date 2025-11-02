@@ -26,55 +26,43 @@ public class NewRunServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        System.out.println("[NewRun] ENTERED");
-
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String progName = SelectedProgramManager.getSelectedProgram(currentUser);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
         if (progName == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No program selected."));
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
+        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("Engine not found."));
             return;
         }
 
-//        //Reset cache only if in regular run
-//        if (!ReRunStateManager.isReRun(currentUser)) {/// /////////////////////////
-//            engine.resetExpansionCache();
-//        }
-        if (ReRunStateManager.isReRun(currentUser)) {
-            System.out.println("[NewRun] ⚙️ ReRun mode detected → reusing existing inputs from EngineFacade");
 
-            int degree = DegreeManager.getDegree(currentUser,progName);
+        if (ReRunStateManager.isReRun(username)) {
+            int degree = DegreeManager.getDegree(username,progName);
             List<String> inputs = engine.getCachedInputValues(degree);
-            System.out.println("[NewRun] cached inputs= " + inputs);
 
-            UpdateFlagsManager.markUpdated("inputs");
-            UpdateFlagsManager.markUpdated("startNewRun");
+            UpdateFlagsManager.markUpdated("inputs",username);
+            UpdateFlagsManager.markUpdated("startNewRun",username);
 
             JsonObject response = JsonResponseUtils.success("ReRun mode — existing inputs preserved.");
             response.add("inputs", new Gson().toJsonTree(inputs));
             ResponseWriter.write(res, response);
-
-            System.out.println("[NewRun] ✅ Returning cached inputs: " + inputs);
             return;
         }
 
-        int degree = DegreeManager.getDegree(currentUser,progName);
+        int degree = DegreeManager.getDegree(username,progName);
         List<String> inputs = engine.loadInputVars(degree);
-        System.out.println("[NewRun] prog=" + progName + ", degree=" + degree + ", inputs=" + inputs.size());
 
-        UpdateFlagsManager.markUpdated("inputs");
-        UpdateFlagsManager.markUpdated("startNewRun");
-        System.out.println("[Server] NewRun initialized — inputs and triggerNewRun updated flag set");
+        UpdateFlagsManager.markUpdated("inputs",username);
+        UpdateFlagsManager.markUpdated("startNewRun",username);
 
         JsonObject response=JsonResponseUtils.success("New run initialized successfully.");
         response.add("inputs", new Gson().toJsonTree(inputs));

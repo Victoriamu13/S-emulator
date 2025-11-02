@@ -6,15 +6,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import logic.domain.program.SProgram;
-import logic.domain.program.functions.FunctionLookup;
 import logic.engineFacade.api.EngineFacade;
-import logic.engineFacade.api.EngineFacadeImpl;
 import logic.engineFacade.model.InstructionDTO;
 import logic.system.data.expansion.DegreeManager;
-import logic.system.programs.functions.repository.FuncAsProgAdapter;
-import logic.system.programs.functions.repository.FunctionRepository;
-import logic.system.programs.repository.ProgramRepository;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
@@ -32,15 +26,15 @@ public class ProgramDataServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
         // ===  Get current user ===
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
         // === Get selection (program/function) ===
-        String type = SelectedProgramManager.getSelectedType(currentUser);
-        String name = SelectedProgramManager.getSelectedProgram(currentUser);
+        String type = SelectedProgramManager.getSelectedType(username);
+        String name = SelectedProgramManager.getSelectedProgram(username);
 
         if (type == null || name == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No program or function selected."));
@@ -48,32 +42,22 @@ public class ProgramDataServlet extends HttpServlet {
         }
 
         // === Try to get existing engine ===
-        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, name);
+        EngineFacade engine = EngineFacadeManager.getEngine(username, name);
 
         // CASE engine not found
         if (engine == null) {
-            System.out.println("[ProgramDataServlet] Engine not initialized yet for user=" + currentUser + ", name=" + name);
             ResponseWriter.write(res, JsonResponseUtils.error("Engine not ready yet for this selection."));
             return;
         }
 
-        // ===  Reset cache to ensure fresh data ===
-//        try {
-//            engine.resetExpansionCache();
-//        } catch (Exception e) {
-//            System.out.println("[ProgramDataServlet] Warning: failed to reset cache for user=" + currentUser + ": " + e.getMessage());
-//        }
-
-        System.out.println("[ProgramDataServlet] Using engine for user=" + currentUser + ", name=" + name);
-
         // ===  Parse degree parameter  ===
-        int degree = DegreeManager.getDegree(currentUser,name);
+        int degree = DegreeManager.getDegree(username,name);
         String degreeParam = req.getParameter("degree");
 
         if (degreeParam != null) {
             try {
                 degree = Integer.parseInt(degreeParam);
-                DegreeManager.setDegree(currentUser,name, degree);
+                DegreeManager.setDegree(username,name, degree);
             } catch (NumberFormatException ignored) {
                 ResponseWriter.write(res, JsonResponseUtils.error("Invalid degree parameter: " + degreeParam));
                 return;
@@ -95,11 +79,10 @@ public class ProgramDataServlet extends HttpServlet {
             response.addProperty("maxDegree", maxDegree);
             response.add("instructions", new Gson().toJsonTree(instructions));
 
-            UpdateFlagsManager.markUpdated("degree");
+            UpdateFlagsManager.markUpdated("degree",username);
             ResponseWriter.write(res, response);
 
         } catch (Exception e) {
-            System.err.println("[ProgramDataServlet] Error building program data for user=" + currentUser + ": " + e.getMessage());
             ResponseWriter.write(res, JsonResponseUtils.error("Failed to load program data: " + e.getMessage()));
         }
     }

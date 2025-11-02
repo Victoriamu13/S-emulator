@@ -39,9 +39,6 @@ public class SetReRunCookiesServlet extends HttpServlet {
             res.addCookie(c);
         }
 
-        System.out.println("[Server] Created ReRun cookies: runID=" + runID +
-                ", degree=" + degree + ", progName=" + progName);
-
         ResponseWriter.write(res, JsonResponseUtils.success("ReRun cookies created successfully."));
     }
 }

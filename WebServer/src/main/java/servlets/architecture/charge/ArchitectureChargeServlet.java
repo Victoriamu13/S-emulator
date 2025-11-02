@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.domain.architecture.ArchitectureGen;
+import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.credits.CreditManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
@@ -37,6 +38,8 @@ public class ArchitectureChargeServlet extends HttpServlet {
             ResponseWriter.write(res, JsonResponseUtils.error("Not enough credits. Required: " + cost));
             return;
         }
+
+        UpdateFlagsManager.markUpdated("users");
 
         JsonObject resp = JsonResponseUtils.success("Architecture charged successfully.");
         resp.addProperty("credits", CreditManager.getCredits(user));

@@ -21,15 +21,14 @@ public class UserHistoryServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if(currentUser==null){ //no logged-in user found
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if(username==null){ //no logged-in user found
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String selectedUser= SelectedUserManager.getSelectedUser(currentUser); //get selected user for current logged-in user;
-        String targetUser = (selectedUser != null) ? selectedUser : currentUser;
-
+        String selectedUser= SelectedUserManager.getSelectedUser(username); //get selected user for current logged-in user;
+        String targetUser = (selectedUser != null) ? selectedUser : username;
 
         List<UserHistory> userHistory= UserHistoryManager.getUserExecHistories(targetUser); //get selected user's history
         ResponseWriter.write(res, userHistory);

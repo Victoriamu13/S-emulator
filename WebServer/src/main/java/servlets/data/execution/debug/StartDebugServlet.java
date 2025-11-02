@@ -56,7 +56,7 @@ public class StartDebugServlet extends HttpServlet {
         engine.startDebugSessionForUser(username,degree, inputs);
         ExecutionReport initial = engine.buildInitialReport();
 
-        UpdateFlagsManager.markUpdated("debugResults");
+        UpdateFlagsManager.markUpdated("debugResults",username);
 
         JsonObject response = JsonResponseUtils.success("Debug started.");
         response.add("report", new Gson().toJsonTree(initial));

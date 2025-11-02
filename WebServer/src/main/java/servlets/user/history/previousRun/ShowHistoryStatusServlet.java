@@ -20,8 +20,8 @@ import java.util.List;
 public class ShowHistoryStatusServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
@@ -34,7 +34,7 @@ public class ShowHistoryStatusServlet extends HttpServlet {
 
         int runID = Integer.parseInt(runIdStr);
 
-        List<UserHistory> historyList = UserHistoryManager.getUserExecHistories(currentUser);
+        List<UserHistory> historyList = UserHistoryManager.getUserExecHistories(username);
         UserHistory selected = historyList.stream()
                 .filter(h -> h.runID() == runID)
                 .findFirst()

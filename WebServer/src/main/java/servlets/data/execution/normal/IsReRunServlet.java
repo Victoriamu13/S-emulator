@@ -17,10 +17,14 @@ public class IsReRunServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         // Determine username from cookies
-        String user = ServletUserUtils.getUsernameFromCookies(req);
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
+            return;
+        }
 
         // Check if this user currently in ReRun mode
-        boolean reRun = ReRunStateManager.isReRun(user);
+        boolean reRun = ReRunStateManager.isReRun(username);
 
         JsonObject response = JsonResponseUtils.success("ReRun state checked.");
         response.addProperty("reRun", reRun);

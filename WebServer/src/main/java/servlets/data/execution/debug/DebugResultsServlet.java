@@ -20,14 +20,14 @@ import java.io.IOException;
 public class DebugResultsServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String progName = SelectedProgramManager.getSelectedProgram(currentUser);
-        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
+        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No engine found."));
             return;

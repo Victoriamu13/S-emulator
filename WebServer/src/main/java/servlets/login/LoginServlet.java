@@ -12,6 +12,8 @@ import logic.system.api.SystemManagerImpl;
 import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
+
 import java.io.IOException;
 
 @WebServlet("/login")
@@ -29,21 +31,20 @@ public class LoginServlet extends HttpServlet {
             response = JsonResponseUtils.error("Username cannot be empty.");
         }
         else if(systemManager.userExists(username)){
-            response = JsonResponseUtils.error("Username already exists. Please choose another one.");        }
-        else
-        {
+            response = JsonResponseUtils.error("Username already exists. Please choose another one.");
+        }
+        else {
             systemManager.addUser(username);
-            systemManager.addCredits(username,0);
+            systemManager.addCredits(username, 0);
             UpdateFlagsManager.markUpdated("users");
 
-            //Create username cookie
-            Cookie cookie=new Cookie("username",username);
+            Cookie cookie = new Cookie("username", username);
             cookie.setPath("/");
             res.addCookie(cookie);
 
             response = JsonResponseUtils.success("Login successful.");
-
         }
+
         ResponseWriter.write(res, response);
     }
 }

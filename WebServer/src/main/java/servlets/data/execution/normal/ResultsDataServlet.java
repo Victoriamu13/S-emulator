@@ -19,19 +19,19 @@ import java.io.IOException;
 public class ResultsDataServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String progName = SelectedProgramManager.getSelectedProgram(currentUser);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
         if (progName == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No selected program."));
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
+        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No engine."));
             return;

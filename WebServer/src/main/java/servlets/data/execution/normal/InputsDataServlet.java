@@ -20,31 +20,27 @@ import java.io.IOException;
 public class InputsDataServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String progName = SelectedProgramManager.getSelectedProgram(currentUser);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
         if (progName == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No selected program."));
             return;
         }
-        System.out.println("[InputsDataServlet] fetching inputs for user=" + currentUser + ", selectedProgram=" + progName);
 
-        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
+        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No engine."));
             return;
         }
 
-        int degree = DegreeManager.getDegree(currentUser,progName);
+        int degree = DegreeManager.getDegree(username,progName);
         var inputs = engine.getInputsUsed(degree);
         var values = engine.getCachedInputValues(degree);
-
-        System.out.println("[InputsDataServlet][DEBUG] degree=" + degree + " values=" + values);
-
 
         JsonObject out = JsonResponseUtils.success("Inputs fetched.");
         out.add("inputs", new Gson().toJsonTree(inputs));

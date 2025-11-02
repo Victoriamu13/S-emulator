@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -14,11 +15,18 @@ import java.io.IOException;
 public class ProgramVarsUpdatedServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        boolean updated = UpdateFlagsManager.hasUpdated("programVariables");
-        JsonObject obj = new JsonObject();
-        obj.addProperty("updated", updated);
+        JsonObject response=new JsonObject();
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
+            response.addProperty("updated", false);
+            ResponseWriter.write(res, response);
+            return;
+        }
 
-        if (updated) UpdateFlagsManager.clearFlag("programVariables");
-        ResponseWriter.write(res, obj);
+        boolean updated = UpdateFlagsManager.hasUpdated("programVariables", username);
+        response.addProperty("updated", updated);
+
+        if (updated) UpdateFlagsManager.clearFlag("programVariables", username);
+        ResponseWriter.write(res, response);
     }
 }

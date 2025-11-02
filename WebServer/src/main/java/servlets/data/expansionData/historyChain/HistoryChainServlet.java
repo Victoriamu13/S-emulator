@@ -10,7 +10,7 @@ import logic.system.data.expansion.HistoryChainManager;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.InstructionDTO;
 import logic.system.data.expansion.DegreeManager;
-import logic.system.data.highlight.HighlightManager;
+import logic.system.data.highlight.HighlightVariableManager;
 import logic.system.programs.functions.repository.FunctionRepository;
 import logic.system.programs.repository.ProgramRepository;
 import logic.system.programs.selectedProg.SelectedProgramManager;
@@ -27,13 +27,13 @@ import java.util.List;
 public class HistoryChainServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String progName = SelectedProgramManager.getSelectedProgram(currentUser);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
         if (progName == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active program selection."));
             return;
@@ -41,28 +41,28 @@ public class HistoryChainServlet extends HttpServlet {
 
         String clear=req.getParameter("clear");
         if("true".equalsIgnoreCase(clear)){
-            HistoryChainManager.clearHistoryChain(currentUser);
-            UpdateFlagsManager.markUpdated("historyChain");
+            HistoryChainManager.clearHistoryChain(username);
+            UpdateFlagsManager.markUpdated("historyChain",username);
 
             ResponseWriter.write(res,JsonResponseUtils.success("History chain cleared."));
             return;
         }
 
         int index=0;
-        int degree= DegreeManager.getDegree(currentUser,progName);
+        int degree= DegreeManager.getDegree(username,progName);
         try{
             index=Integer.parseInt(req.getParameter("index"));
         } catch (NumberFormatException ignored) {}
 
 
-        String type = SelectedProgramManager.getSelectedType(currentUser);
-        String name = SelectedProgramManager.getSelectedProgram(currentUser);
+        String type = SelectedProgramManager.getSelectedType(username);
+        String name = SelectedProgramManager.getSelectedProgram(username);
         EngineFacade engine = null;
 
         if ("program".equalsIgnoreCase(type)) {
-            engine = ProgramRepository.getEngineForProgram(currentUser, name);
+            engine = ProgramRepository.getEngineForProgram(username, name);
         } else if ("function".equalsIgnoreCase(type)) {
-            engine = FunctionRepository.getEngineForFunction(currentUser, name);
+            engine = FunctionRepository.getEngineForFunction(username, name);
         }
 
         if (engine == null) {
@@ -71,12 +71,12 @@ public class HistoryChainServlet extends HttpServlet {
         }
 
         List<InstructionDTO> chain = engine.getExpansionHistoryChain(degree, index);
-        HistoryChainManager.setHistoryChain(currentUser, chain);
+        HistoryChainManager.setHistoryChain(username, chain);
 
         JsonObject response = JsonResponseUtils.success("Fetched history chain for selected degree.");
         response.add("chain", new Gson().toJsonTree(chain));
 
-        String currentHighlight = HighlightManager.getHighlight(currentUser);
+        String currentHighlight = HighlightVariableManager.getHighlight(username);
         response.addProperty("highlight", currentHighlight == null ? "" : currentHighlight);
 
         ResponseWriter.write(res, response);
@@ -93,7 +93,7 @@ public class HistoryChainServlet extends HttpServlet {
         JsonObject response = JsonResponseUtils.success("Fetched history chain for user "+currentUser+".");
         response.add("chain", new Gson().toJsonTree(chain));
 
-        String currentHighlight = HighlightManager.getHighlight(currentUser);
+        String currentHighlight = HighlightVariableManager.getHighlight(currentUser);
         response.addProperty("highlight", currentHighlight == null ? "" : currentHighlight);
 
         ResponseWriter.write(res, response);

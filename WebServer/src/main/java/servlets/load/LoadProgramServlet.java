@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import logic.system.api.SystemManager;
 import logic.system.api.SystemManagerImpl;
+import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
 import logic.system.validation.ProgramValidation;
 import logic.engineFacade.api.EngineFacade;
@@ -77,9 +78,12 @@ public class LoadProgramServlet extends HttpServlet {
                 // === 7) Success response ===
                 response = JsonResponseUtils.success(
                         "Program '" + progName + "' loaded and engine initialized successfully.");
+
+                UpdateFlagsManager.markUpdated("programs");
+                UpdateFlagsManager.markUpdated("functions");
+                UpdateFlagsManager.markUpdated("users");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             response = JsonResponseUtils.error("Server error: " + e.getMessage());
         }
         ResponseWriter.write(res, response);

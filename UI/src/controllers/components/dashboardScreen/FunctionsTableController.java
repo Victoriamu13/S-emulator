@@ -59,7 +59,6 @@ public class FunctionsTableController {
     private void onRunAsProgram(){
         FunctionInfo selectedFunction=functionsTable.getSelectionModel().getSelectedItem();
         if(selectedFunction==null) return;
-        System.out.println("[Client → /selected] type=function, name=" + selectedFunction.name());
 
         RequestBody body=new FormBody.Builder()
                 .add("type", "function")

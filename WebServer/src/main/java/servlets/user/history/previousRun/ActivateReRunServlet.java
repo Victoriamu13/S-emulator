@@ -20,8 +20,8 @@ import java.io.IOException;
 public class ActivateReRunServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
@@ -43,15 +43,13 @@ public class ActivateReRunServlet extends HttpServlet {
             return;
         }
 
-        ReRunStateManager.setReRun(currentUser, true);
-        System.out.println("[ActivateReRun][DEBUG] Degree set in manager to " + degree);
+        ReRunStateManager.setReRun(username, true);
+        DegreeManager.setDegree(username,progName, degree);
+        SelectedProgramManager.setSelectedProgram(username, progType, progName);
 
-        DegreeManager.setDegree(currentUser,progName, degree);
-        SelectedProgramManager.setSelectedProgram(currentUser, progType, progName);
-
-        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
+        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
         if (engine == null) {
-            engine = EngineFacadeManager.getEngine(currentUser, progName);
+            engine = EngineFacadeManager.getEngine(username, progName);
 
             if (engine == null) {
                 ResponseWriter.write(res, JsonResponseUtils.error("Failed to create engine for ReRun program."));

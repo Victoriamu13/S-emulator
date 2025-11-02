@@ -34,7 +34,7 @@ public final class FunctionRepository {
             functions.put(fnName, funcEntry);
             functionBodies.put(fnName, body);
         }
-        UpdateFlagsManager.markUpdated("functions");
+        UpdateFlagsManager.markUpdated("functions",uploader);
     }
 
     public static synchronized void registerArity(String fnName, int arity) {

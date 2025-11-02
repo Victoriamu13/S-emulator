@@ -10,10 +10,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import java.lang.reflect.Type;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import logic.system.user.info.UserInfo;
 import okhttp3.FormBody;
 import okhttp3.RequestBody;
@@ -26,8 +23,6 @@ public class UsersTableController{
     Timer timer;
     private GenericRefresher<UserInfo> refresher;
     private final BooleanProperty autoUpdate = new SimpleBooleanProperty(true);
-    private final IntegerProperty totalUsers = new SimpleIntegerProperty(0);
-
     @FXML private TableView<UserInfo> usersTable;
     @FXML private TableColumn<UserInfo, String> colUserName;
     @FXML private TableColumn<UserInfo, Integer> colPrograms;
@@ -35,14 +30,12 @@ public class UsersTableController{
     @FXML private TableColumn<UserInfo, Number> colCurrentCredits;
     @FXML private TableColumn<UserInfo, Number> colUsedCredits;
     @FXML private TableColumn<UserInfo, Integer> colExecutions;
-    @FXML private Label usersCountLabel;
+    @FXML private Button btnUnselectUser;
 
 
 
     @FXML
     public void initialize(){
-
-        usersCountLabel.textProperty().bind(Bindings.concat("Active Users: (", totalUsers.asString(),")"));
         setupColumns();
         usersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {

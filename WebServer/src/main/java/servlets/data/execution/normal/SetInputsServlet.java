@@ -14,7 +14,6 @@ import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 @WebServlet("/setInputs")
 
@@ -22,20 +21,19 @@ public class SetInputsServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String progName = SelectedProgramManager.getSelectedProgram(currentUser);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
         if (progName == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No selected program."));
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
+        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active engine for program."));
             return;
@@ -46,17 +44,13 @@ public class SetInputsServlet extends HttpServlet {
             inputsCsv = "0";
         }
 
-        int degree = DegreeManager.getDegree(currentUser,progName);
+        int degree = DegreeManager.getDegree(username,progName);
 
         try {
             long[] parsedInputs = engine.parseInputsCsv(inputsCsv, degree);
             engine.prepareInputsFields(degree, java.util.Arrays.stream(parsedInputs)
                     .mapToObj(String::valueOf)
                     .toList());
-
-            System.out.println("[SetInputs][DEBUG] DegreeManager current degree = " + DegreeManager.getDegree(currentUser,progName));
-            System.out.println("[SetInputs][DEBUG] inputsCsv = " + inputsCsv);
-            System.out.println("[SetInputs][DEBUG] engine.cachedInputs keys = " + engine.getCachedInputValues(DegreeManager.getDegree(currentUser,progName)));
 
             JsonObject response = JsonResponseUtils.success("Inputs saved successfully.");
             response.addProperty("inputs", inputsCsv);

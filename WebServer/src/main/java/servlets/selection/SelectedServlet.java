@@ -27,15 +27,15 @@ public class SelectedServlet extends HttpServlet {
     // Update selection
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-        String type = req.getParameter("type");     // program / function
-        String name = req.getParameter("name");     // Name from client
-
-
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
+
+        String type = req.getParameter("type");     // program / function
+        String name = req.getParameter("name");     // Name from client
+
 
         if (type == null || name == null || type.isBlank() || name.isBlank()) {
             ResponseWriter.write(res, JsonResponseUtils.error("Missing selection data."));
@@ -47,48 +47,39 @@ public class SelectedServlet extends HttpServlet {
 
         // Remember previous selection before overwriting it
         String previousProgram = null;
-        if (SelectedProgramManager.hasSelection(currentUser)) {
-            previousProgram = SelectedProgramManager.getSelectedProgram(currentUser);
+        if (SelectedProgramManager.hasSelection(username)) {
+            previousProgram = SelectedProgramManager.getSelectedProgram(username);
         }
         // Save new selection for this user
-        SelectedProgramManager.setSelectedProgram(currentUser, type, name);
-        UpdateFlagsManager.markUpdated("degree");
+        SelectedProgramManager.setSelectedProgram(username, type, name);
+        UpdateFlagsManager.markUpdated("degree",username);
 
-        System.out.println("[SelectedServlet] user=" + currentUser + " selected " + type + "=" + name);
 
         EngineFacade engine = null;
-
-        if (EngineFacadeManager.hasEngine(currentUser, name)) {
-            engine = EngineFacadeManager.getEngine(currentUser, name);
-            System.out.println("[SelectedServlet] ✅ Existing Engine found for " + name);
+        if (EngineFacadeManager.hasEngine(username, name)) {
+            engine = EngineFacadeManager.getEngine(username, name);
         } else {
             // Create engine –> only if not already existing
             if ("program".equals(type)) {
-                engine = ProgramRepository.getEngineForProgram(currentUser, name);
+                engine = ProgramRepository.getEngineForProgram(username, name);
                 if (engine == null) {
                     engine = new EngineFacadeImpl();
                 }
             } else if ("function".equals(type)) {
                 String internalName = FunctionRepository.getInternalName(name);
-                System.out.println("[SelectedServlet] internalName resolved to: " + internalName);
 
                 if (FunctionRepository.functionExists(internalName)) {
                     FunctionLookup lookup = FunctionRepository.asLookup();
                     SProgram program = new FuncAsProgAdapter(internalName, lookup).asProgram();
                     engine = new EngineFacadeImpl();
                     engine.loadExistingProgram(program);
-                    System.out.println("[SelectedServlet] ✅ Engine created for internalName=" + internalName);
-
                 }
             }
 
             // Register the new engine
             if (engine != null) {
-                EngineFacadeManager.registerEngine(currentUser, name, engine);
-                DegreeManager.setDegree(currentUser, name, 0);
-                System.out.println("[SelectedServlet] EngineFacade created for " + type + "=" + name);
-            } else {
-                System.out.println("[SelectedServlet] EngineFacade creation skipped (invalid selection).");
+                EngineFacadeManager.registerEngine(username, name, engine);
+                DegreeManager.setDegree(username, name, 0);
             }
         }
 
@@ -116,9 +107,7 @@ public class SelectedServlet extends HttpServlet {
             ResponseWriter.write(res, JsonResponseUtils.error("No selection found for user."));
             return;
         }
-        System.out.println("[SelectedServlet] user=" + currentUser +
-                ", type=" + type + ", name=" + name +
-                " -> stored OK");
+
         //Send response
         JsonObject response = JsonResponseUtils.success("Fetched current selection successfully.");
         response.addProperty("type", type);

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -16,15 +17,21 @@ public class HistoryUpdatedServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        boolean updated= UpdateFlagsManager.hasUpdated("history");
-        System.out.println("[HistoryUpdatedServlet] >>> history flag = " + UpdateFlagsManager.hasUpdated("history"));
-
         JsonObject response=new JsonObject();
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
+            response.addProperty("updated", false);
+            ResponseWriter.write(res, response);
+            return;
+        }
+
+        boolean updated = UpdateFlagsManager.hasUpdated("history");
         response.addProperty("updated", updated);
+
         if (updated) {
+            try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
             UpdateFlagsManager.clearFlag("history");
         }
-        System.out.println("[HistoryUpdated] returning updated=" + updated);
-        ResponseWriter.write(res,response);
+        ResponseWriter.write(res, response);
     }
 }

@@ -16,14 +16,13 @@ import java.io.IOException;
 public class GetExecutionModeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser= ServletUserUtils.getUsernameFromCookies(req);
-
-        if(currentUser==null){
+        String username= ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String mode = ExecutionModeManager.getMode(currentUser);
+        String mode = ExecutionModeManager.getMode(username);
         if (mode == null) mode = "NORMAL";
 
         JsonObject response = JsonResponseUtils.success("Mode fetched.");

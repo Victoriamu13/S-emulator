@@ -9,12 +9,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
 import logic.engineFacade.model.ExecutionReport;
 import logic.engineFacade.model.RunRecord;
+import logic.system.data.architecture.ArchitectureManager;
 import logic.system.data.expansion.DegreeManager;
-import logic.system.data.highlight.HighlightInstructionManager;
+import logic.system.data.highlight.DebugHighlightManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
 import logic.system.user.history.userHstory.UserHistoryManager;
+import logic.system.user.info.UserInfoManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -53,6 +55,8 @@ public class ResumeDebugServlet extends HttpServlet {
 
         //Case run out of credits
         if (report.totalCycles() == -1) {
+            DebugHighlightManager.clearHighlight(username);
+            UpdateFlagsManager.markUpdated("debugInstructionClear",username);
             JsonObject out = JsonResponseUtils.error("OUT_OF_CREDITS");
             out.add("report", new Gson().toJsonTree(report));
             ResponseWriter.write(res, out);
@@ -66,18 +70,20 @@ public class ResumeDebugServlet extends HttpServlet {
 
         int nextRunId = UserHistoryManager.getUserExecHistories(username).size() + 1;
         String progType = SelectedProgramManager.getSelectedType(username);
+        String architecture = ArchitectureManager.getArchitecture(username, program);
 
         RunRecord record = new RunRecord(nextRunId, degree, inputValues, report.yValue(), report.totalCycles(), report.finalVars());
 
-        UserHistory history = new UserHistory(nextRunId, progType, program, null, record);
+        UserHistory history = new UserHistory(nextRunId, progType, program, architecture, record);
         UserHistoryManager.addRun(username, history);
+        UserInfoManager.addExecution(username);
 
         //Clear highlight
-        HighlightInstructionManager.clearCurrentInstruction(username, program);
-        UpdateFlagsManager.markUpdated("debugInstructionClear");
-
+        DebugHighlightManager.clearHighlight(username);
         UpdateFlagsManager.markUpdated("history");
-        UpdateFlagsManager.markUpdated("debugResults");
+        UpdateFlagsManager.markUpdated("users");
+        UpdateFlagsManager.markUpdated("debugResults",username);
+        UpdateFlagsManager.markUpdated("debugInstructionClear",username);
 
         JsonObject response = JsonResponseUtils.success("Program resumed to completion.");
         response.add("report", new Gson().toJsonTree(report));

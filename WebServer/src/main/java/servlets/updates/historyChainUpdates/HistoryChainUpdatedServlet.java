@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.system.updates.UpdateFlagsManager;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 
@@ -17,10 +18,17 @@ public class HistoryChainUpdatedServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
         JsonObject response=new JsonObject();
-        boolean updated= UpdateFlagsManager.hasUpdated("historyChain");
-        response.addProperty("updated",updated);
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
+            response.addProperty("updated", false);
+            ResponseWriter.write(res, response);
+            return;
+        }
 
-        if(updated) UpdateFlagsManager.clearFlag("historyChain");
-        ResponseWriter.write(res,response);
+        boolean updated = UpdateFlagsManager.hasUpdated("historyChain", username);
+        response.addProperty("updated", updated);
+
+        if (updated) UpdateFlagsManager.clearFlag("historyChain", username);
+        ResponseWriter.write(res, response);
     }
 }

@@ -3,7 +3,7 @@ package servlets.data.expansionData.degree;
 import com.google.gson.JsonObject;
 import jakarta.servlet.annotation.WebServlet;
 import logic.system.data.expansion.FinalIndexManager;
-import logic.system.data.highlight.HighlightManager;
+import logic.system.data.highlight.HighlightVariableManager;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,14 +22,13 @@ public class DegreeActionsServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
-
-        if (currentUser == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
             return;
         }
 
-        String progName = SelectedProgramManager.getSelectedProgram(currentUser);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
         if (progName == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active program selection."));
             return;
@@ -41,14 +40,14 @@ public class DegreeActionsServlet extends HttpServlet {
 
         } catch (Exception ignored) {}
 
-        DegreeManager.setDegree(currentUser,progName, newDegree);
-        UpdateFlagsManager.markUpdated("degree");
-        FinalIndexManager.clear(currentUser);
+        DegreeManager.setDegree(username,progName, newDegree);
+        UpdateFlagsManager.markUpdated("degree",username);
+        FinalIndexManager.clear(username);
 
-        HighlightManager.clearHighlight(currentUser);
-        UpdateFlagsManager.markUpdated("programVariables");
-        UpdateFlagsManager.markUpdated("highlight");
-        UpdateFlagsManager.markUpdated("architectureSummary");
+        HighlightVariableManager.clearHighlight(username);
+        UpdateFlagsManager.markUpdated("programVariables",username);
+        UpdateFlagsManager.markUpdated("highlight",username);
+        UpdateFlagsManager.markUpdated("architectureSummary",username);
 
         JsonObject response = JsonResponseUtils.success("Degree updated successfully.");
         response.addProperty("degree", newDegree);

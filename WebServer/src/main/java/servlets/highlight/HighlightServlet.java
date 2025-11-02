@@ -5,7 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import logic.system.data.highlight.HighlightManager;
+import logic.system.data.highlight.HighlightVariableManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -16,17 +16,17 @@ import java.io.IOException;
 public class HighlightServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String user = ServletUserUtils.getUsernameFromCookies(req);
-        if (user == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active session."));
             return;
         }
 
         String var = req.getParameter("variable");
         if (var == null || var.isBlank()) {
-            HighlightManager.clearHighlight(user);
+            HighlightVariableManager.clearHighlight(username);
         } else {
-            HighlightManager.setHighlight(user, var);
+            HighlightVariableManager.setHighlight(username, var);
         }
 
         ResponseWriter.write(res, JsonResponseUtils.success("Highlight updated."));
@@ -40,7 +40,7 @@ public class HighlightServlet extends HttpServlet {
             return;
         }
 
-        String highlight = HighlightManager.getHighlight(user);
+        String highlight = HighlightVariableManager.getHighlight(user);
         JsonObject response = JsonResponseUtils.success("Highlight fetched.");
         response.addProperty("highlight", highlight);
         ResponseWriter.write(res, response);

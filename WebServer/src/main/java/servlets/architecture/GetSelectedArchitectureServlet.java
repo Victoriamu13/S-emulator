@@ -17,19 +17,19 @@ import java.io.IOException;
 public class GetSelectedArchitectureServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String user = ServletUserUtils.getUsernameFromCookies(req);
-        if (user == null) {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No active session."));
             return;
         }
 
-        String progName = SelectedProgramManager.getSelectedProgram(user);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
         if (progName == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No program selected."));
             return;
         }
 
-        String selectedArch = ArchitectureManager.getArchitecture(user, progName);
+        String selectedArch = ArchitectureManager.getArchitecture(username, progName);
 
         JsonObject response = JsonResponseUtils.success("Architecture retrieved.");
         response.addProperty("selected", selectedArch);
