@@ -12,6 +12,7 @@ import logic.engineFacade.model.RunRecord;
 import logic.system.data.architecture.ArchitectureManager;
 import logic.system.data.expansion.DegreeManager;
 import logic.system.data.highlight.DebugHighlightManager;
+import logic.system.programs.costs.ProgramAvgCostManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
@@ -77,6 +78,10 @@ public class ResumeDebugServlet extends HttpServlet {
         UserHistory history = new UserHistory(nextRunId, progType, program, architecture, record);
         UserHistoryManager.addRun(username, history);
         UserInfoManager.addExecution(username);
+
+        //Update program average cost
+        long usedCredits = report.totalCycles();
+        ProgramAvgCostManager.updateAverageCost(program, usedCredits);
 
         //Clear highlight
         DebugHighlightManager.clearHighlight(username);

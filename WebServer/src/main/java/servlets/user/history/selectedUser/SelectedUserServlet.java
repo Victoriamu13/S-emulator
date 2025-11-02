@@ -6,6 +6,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.history.selectedUser.SelectedUserManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
@@ -20,16 +21,23 @@ public class SelectedUserServlet extends HttpServlet {
     //Update history table to show the selected user's history
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException{
-        String username = req.getParameter("user");  //selected user that client wants to view
-        String currentUser = ServletUserUtils.getUsernameFromCookies(req);
+        String selected  = req.getParameter("user");  //selected user that client wants to view
+        String requester  = ServletUserUtils.getUsernameFromCookies(req);
+        JsonObject response;
 
-        if(username!=null && currentUser!=null){
-            SelectedUserManager.setSelectedUser(currentUser, username); //set selected user for current logged-in user
-            ResponseWriter.write(res, JsonResponseUtils.success("Selected user updated successfully."));
-        }else{
-            ResponseWriter.write(res, JsonResponseUtils.error("Missing user data."));
+        if (requester == null || selected == null || selected.isBlank()) {
+            response = JsonResponseUtils.error("Missing parameters.");
+            ResponseWriter.write(res, response);
+            return;
         }
+
+        SelectedUserManager.setSelectedUser(requester, selected);
+        UpdateFlagsManager.markUpdated("history");
+
+        response = JsonResponseUtils.success("Selected user: " + selected);
+        ResponseWriter.write(res, response);
     }
+
 
 
     //Fetch the currently selected user for the logged-in user

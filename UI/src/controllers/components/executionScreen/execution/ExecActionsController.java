@@ -124,9 +124,13 @@ public class ExecActionsController {
                         ServerResponseHandler.showAlert("Error", "No architecture selected.", Alert.AlertType.ERROR));
                 return;
             }
-            int cost = ArchitectureGen.valueOf(arch).getBaseCost();
+
+            // Check average run cost + chosen architecture cost
+            boolean canRun = NewRunUtils.checkAvgRunCostBeforeRun();
+            if (!canRun) return;
 
             //Check if user has enough credits for payment
+            int cost = ArchitectureGen.valueOf(arch).getBaseCost();
             boolean enough = NewRunUtils.hasEnoughCredits(arch);
             if (!enough) return;
 
@@ -142,7 +146,7 @@ public class ExecActionsController {
             }
             if (!confirmed[0]) return;
 
-            // 4) Charge
+            // Charge for architecture
             boolean paid = NewRunUtils.chargeArchitecture(arch);
             if (paid) NewRunUtils.startRunAfterPayment();
         }).start();

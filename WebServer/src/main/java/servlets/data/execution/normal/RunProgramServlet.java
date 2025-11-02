@@ -12,6 +12,7 @@ import logic.engineFacade.model.RunRecord;
 import logic.system.data.architecture.ArchitectureManager;
 import logic.system.data.execution.runHistory.ReRunStateManager;
 import logic.system.data.expansion.DegreeManager;
+import logic.system.programs.costs.ProgramAvgCostManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
@@ -94,6 +95,10 @@ public class RunProgramServlet extends HttpServlet {
         UserHistory history = new UserHistory(nextRunID, type, progName, architecture, runRecord);
        UserHistoryManager.addRun(username, history);
         UserInfoManager.addExecution(username);
+
+        //Update program average cost
+        long usedCredits = report.totalCycles();
+       ProgramAvgCostManager.updateAverageCost(progName, usedCredits);
 
         // Clear ReRun mode (if it was active)
         if (ReRunStateManager.isReRun(username)) {

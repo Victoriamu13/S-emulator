@@ -44,6 +44,7 @@ public class UsersTableController{
             }
         });
 
+        btnUnselectUser.setOnAction(e -> unselectUser());
         startRefresher();
     }
 
@@ -96,6 +97,18 @@ public class UsersTableController{
 
         timer=new Timer(true);
         timer.schedule(refresher,0,1000);
+    }
+
+    private void unselectUser(){
+        new Thread(() -> {
+            JsonElement response = ServerRequestUtils.sendPost("/unselectUser", RequestBody.create(new byte[0]));
+            if (response != null && response.isJsonObject()) {
+                JsonObject obj = response.getAsJsonObject();
+                if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {
+                    ServerRequestUtils.sendPost("/markHistoryUpdated", RequestBody.create(new byte[0]));
+                }
+            }
+        }).start();
     }
 
 }

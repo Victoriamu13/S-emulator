@@ -1,6 +1,7 @@
 package logic.system.user.history.userHstory;
 
 import logic.engineFacade.model.RunRecord;
+import logic.system.user.history.selectedUser.SelectedUserManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +15,18 @@ public class UserHistoryManager {
         usersHistories.computeIfAbsent(username, k -> new ArrayList<>()).add(history);
     }
 
-    public static synchronized List<UserHistory> getUserExecHistories(String username) {
-        return usersHistories.getOrDefault(username, List.of());
+    public static synchronized List<UserHistory> getUserExecHistories(String requesterUsername) {
+        //Check if selected other user
+        String selectedUser = SelectedUserManager.getSelectedUser(requesterUsername);
+        if (selectedUser != null && usersHistories.containsKey(selectedUser)) {
+            return usersHistories.get(selectedUser);
+        }
+        //IF not -> select himself
+        return usersHistories.getOrDefault(requesterUsername, List.of());
     }
 
     public static synchronized RunRecord getRunRecord(String username, int runId) {
-        List<UserHistory> histories = usersHistories.get(username);
+        List<UserHistory> histories = getUserExecHistories(username);
         if (histories == null) return null;
 
         return histories.stream()
@@ -27,10 +34,6 @@ public class UserHistoryManager {
                 .map(UserHistory::runRecord)
                 .findFirst()
                 .orElse(null);
-    }
-
-    public static synchronized void clearHistory(String user) {
-        usersHistories.remove(user);
     }
 
 }

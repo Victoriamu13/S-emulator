@@ -131,6 +131,27 @@ public class NewRunUtils {
         return result.isPresent() && result.get() == ButtonType.YES;
     }
 
+    // CHECK AVERAGE CREDITS COST + ARCHITECTURE
+    public static boolean checkAvgRunCostBeforeRun() {
+        JsonElement resp = ServerRequestUtils.sendGet("/checkCreditsBeforeRun");
+        if (resp == null || !resp.isJsonObject()) return false;
+
+        JsonObject obj = resp.getAsJsonObject();
+        String state = obj.has("state") ? obj.get("state").getAsString() : "";
+        String msg = obj.has("message") ? obj.get("message").getAsString() : "";
+
+        if ("ERROR".equalsIgnoreCase(state) && "INSUFFICIENT_CREDITS".equalsIgnoreCase(msg)) {
+            int credits = obj.get("credits").getAsInt();
+            int archCost = obj.get("archCost").getAsInt();
+            int avgCost = obj.get("avgCost").getAsInt();
+            int required = obj.get("required").getAsInt();
+
+            showOutOfCreditsAndArchAlert(credits, required, avgCost, archCost);
+            return false;
+        }
+        return true;
+    }
+
 
     //Start new run after payment
     public static void startRunAfterPayment() {
@@ -180,11 +201,30 @@ public class NewRunUtils {
         Platform.runLater(() -> {
             NewRunUtils.refreshCreditsFromServer();
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Run Out Of Credits");
+            alert.setTitle("Insufficient Credits");
             alert.setHeaderText("There are not enough credits to run the program.");
             alert.setContentText("Add more credits before running again.");
             alert.showAndWait();
         });
+    }
+
+    public static void showOutOfCreditsAndArchAlert(int credits, int required, int avgCost, int archCost) {
+
+        String message = String.format(
+                """
+              Not enough credits credits to start a new run.
+             
+             • Available credits: %d
+             • Average program cost: %d
+             • Architecture cost: %d
+             • Total required: %d
+             
+             Please load additional credits before starting this run.
+             """,
+                credits,avgCost, archCost,required
+        );
+
+        ServerResponseHandler.showAlert("Insufficient Credits", message, Alert.AlertType.WARNING);
     }
 
 
