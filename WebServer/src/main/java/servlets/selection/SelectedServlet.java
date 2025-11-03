@@ -45,11 +45,6 @@ public class SelectedServlet extends HttpServlet {
         // Normalize case
         type = type.toLowerCase().trim();
 
-        // Remember previous selection before overwriting it
-        String previousProgram = null;
-        if (SelectedProgramManager.hasSelection(username)) {
-            previousProgram = SelectedProgramManager.getSelectedProgram(username);
-        }
         // Save new selection for this user
         SelectedProgramManager.setSelectedProgram(username, type, name);
         UpdateFlagsManager.markUpdated("degree",username);
@@ -60,14 +55,22 @@ public class SelectedServlet extends HttpServlet {
             engine = EngineFacadeManager.getEngine(username, name);
         } else {
             // Create engine –> only if not already existing
-            if ("program".equals(type)) {
+            if ("program".equals(type)) { //Case user has an existing engine for program -> take it from repo
                 engine = ProgramRepository.getEngineForProgram(username, name);
-                if (engine == null) {
-                    engine = new EngineFacadeImpl();
+
+                if (engine == null) { //Build program based on the original one in repo
+                    SProgram program = ProgramRepository.getProgramByName(name);
+                    if (program != null) {
+                        engine = new EngineFacadeImpl();
+                        engine.loadExistingProgram(program);
+                        EngineFacadeManager.registerEngine(username, name, engine);
+                    } else {
+                        ResponseWriter.write(res, JsonResponseUtils.error("Program '" + name + "' not found in repository."));
+                        return;
+                    }
                 }
             } else if ("function".equals(type)) {
                 String internalName = FunctionRepository.getInternalName(name);
-
                 if (FunctionRepository.functionExists(internalName)) {
                     FunctionLookup lookup = FunctionRepository.asLookup();
                     SProgram program = new FuncAsProgAdapter(internalName, lookup).asProgram();
@@ -78,7 +81,6 @@ public class SelectedServlet extends HttpServlet {
 
             // Register the new engine
             if (engine != null) {
-                EngineFacadeManager.registerEngine(username, name, engine);
                 DegreeManager.setDegree(username, name, 0);
             }
         }

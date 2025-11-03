@@ -35,7 +35,7 @@ public class ProgramRepository {
         programObjects.put(programName.toUpperCase(Locale.ROOT), program);
 
         EngineFacadeManager.registerEngine(user, programName, engine);
-        UpdateFlagsManager.markUpdated("programs",user); ////problem
+        UpdateFlagsManager.markUpdated("programs");
     }
 
     public static synchronized EngineFacade getEngineForProgram(String user, String progName) {
