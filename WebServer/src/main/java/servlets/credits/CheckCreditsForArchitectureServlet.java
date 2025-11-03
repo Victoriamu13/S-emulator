@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.domain.architecture.ArchitectureGen;
+import logic.system.data.architecture.ArchitectureManager;
+import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.user.credits.CreditManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
@@ -23,19 +25,25 @@ public class CheckCreditsForArchitectureServlet extends HttpServlet {
             return;
         }
 
-        String arch = req.getParameter("architecture");
-
-        if (arch == null) {
-            JsonObject error = JsonResponseUtils.error("Missing architecture parameter.");
-            ResponseWriter.write(res, error);
+        String progName = SelectedProgramManager.getSelectedProgram(username);
+        if (progName == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No program selected."));
             return;
         }
 
-        int cost = ArchitectureGen.valueOf(arch).getBaseCost();
+
+        String selectedArch = ArchitectureManager.getArchitecture(username, progName);
+        if (selectedArch == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No architecture selected."));
+            return;
+        }
+
+
+        int cost = ArchitectureGen.valueOf(selectedArch).getBaseCost();
         int credits = CreditManager.getCredits(username);
 
         if (credits < cost) {
-            JsonObject error = JsonResponseUtils.error("Not enough credits for " + arch + " (" + credits + "/" + cost + ").");
+            JsonObject error = JsonResponseUtils.error("Not enough credits for " + selectedArch + " (" + credits + "/" + cost + ").");
             ResponseWriter.write(res, error);
         } else {
             JsonObject success = JsonResponseUtils.success("User has enough credits (" + credits + "/" + cost + ").");

@@ -6,7 +6,8 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/"
-      xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.components.dashboardScreen.UsersTableController">
+      xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.components.dashboardScreen.UsersTableController"
+      stylesheets="@/skins/base.css">
    <children>
 
        <TableView fx:id="usersTable" VBox.vgrow="ALWAYS" >

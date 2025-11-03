@@ -6,8 +6,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.domain.architecture.ArchitectureGen;
+import logic.engineFacade.api.EngineFacade;
+import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.credits.CreditManager;
+import logic.system.user.engine.EngineService;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -24,11 +27,21 @@ public class ArchitectureChargeServlet extends HttpServlet {
             return;
         }
 
+        String progName = SelectedProgramManager.getSelectedProgram(user);
+        if (progName == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No program selected."));
+            return;
+        }
+
         String archName = req.getParameter("architecture");
         if (archName == null || archName.isBlank()) {
             ResponseWriter.write(res, JsonResponseUtils.error("No architecture selected."));
             return;
         }
+
+        EngineFacade engine = EngineService.ensureEngineForUser(user, progName);
+        boolean ready = (engine != null && engine.getProgram() != null);
+
 
         ArchitectureGen arch = ArchitectureGen.valueOf(archName);
         int cost = arch.getBaseCost();
@@ -40,10 +53,12 @@ public class ArchitectureChargeServlet extends HttpServlet {
         }
 
         UpdateFlagsManager.markUpdated("users");
+        System.out.println("[ARCH CHARGE] ✅ Payment successful — marking ready=true");
 
         JsonObject resp = JsonResponseUtils.success("Architecture charged successfully.");
         resp.addProperty("credits", CreditManager.getCredits(user));
         resp.addProperty("cost", cost);
+        resp.addProperty("ready", ready);
         ResponseWriter.write(res, resp);
     }
 }

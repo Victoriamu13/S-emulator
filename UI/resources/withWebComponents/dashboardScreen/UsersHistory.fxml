@@ -8,7 +8,7 @@
 <?import javafx.scene.control.Button?>
 <VBox xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml"
       fx:controller="controllers.components.dashboardScreen.HistoryTableController"
-      spacing="10" alignment="CENTER">
+      spacing="10" alignment="CENTER" stylesheets="@/skins/base.css">
 
   <TableView fx:id="historyTable">
     <columnResizePolicy>

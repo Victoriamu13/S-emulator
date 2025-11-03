@@ -9,7 +9,7 @@
 <VBox xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controllers.components.dashboardScreen.DashHeaderController"
-      spacing="10" alignment="CENTER">
+      spacing="10" alignment="CENTER" stylesheets="@/skins/base.css">
 
     <!-- ==== Row 1: User / Title / Credits ==== -->
     <HBox spacing="15" alignment="CENTER" >

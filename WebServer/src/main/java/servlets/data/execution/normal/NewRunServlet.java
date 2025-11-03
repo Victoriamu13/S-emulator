@@ -43,34 +43,11 @@ public class NewRunServlet extends HttpServlet {
             return;
         }
 
-        // Check average number of credits costs program before new run
-        String selectedArch = ArchitectureManager.getArchitecture(username, progName);
-        if (selectedArch == null || selectedArch.isBlank()) {
-            ResponseWriter.write(res, JsonResponseUtils.error("No architecture selected."));
-            return;
-        }
-
-        int archCost = ArchitectureGen.valueOf(selectedArch).getBaseCost();
-        double avgCost = ProgramAvgCostManager.getAverageCost(progName);
-        int required = (int) Math.ceil(avgCost + archCost);
-
-        int userCredits = CreditManager.getCredits(username);
-        if (userCredits < required) {
-            JsonObject error = JsonResponseUtils.error("INSUFFICIENT_CREDITS");
-            error.addProperty("credits", userCredits);
-            error.addProperty("required", required);
-            error.addProperty("avgCost", (int) avgCost);
-            error.addProperty("archCost", archCost);
-            ResponseWriter.write(res, error);
-            return;
-        }
-
         EngineFacade engine = EngineService.ensureEngineForUser(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("Engine not found."));
             return;
         }
-
 
         if (ReRunStateManager.isReRun(username)) {
             int degree = DegreeManager.getDegree(username,progName);
@@ -78,6 +55,9 @@ public class NewRunServlet extends HttpServlet {
 
             UpdateFlagsManager.markUpdated("inputs",username);
             UpdateFlagsManager.markUpdated("startNewRun",username);
+
+            System.out.printf("[NEW RUN] Marked flags for user=%s (inputs + startNewRun)%n", username);
+            System.out.printf("[NEW RUN] Inputs size: %d%n", inputs != null ? inputs.size() : -1);
 
             JsonObject response = JsonResponseUtils.success("ReRun mode — existing inputs preserved.");
             response.add("inputs", new Gson().toJsonTree(inputs));
@@ -88,17 +68,16 @@ public class NewRunServlet extends HttpServlet {
         int degree = DegreeManager.getDegree(username,progName);
         List<String> inputs = engine.loadInputVars(degree);
 
-String arch=ArchitectureManager.getArchitecture(username,progName);
 
         UpdateFlagsManager.markUpdated("inputs",username);
         UpdateFlagsManager.markUpdated("startNewRun",username);
 
+        System.out.printf("[NEW RUN] Marked flags for user=%s (inputs + startNewRun)%n", username);
+        System.out.printf("[NEW RUN] Inputs size: %d%n", inputs != null ? inputs.size() : -1);
+
         JsonObject response=JsonResponseUtils.success("New run initialized successfully.");
         response.add("inputs", new Gson().toJsonTree(inputs));
-        System.out.printf(
-                "[SERVER CHECK] user=%s | prog=%s | arch=%s | avg=%.2f | archCost=%d | required=%d | credits=%d%n",
-                username, progName, arch, avgCost, archCost, required, userCredits
-        );
+
         ResponseWriter.write(res,response);
     }
 }

@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml"
-      spacing="10" fx:controller="controllers.components.executionScreen.HistoryChainController">
+      spacing="10" fx:controller="controllers.components.executionScreen.HistoryChainController" stylesheets="@/skins/base.css">
   <padding>
     <Insets top="10" right="20" bottom="15" left="20"/>
   </padding>

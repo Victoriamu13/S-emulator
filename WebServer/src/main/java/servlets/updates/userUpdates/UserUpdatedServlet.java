@@ -20,11 +20,16 @@ public class UserUpdatedServlet extends HttpServlet {
         JsonObject response=new JsonObject();
 
         boolean updated = UpdateFlagsManager.hasUpdated("users");
+        System.out.println("[USERS_UPDATED] hasUpdated(users) = " + updated);
+        System.out.println("[USERS_UPDATED] Flags state: " + UpdateFlagsManager.debugFlags());
+
         response.addProperty("updated", updated);
 
         if (updated) {
             try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
             UpdateFlagsManager.clearFlag("users");
+            System.out.println("[USERS_UPDATED] Cleared flag 'users'. Current state: " + UpdateFlagsManager.debugFlags());
+
         }
         ResponseWriter.write(res, response);
     }

@@ -9,7 +9,7 @@
 
 <HBox xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.components.executionScreen.ExecHeaderController"
-      alignment="CENTER" spacing="20">
+      alignment="CENTER" spacing="20" stylesheets="@/skins/base.css">
 
    <padding>
       <Insets top="10" right="20" bottom="15" left="20"/>

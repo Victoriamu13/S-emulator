@@ -6,7 +6,7 @@
 <HBox xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="controllers.components.executionScreen.execution.ExecActionsController"
-      spacing="10" alignment="CENTER">
+      spacing="10" alignment="CENTER" stylesheets="@/skins/base.css">
     <padding>
         <Insets top="10" right="20" bottom="10" left="20"/>
     </padding>

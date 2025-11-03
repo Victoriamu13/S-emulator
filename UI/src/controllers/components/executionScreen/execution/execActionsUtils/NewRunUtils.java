@@ -68,13 +68,14 @@ public class NewRunUtils {
 
         if ("SUCCESS".equalsIgnoreCase(state)) {
             int newCredits = obj.has("credits") ? obj.get("credits").getAsInt() : 0;
+            boolean ready = obj.has("ready") && obj.get("ready").getAsBoolean();
             Platform.runLater(() -> ServerResponseHandler.showAlert(
                     "Payment Success",
                     "Architecture " + arch + " charged successfully.\nRemaining credits: " + newCredits,
                     Alert.AlertType.INFORMATION
             ));
             refreshCreditsFromServer();
-            return true;
+            return ready;
         }
         return false;
     }
@@ -186,6 +187,8 @@ public class NewRunUtils {
     }
 
 
+
+
     //Handles server debug error messages
     public static void checkDebugError(JsonElement response) {
         if (response != null && response.isJsonObject()) {
@@ -201,8 +204,8 @@ public class NewRunUtils {
         Platform.runLater(() -> {
             NewRunUtils.refreshCreditsFromServer();
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Insufficient Credits");
-            alert.setHeaderText("There are not enough credits to run the program.");
+            alert.setTitle("Run out of credits!");
+            alert.setHeaderText("There are not enough credits to continue running the program.");
             alert.setContentText("Add more credits before running again.");
             alert.showAndWait();
         });

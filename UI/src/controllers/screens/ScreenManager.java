@@ -39,6 +39,9 @@ public class ScreenManager {
 
             if (stage.getScene() == null) { //case first screen
                 Scene scene = new Scene(root, 900, 600);
+                scene.getStylesheets().add(
+                        ScreenManager.class.getResource("/skins/app.css").toExternalForm()
+                );
                 stage.setScene(scene);
             } else {
                 stage.getScene().setRoot(root);  //case switch to another screen

@@ -8,7 +8,8 @@
 <?import javafx.scene.control.Button?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
-           fx:controller="controllers.components.dashboardScreen.DashboardScreenController">
+           fx:controller="controllers.components.dashboardScreen.DashboardScreenController"
+           stylesheets="@/skins/base.css">
 
         <BorderPane>
             <!-- ======== TOP ======== -->

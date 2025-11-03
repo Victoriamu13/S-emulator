@@ -109,9 +109,13 @@ public class ExecActionsController {
 
     private void handleNewRun() {
         new Thread(() -> {
+            System.out.println("[CLIENT] === New Run sequence started ===");
+
             // Check architecture compatibility
             String archError = checkArchitectureCompatibility();
             if (archError != null) {
+                System.out.println("[CLIENT] ❌ Architecture error: " + archError);
+
                 Platform.runLater(() -> {
                     ServerResponseHandler.showAlert("Architecture Error", archError, Alert.AlertType.WARNING);
                 });
@@ -119,7 +123,11 @@ public class ExecActionsController {
             }
             // Receive chosen architecture from user
             String arch = NewRunUtils.getSelectedArchitecture();
+            System.out.println("[CLIENT] Selected architecture = " + arch);
+
             if (arch == null) {
+                System.out.println("[CLIENT] ❌ No architecture selected");
+
                 Platform.runLater(() ->
                         ServerResponseHandler.showAlert("Error", "No architecture selected.", Alert.AlertType.ERROR));
                 return;
@@ -127,11 +135,15 @@ public class ExecActionsController {
 
             // Check average run cost + chosen architecture cost
             boolean canRun = NewRunUtils.checkAvgRunCostBeforeRun();
+            System.out.println("[CLIENT] Check avg run cost: " + canRun);
+
             if (!canRun) return;
 
             //Check if user has enough credits for payment
             int cost = ArchitectureGen.valueOf(arch).getBaseCost();
             boolean enough = NewRunUtils.hasEnoughCredits(arch);
+            System.out.println("[CLIENT] Has enough credits: " + enough);
+
             if (!enough) return;
 
             //Ask for permission to charge
@@ -144,11 +156,20 @@ public class ExecActionsController {
             synchronized (lock) {
                 try { lock.wait(); } catch (InterruptedException ignored) {}
             }
+            System.out.println("[CLIENT] User confirmation: " + confirmed[0]);
+
             if (!confirmed[0]) return;
 
             // Charge for architecture
             boolean paid = NewRunUtils.chargeArchitecture(arch);
-            if (paid) NewRunUtils.startRunAfterPayment();
+            System.out.println("[CLIENT] Payment status: " + paid);
+
+            if (paid) {
+                System.out.println("[CLIENT] Payment confirmed — calling /newRun");
+                NewRunUtils.startRunAfterPayment();
+            } else {
+                System.out.println("[CLIENT] ❌ Payment failed — not starting new run");
+            }
         }).start();
     }
 

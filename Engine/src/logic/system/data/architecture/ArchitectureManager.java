@@ -16,7 +16,7 @@ public class ArchitectureManager {
         if (username == null || programName == null) return null;
         Map<String, String> programs = userPrograms.get(username);
         if (programs == null) return null;
-        return programs.getOrDefault(programName, "I");
+        return programs.get(programName);
     }
 
     public static synchronized void clearUserArchitecture(String username, String programName) {

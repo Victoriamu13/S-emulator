@@ -43,6 +43,11 @@ public class InputsDataServlet extends HttpServlet {
         var inputs = engine.getInputsUsed(degree);
         var values = engine.getCachedInputValues(degree);
 
+        System.out.printf("[INPUTS] ✅ user=%s | degree=%d | inputs=%d | values=%d%n",
+                username, degree,
+                inputs != null ? inputs.size() : -1,
+                values != null ? values.size() : -1);
+
         JsonObject out = JsonResponseUtils.success("Inputs fetched.");
         out.add("inputs", new Gson().toJsonTree(inputs));
         out.add("values", new Gson().toJsonTree(values));
