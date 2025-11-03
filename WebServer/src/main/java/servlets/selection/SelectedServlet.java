@@ -76,6 +76,7 @@ public class SelectedServlet extends HttpServlet {
                     SProgram program = new FuncAsProgAdapter(internalName, lookup).asProgram();
                     engine = new EngineFacadeImpl();
                     engine.loadExistingProgram(program);
+                    EngineFacadeManager.registerEngine(username, name, engine);
                 }
             }
 

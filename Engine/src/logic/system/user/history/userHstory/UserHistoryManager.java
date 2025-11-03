@@ -45,4 +45,9 @@ public class UserHistoryManager {
                 .orElse(null);
     }
 
+    public static synchronized void removeUserHistory(String username) {
+        if (username == null) return;
+        usersHistories.remove(username);
+    }
+
 }

@@ -11,6 +11,8 @@ import logic.system.data.expansion.FinalIndexManager;
 import logic.system.programs.repository.ProgramRepository;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
+import logic.system.user.engine.EngineFacadeManager;
+import logic.system.user.engine.EngineService;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import logic.system.programs.functions.repository.FunctionRepository;
@@ -33,20 +35,13 @@ public class ProgramVarsServlet extends HttpServlet {
             return;
         }
         String progName= SelectedProgramManager.getSelectedProgram(username);
-        String type = SelectedProgramManager.getSelectedType(username);
 
-        if(progName==null || type==null){
+        if(progName==null){
             ResponseWriter.write(res,JsonResponseUtils.error("No program selected."));
             return;
         }
-        EngineFacade engine = null;
 
-        if ("program".equalsIgnoreCase(type)) {
-            engine = ProgramRepository.getEngineForProgram(username, progName);
-        } else if ("function".equalsIgnoreCase(type)) {
-            engine = FunctionRepository.getEngineForFunction(username, progName);
-        }
-
+        EngineFacade engine = EngineService.ensureEngineForUser(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("Program not found."));
             return;

@@ -49,4 +49,10 @@ public class CreditManager {
         }
     }
 
+    public static synchronized void removeUser(String username) {
+        if (username == null) return;
+        userCredits.remove(username);
+        usedCredits.remove(username);
+    }
+
 }

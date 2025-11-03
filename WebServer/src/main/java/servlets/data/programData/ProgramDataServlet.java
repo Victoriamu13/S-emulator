@@ -12,6 +12,7 @@ import logic.system.data.expansion.DegreeManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
+import logic.system.user.engine.EngineService;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -42,7 +43,7 @@ public class ProgramDataServlet extends HttpServlet {
         }
 
         // === Try to get existing engine ===
-        EngineFacade engine = EngineFacadeManager.getEngine(username, name);
+        EngineFacade engine = EngineService.ensureEngineForUser(username, name);
 
         // CASE engine not found
         if (engine == null) {

@@ -30,5 +30,10 @@ public class ArchitectureManager {
         }
     }
 
+    public static synchronized void clearAllUserArchitectures(String username) {
+        if (username == null) return;
+        userPrograms.remove(username);
+    }
+
 
 }

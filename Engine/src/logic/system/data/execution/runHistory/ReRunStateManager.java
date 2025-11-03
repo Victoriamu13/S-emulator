@@ -8,14 +8,17 @@ public class ReRunStateManager {
 
 
     public static synchronized void setReRun(String user, boolean state) {
+        if(user==null) return;
         reRunStates.put(user, state);
     }
 
     public static synchronized boolean isReRun(String user) {
+        if(user==null) return false;
         return reRunStates.getOrDefault(user, false);
     }
 
     public static synchronized void clear(String user) {
+        if(user==null) return;
         reRunStates.remove(user);
     }
 }

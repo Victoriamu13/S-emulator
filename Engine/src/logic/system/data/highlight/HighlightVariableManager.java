@@ -18,6 +18,7 @@ public class HighlightVariableManager {
     }
 
     public static void clearHighlight(String username) {
+        if(username==null)return;;
         userHighlights.remove(username);
     }
 

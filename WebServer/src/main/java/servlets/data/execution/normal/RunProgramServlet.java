@@ -16,6 +16,7 @@ import logic.system.programs.costs.ProgramAvgCostManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.engine.EngineFacadeManager;
+import logic.system.user.engine.EngineService;
 import logic.system.user.history.userHstory.UserHistory;
 import logic.system.user.history.userHstory.UserHistoryManager;
 import logic.system.user.info.UserInfoManager;
@@ -45,7 +46,7 @@ public class RunProgramServlet extends HttpServlet {
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
+        EngineFacade engine = EngineService.ensureEngineForUser(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No engine registered for program."));
             return;

@@ -32,6 +32,7 @@ public class SelectedProgramManager {
     }
 
     public static void clear(String username){
+        if(username==null)return;
         selectedPrograms.remove(username);
     }
 }

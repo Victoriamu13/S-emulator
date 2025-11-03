@@ -6,6 +6,8 @@ import com.google.gson.reflect.TypeToken;
 import controllers.utils.refreshers.GenericRefresher;
 import controllers.utils.refreshers.TimerManager;
 import controllers.utils.server.ServerRequestUtils;
+import controllers.utils.server.ServerResponseHandler;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import java.lang.reflect.Type;
@@ -17,6 +19,7 @@ import okhttp3.RequestBody;
 
 import java.util.List;
 import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class UsersTableController{
@@ -31,7 +34,6 @@ public class UsersTableController{
     @FXML private TableColumn<UserInfo, Number> colUsedCredits;
     @FXML private TableColumn<UserInfo, Integer> colExecutions;
     @FXML private Button btnUnselectUser;
-
 
 
     @FXML
@@ -64,7 +66,7 @@ public class UsersTableController{
                 .build();
 
         new Thread(()->{
-        JsonElement response = ServerRequestUtils.sendPost("/selectedUser",body);
+            JsonElement response = ServerRequestUtils.sendPost("/selectedUser",body);
             if (response != null && response.isJsonObject()) {
                 JsonObject obj = response.getAsJsonObject();
                 if ("SUCCESS".equalsIgnoreCase(obj.get("state").getAsString())) {

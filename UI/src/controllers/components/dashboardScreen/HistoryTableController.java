@@ -66,7 +66,6 @@ public class HistoryTableController {
 
         timer=new Timer(true);
         timer.schedule(refresher,0,1000);
-        System.out.println("[HistoryTable] Refresher started for /historyUpdated every 1s");
 
     }
 

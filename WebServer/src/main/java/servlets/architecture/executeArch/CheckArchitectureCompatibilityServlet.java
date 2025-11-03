@@ -12,6 +12,7 @@ import logic.system.data.architecture.ArchitectureManager;
 import logic.system.data.expansion.DegreeManager;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.user.engine.EngineFacadeManager;
+import logic.system.user.engine.EngineService;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -34,7 +35,7 @@ public class CheckArchitectureCompatibilityServlet extends HttpServlet {
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(user, progName);
+        EngineFacade engine = EngineService.ensureEngineForUser(user, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No engine loaded for user."));
             return;

@@ -5,9 +5,10 @@
 
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Button?>
 <StackPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="controllers.components.dashboardScreen.DashboardScreenController">
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controllers.components.dashboardScreen.DashboardScreenController">
 
         <BorderPane>
             <!-- ======== TOP ======== -->
@@ -34,6 +35,7 @@
                                     </padding>
                                     <fx:include source="Programs.fxml" fx:id="programsTableComponent"/>
                                     <fx:include source="Functions.fxml" fx:id="functionsTableComponent"/>
+                                    <Button fx:id ="btnLogOut" text="Log Out"/>
                                 </VBox>
                             </items>
                         </SplitPane>

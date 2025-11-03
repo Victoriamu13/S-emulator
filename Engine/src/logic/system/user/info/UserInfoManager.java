@@ -33,4 +33,9 @@ public class UserInfoManager {
         }
         return infos;
     }
+
+    public static synchronized void removeUser(String username) {
+        if (username == null) return;
+        runsCount.remove(username);
+    }
 }

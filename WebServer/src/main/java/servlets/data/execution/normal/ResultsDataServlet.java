@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.api.EngineFacade;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.user.engine.EngineFacadeManager;
+import logic.system.user.engine.EngineService;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -31,7 +32,7 @@ public class ResultsDataServlet extends HttpServlet {
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
+        EngineFacade engine = EngineService.ensureEngineForUser(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No engine."));
             return;

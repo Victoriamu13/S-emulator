@@ -16,6 +16,7 @@ import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.updates.UpdateFlagsManager;
 import logic.system.user.credits.CreditManager;
 import logic.system.user.engine.EngineFacadeManager;
+import logic.system.user.engine.EngineService;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
 import servlets.utils.ServletUserUtils;
@@ -64,7 +65,7 @@ public class NewRunServlet extends HttpServlet {
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
+        EngineFacade engine = EngineService.ensureEngineForUser(username, progName);
         if (engine == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("Engine not found."));
             return;

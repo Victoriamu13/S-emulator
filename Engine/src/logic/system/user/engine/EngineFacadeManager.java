@@ -41,6 +41,7 @@ public class EngineFacadeManager {
     }
 
     public static synchronized void clearEnginesForUser(String username) {
+        if(username==null) return;
         userEngines.remove(username);
     }
 }

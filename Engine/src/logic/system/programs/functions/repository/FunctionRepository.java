@@ -134,8 +134,4 @@ public final class FunctionRepository {
     public static void setEngineForFunction(String username, String fnName, EngineFacade engine) {
         EngineFacadeManager.registerEngine(username, fnName, engine);
     }
-
-    public static EngineFacade getEngineForFunction(String username, String fnName) {
-        return EngineFacadeManager.getEngine(username, fnName);
-    }
 }
