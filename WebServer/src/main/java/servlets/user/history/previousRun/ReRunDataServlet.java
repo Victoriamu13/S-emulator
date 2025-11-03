@@ -7,15 +7,19 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import logic.domain.program.SProgram;
 import logic.engineFacade.api.EngineFacade;
+import logic.engineFacade.api.EngineFacadeImpl;
 import logic.engineFacade.model.RunRecord;
 import logic.system.data.execution.runHistory.ReRunStateManager;
 import logic.system.data.expansion.DegreeManager;
+import logic.system.programs.repository.ProgramRepository;
 import logic.system.programs.selectedProg.SelectedProgramManager;
 import logic.system.user.engine.EngineFacadeManager;
 import logic.system.user.history.userHstory.UserHistoryManager;
 import servlets.utils.JsonResponseUtils;
 import servlets.utils.ResponseWriter;
+import servlets.utils.ServletUserUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -26,6 +30,12 @@ import java.util.stream.Collectors;
 public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for user and loads inputs for client.
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String username = ServletUserUtils.getUsernameFromCookies(req);
+        if (username == null) {
+            ResponseWriter.write(res, JsonResponseUtils.error("No active user session."));
+            return;
+        }
+
         String ownerUser = null;
         String runID = null;
         String progName = null;
@@ -64,14 +74,27 @@ public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(ownerUser, progName);
-        if (engine != null) {
-            List<String> inputStrings = Arrays.stream(record.inputs())
-                    .mapToObj(String::valueOf)
-                    .collect(Collectors.toList());
-
-            engine.prepareInputsFields(record.degree(), inputStrings);
+        EngineFacade engine = EngineFacadeManager.getEngine(username, progName);
+        if (engine == null) {
+            SProgram program = ProgramRepository.getProgramByName(progName);
+            if (program != null) {
+                engine = new EngineFacadeImpl();
+                engine.loadExistingProgram(program);
+                EngineFacadeManager.registerEngine(username, progName, engine);
+            } else {
+                ResponseWriter.write(res, JsonResponseUtils.error("Program not found in repository for ReRun."));
+                return;
+            }
         }
+
+        // Load Re-Run original inputs
+        List<String> inputStrings = Arrays.stream(record.inputs())
+                .mapToObj(String::valueOf)
+                .collect(Collectors.toList());
+
+        engine.prepareInputsFields(record.degree(), inputStrings);
+        DegreeManager.setDegree(username, progName, record.degree());
+
 
         // Build response
         JsonObject response = JsonResponseUtils.success("ReRun data fetched.");

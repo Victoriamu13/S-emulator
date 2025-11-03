@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.engineFacade.model.RunRecord;
+import logic.system.user.history.selectedUser.SelectedUserManager;
 import logic.system.user.history.userHstory.UserHistory;
 import logic.system.user.history.userHstory.UserHistoryManager;
 import servlets.utils.JsonResponseUtils;
@@ -34,7 +35,10 @@ public class ShowHistoryStatusServlet extends HttpServlet {
 
         int runID = Integer.parseInt(runIdStr);
 
-        List<UserHistory> historyList = UserHistoryManager.getOwnHistories(username);
+        String selectedUser = SelectedUserManager.getSelectedUser(username);
+        String targetUser = (selectedUser != null) ? selectedUser : username;
+        List<UserHistory> historyList = UserHistoryManager.getOwnHistories(targetUser);
+
         UserHistory selected = historyList.stream()
                 .filter(h -> h.runID() == runID)
                 .findFirst()

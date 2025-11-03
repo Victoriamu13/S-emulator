@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ProgramRepository {
 
     private static final Map<String, ProgramEntry> programs = Collections.synchronizedMap(new LinkedHashMap<>());
+    private static final Map<String, SProgram> programObjects = new ConcurrentHashMap<>();
 
     private ProgramRepository(){}
 
@@ -27,16 +28,14 @@ public class ProgramRepository {
         String programName = engine.getProgramName();
         String key = (user + ":" + programName).toUpperCase(Locale.ROOT);
 
-        programs.put(key, new ProgramEntry(
-                programName,
-                user,
-                program.getInstructions().size(),
-                engine.getMaxExpansionDegree(),
-                0,
-                0.0
+        programs.put(key, new ProgramEntry(programName, user, program.getInstructions().size(),
+                engine.getMaxExpansionDegree(), 0, 0.0
         ));
+
+        programObjects.put(programName.toUpperCase(Locale.ROOT), program);
+
         EngineFacadeManager.registerEngine(user, programName, engine);
-        UpdateFlagsManager.markUpdated("programs",user);
+        UpdateFlagsManager.markUpdated("programs",user); ////problem
     }
 
     public static synchronized EngineFacade getEngineForProgram(String user, String progName) {
@@ -47,6 +46,10 @@ public class ProgramRepository {
         return programs.values();
     }
 
+    public static synchronized SProgram getProgramByName(String programName) {
+        if (programName == null) return null;
+        return programObjects.get(programName.toUpperCase(Locale.ROOT));
+    }
 
 }
 
