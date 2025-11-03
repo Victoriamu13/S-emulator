@@ -6,24 +6,35 @@
 <?import javafx.scene.layout.*?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
 <VBox xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controllers.components.dashboardScreen.DashHeaderController"
       spacing="10" alignment="CENTER" stylesheets="@/skins/base.css">
 
     <!-- ==== Row 1: User / Title / Credits ==== -->
-    <HBox spacing="15" alignment="CENTER" >
+    <HBox spacing="10" alignment="CENTER" prefWidth="Infinity">
         <padding>
-            <Insets top="10" right="10" bottom="10" left="10"/>
+            <Insets top="10" right="15" bottom="10" left="15"/>
         </padding>
         <children>
-            <Label text="User Name:"  maxWidth="Infinity" HBox.hgrow="NEVER"/>
-            <TextField fx:id="userNameField" prefWidth="120"  editable="false" HBox.hgrow="NEVER"/>
+            <HBox spacing="5" alignment="CENTER_LEFT"  HBox.hgrow="ALWAYS">
+                <Label text="User:" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="userNameField" prefWidth="100" editable="false" />
+            </HBox>
 
-            <Label text="S-Emulator — Dashboard"  maxWidth="Infinity" HBox.hgrow="NEVER"/>
+            <Label text="S-Emulator — Dashboard"
+                   style="-fx-font-weight: bold;  -fx-text-fill: #6A1B9A;; -fx-alignment: center;"
+                   HBox.hgrow="ALWAYS" alignment="CENTER">
+                <font>
+                    <Font size="22"/>
+                </font>
+            </Label>
 
-            <Label text="Available Credits:"  maxWidth="Infinity"/>
-            <TextField fx:id="creditsField" prefWidth="80" promptText="credits"  editable="false" HBox.hgrow="NEVER"/>
+            <HBox spacing="5" alignment="CENTER_RIGHT"  HBox.hgrow="ALWAYS">
+                <Label text="Credits:" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="creditsField" prefWidth="70" editable="false"/>
+            </HBox>
         </children>
     </HBox>
 
@@ -33,10 +44,10 @@
             <Insets top="10" right="10" bottom="10" left="10"/>
         </padding>
         <children>
-            <Button fx:id="btnLoadFile" text="Load File Button" HBox.hgrow="NEVER"/>
-            <TextField fx:id="filePathField" prefWidth="250" text="Currently Loaded File path"  editable="false" HBox.hgrow="NEVER"/>
-
-            <Button fx:id="btnChargeCredits" text="Charge Credits" HBox.hgrow="NEVER"/>
+            <Button fx:id="btnLoadFile" text="📂 Load File" />
+            <TextField fx:id="filePathField" promptText="No file loaded" editable="false" focusTraversable="false"
+                       prefWidth="300"/>
+            <Button fx:id="btnChargeCredits" text="💰 Charge Credits"/>
             <TextField fx:id="creditsInputField" text=""  prefWidth="60" HBox.hgrow="NEVER"/>
         </children>
     </HBox>

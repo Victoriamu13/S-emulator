@@ -69,7 +69,6 @@ public class ProgramDataServlet extends HttpServlet {
         int maxDegree;
         List<InstructionDTO> instructions;
 
-        try {
             maxDegree = engine.getMaxExpansionDegree();
             int usedDegree = Math.max(0, degree);
             instructions = engine.getInstructionRows(usedDegree);
@@ -82,9 +81,5 @@ public class ProgramDataServlet extends HttpServlet {
 
             UpdateFlagsManager.markUpdated("degree",username);
             ResponseWriter.write(res, response);
-
-        } catch (Exception e) {
-            ResponseWriter.write(res, JsonResponseUtils.error("Failed to load program data: " + e.getMessage()));
-        }
     }
 }

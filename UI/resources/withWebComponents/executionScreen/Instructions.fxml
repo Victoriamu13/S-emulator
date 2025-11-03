@@ -7,6 +7,7 @@
 <?import javafx.geometry.Insets?>
 
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
 <VBox xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml" spacing="10"
       fx:controller="controllers.components.executionScreen.InstructionsTableController" stylesheets="@/skins/base.css">
     <padding>
@@ -27,12 +28,16 @@
             <TableColumn  text="Architecture" />
         </columns>
       </TableView>
-       <HBox spacing="20" alignment="CENTER_LEFT">
-           <Label text="Architecture : " />
-           <Label fx:id="lblArchI" text="I : " />
-           <Label fx:id="lblArchII" text="II : "/>
-           <Label fx:id="lblArchIII" text="III : " />
-           <Label fx:id="lblArchIV" text="IV : "/>
+       <HBox spacing="20" alignment="CENTER">
+           <Label text="ARCHITECTURE:"
+                  style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-alignment: center;"/>
+
+           <HBox spacing="10" alignment="CENTER">
+               <Label fx:id="lblArchI" text="I:" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-alignment: center;"/>
+               <Label fx:id="lblArchII" text="II:" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-alignment: center;"/>
+               <Label fx:id="lblArchIII" text="III:" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-alignment: center;"/>
+               <Label fx:id="lblArchIV" text="IV:" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-alignment: center;"/>
+           </HBox>
        </HBox>
    </children>
 </VBox>

@@ -7,7 +7,7 @@
 
 <VBox xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml" fx:controller="controllers.components.dashboardScreen.UsersTableController"
-      stylesheets="@/skins/base.css">
+      stylesheets="@/skins/base.css"  spacing="10">
    <children>
 
        <TableView fx:id="usersTable" VBox.vgrow="ALWAYS" >
@@ -24,5 +24,6 @@
         </columns>
       </TableView>
       <Button fx:id="btnUnselectUser" text="Unselect User" />
+
    </children>
 </VBox>

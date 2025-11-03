@@ -6,16 +6,49 @@
 <?import javafx.scene.control.Button?>
 
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
 <VBox spacing="20" alignment="CENTER"
       xmlns="http://javafx.com/javafx/"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controllers.components.dashboardScreen.LoginController" stylesheets="@/skins/base.css">
 
+   <padding>
+      <Insets top="50" right="40" bottom="40" left="40"/>
+   </padding>
+
    <children>
-      <Label text="WELCOME" />
-      <Label text="Please log in first." />
-      <Label text="User Name:" />
-      <TextField fx:id="userNameField" promptText="Enter your username" prefWidth="200" />
-      <Button text="Login" onAction="#onLoginClicked" prefWidth="100"/>
+      <Label text="WELCOME"
+             alignment="CENTER"
+             style="-fx-font-weight: bold; -fx-text-fill: #6A1B9A; -fx-alignment: center;">
+      <font>
+         <Font size="50"/>
+      </font>
+      </Label>
+
+      <Label text="Please log in to continue."
+             style="-fx-font-weight: bold; -fx-text-fill: #6A1B9A; -fx-alignment: center;">
+         <font>
+            <Font size="22"/>
+         </font>
+      </Label>
+
+      <Label text="User Name:"
+             styleClass="dynamic-label">
+         <font>
+            <Font size="16"/>
+         </font>
+      </Label>
+
+      <TextField fx:id="userNameField"
+                 promptText="Enter your username"
+                 prefWidth="260"
+                 styleClass="text-field"/>
+
+      <Button text="Login"
+              onAction="#onLoginClicked"
+              prefWidth="200"
+              styleClass="button"/>
+
    </children>
 </VBox>

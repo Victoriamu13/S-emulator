@@ -5,12 +5,23 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.Label?>
 <VBox xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml"
-      spacing="10" fx:controller="controllers.components.executionScreen.HistoryChainController" stylesheets="@/skins/base.css">
+      spacing="10" fx:controller="controllers.components.executionScreen.HistoryChainController"
+      stylesheets="@/skins/base.css" alignment="CENTER">
   <padding>
     <Insets top="10" right="20" bottom="15" left="20"/>
   </padding>
 
+  <children>
+    <Label text="HISTORY CHAIN"
+           alignment="CENTER"
+           style="-fx-font-weight: bold; -fx-text-fill: #6A1B9A; -fx-alignment: center;">
+      <font>
+        <Font size="22"/>
+      </font>
+    </Label>
 <TableView fx:id="historyTable">
   <columnResizePolicy >
     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
@@ -25,4 +36,5 @@
       <TableColumn fx:id="colCredits" text="Credits" />
   </columns>
 </TableView>
+  </children>
 </VBox>

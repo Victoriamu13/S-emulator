@@ -36,7 +36,12 @@
                                     </padding>
                                     <fx:include source="Programs.fxml" fx:id="programsTableComponent"/>
                                     <fx:include source="Functions.fxml" fx:id="functionsTableComponent"/>
-                                    <Button fx:id ="btnLogOut" text="Log Out"/>
+                                    <HBox alignment="CENTER_RIGHT" >
+                                        <padding>
+                                            <Insets top="10" right="10" bottom="10" left="10"/>
+                                        </padding>
+                                        <Button fx:id="btnLogOut" text="Log Out" prefWidth="100"/>
+                                    </HBox>
                                 </VBox>
                             </items>
                         </SplitPane>
