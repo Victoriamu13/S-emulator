@@ -13,6 +13,8 @@ public class UserHistoryManager {
 
     public static synchronized void addRun(String username, UserHistory history) {
         usersHistories.computeIfAbsent(username, k -> new ArrayList<>()).add(history);
+        System.out.println("[UserHistoryManager] Added run #" + history.runID() + " for user " + username);
+
     }
 
     public static synchronized List<UserHistory> getUserExecHistories(String requesterUsername) {
@@ -25,9 +27,16 @@ public class UserHistoryManager {
         return usersHistories.getOrDefault(requesterUsername, List.of());
     }
 
+    public static synchronized List<UserHistory> getOwnHistories(String username) {
+        return usersHistories.getOrDefault(username, List.of());
+    }
+
     public static synchronized RunRecord getRunRecord(String username, int runId) {
-        List<UserHistory> histories = getUserExecHistories(username);
-        if (histories == null) return null;
+        List<UserHistory> histories = getOwnHistories(username);
+        if (histories == null || histories.isEmpty()) {
+            System.out.println("[UserHistoryManager] No history found for user: " + username);
+            return null;
+        }
 
         return histories.stream()
                 .filter(h -> h.runID() == runId)

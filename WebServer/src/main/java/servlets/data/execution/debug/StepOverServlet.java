@@ -83,12 +83,12 @@ public class StepOverServlet extends HttpServlet {
             List<String> cachedInputs = engine.getCachedInputValues(degree);
             long[] inputValues = cachedInputs.stream().mapToLong(Long::parseLong).toArray();
 
-            int nextRunId = UserHistoryManager.getUserExecHistories(username).size() + 1;
+            int nextRunId = UserHistoryManager.getOwnHistories(username).size() + 1;
             String progType = SelectedProgramManager.getSelectedType(username);
             String architecture = ArchitectureManager.getArchitecture(username, program);
 
             RunRecord record = new RunRecord(nextRunId, degree, inputValues, report.yValue(), report.totalCycles(), report.finalVars());
-            UserHistory history = new UserHistory(nextRunId, progType, program, architecture, record);
+            UserHistory history = new UserHistory(nextRunId, progType, program, architecture,username, record);
             UserHistoryManager.addRun(username, history);
             UserInfoManager.addExecution(username);
 

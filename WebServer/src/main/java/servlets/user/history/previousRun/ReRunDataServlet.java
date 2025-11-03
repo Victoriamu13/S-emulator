@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for user and loads inputs for client.
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String currentUser = null;
+        String ownerUser = null;
         String runID = null;
         String progName = null;
         String progType = null;
@@ -35,7 +35,7 @@ public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for
         if (req.getCookies() != null) {
             for (Cookie c : req.getCookies()) {
                 switch (c.getName()) {
-                    case "username" -> currentUser = c.getValue();
+                    case "reRunOwner" -> ownerUser = c.getValue();
                     case "reRunID" -> runID = c.getValue();
                     case "reRunProg" -> progName = c.getValue();
                     case "reRunType" -> progType = c.getValue();
@@ -44,7 +44,7 @@ public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for
         }
 
         // === Validate that all required cookies exist ===
-        if (currentUser == null || runID == null || progName == null || progType==null) {
+        if (ownerUser  == null || runID == null || progName == null || progType==null) {
             ResponseWriter.write(res, JsonResponseUtils.error("Missing ReRun cookies."));
             return;
         }
@@ -58,13 +58,13 @@ public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for
         }
 
         // Get record from user's history
-        RunRecord record = UserHistoryManager.getRunRecord(currentUser, runIdInt);
+        RunRecord record = UserHistoryManager.getRunRecord(ownerUser, runIdInt);
         if (record == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("No record found for re-run."));
             return;
         }
 
-        EngineFacade engine = EngineFacadeManager.getEngine(currentUser, progName);
+        EngineFacade engine = EngineFacadeManager.getEngine(ownerUser, progName);
         if (engine != null) {
             List<String> inputStrings = Arrays.stream(record.inputs())
                     .mapToObj(String::valueOf)
@@ -77,7 +77,6 @@ public class ReRunDataServlet extends HttpServlet {  //Activates Re-Run mode for
         JsonObject response = JsonResponseUtils.success("ReRun data fetched.");
         response.addProperty("degree", record.degree());
         response.add("inputs", new Gson().toJsonTree(record.inputs()));
-
         ResponseWriter.write(res, response);
 
     }

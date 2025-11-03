@@ -53,7 +53,6 @@ public class RunProgramServlet extends HttpServlet {
 
         int degree = DegreeManager.getDegree(username,progName);
         String inputsCsv = req.getParameter("inputs");
-
         long[] inputs;
 
         // Load existing or cached inputs
@@ -62,7 +61,6 @@ public class RunProgramServlet extends HttpServlet {
             inputs = engine.prepareInputsFields(degree, cached);
         } else {
             inputs = engine.parseInputsCsv(inputsCsv, degree);
-
         }
 
         ExecutionReport report;
@@ -85,14 +83,15 @@ public class RunProgramServlet extends HttpServlet {
             return;
         }
 
-
         // Save run info into user's history
         String architecture = ArchitectureManager.getArchitecture(username, progName);
-        int nextRunID = UserHistoryManager.getUserExecHistories(username).size() + 1;
+        int nextRunID = UserHistoryManager.getOwnHistories(username).size() + 1;
+
+
        RunRecord runRecord = new RunRecord(nextRunID, degree, inputs, report.yValue(), report.totalCycles(), report.finalVars());
        String type=SelectedProgramManager.getSelectedType(username);
 
-        UserHistory history = new UserHistory(nextRunID, type, progName, architecture, runRecord);
+        UserHistory history = new UserHistory(nextRunID, type, progName, architecture,username, runRecord);
        UserHistoryManager.addRun(username, history);
         UserInfoManager.addExecution(username);
 

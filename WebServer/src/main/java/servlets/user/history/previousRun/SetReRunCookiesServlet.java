@@ -21,6 +21,7 @@ public class SetReRunCookiesServlet extends HttpServlet {
         String degree = req.getParameter("degree");
         String progName = req.getParameter("progName");
         String progType = req.getParameter("progType");
+        String runOwner=req.getParameter("ownerUser");
 
         if (runID == null || degree == null || progName == null) {
             ResponseWriter.write(res, JsonResponseUtils.error("Missing parameters for ReRun cookies."));
@@ -33,8 +34,10 @@ public class SetReRunCookiesServlet extends HttpServlet {
         Cookie degreeCookie = new Cookie("reRunDegree", degree);
         Cookie progCookie = new Cookie("reRunProg", progName);
         Cookie typeCookie = new Cookie("reRunType", progType);
+        Cookie ownerCookie = new Cookie("reRunOwner", runOwner);
 
-        for (Cookie c : new Cookie[]{userCookie,runCookie, degreeCookie, progCookie, typeCookie}) {
+
+        for (Cookie c : new Cookie[]{userCookie,runCookie, degreeCookie, progCookie, typeCookie,ownerCookie}) {
             c.setPath("/");   // make cookie accessible from all endpoints
             res.addCookie(c);
         }

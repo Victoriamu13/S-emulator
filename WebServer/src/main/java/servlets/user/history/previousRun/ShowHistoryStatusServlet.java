@@ -34,7 +34,7 @@ public class ShowHistoryStatusServlet extends HttpServlet {
 
         int runID = Integer.parseInt(runIdStr);
 
-        List<UserHistory> historyList = UserHistoryManager.getUserExecHistories(username);
+        List<UserHistory> historyList = UserHistoryManager.getOwnHistories(username);
         UserHistory selected = historyList.stream()
                 .filter(h -> h.runID() == runID)
                 .findFirst()

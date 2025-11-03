@@ -114,6 +114,8 @@ public class HistoryTableController {
             return;
         }
 
+        String ownerUser = selected.executedBy();
+
     // Send selected run data to server → it will create Re-Run cookies
         new Thread(() -> {
             // 1) Send Re-Run cookies to server
@@ -122,23 +124,20 @@ public class HistoryTableController {
                     .add("degree", String.valueOf(selected.runDegree()))
                     .add("progName", selected.name())
                     .add("progType", selected.progType())
+                    .add("ownerUser", ownerUser)
                     .build();
 
             JsonElement cookieResp = ServerRequestUtils.sendPost("/setReRunCookies", body);
-            if (cookieResp == null || !cookieResp.isJsonObject()) {
-                System.out.println("[Client] ❌ Failed to set ReRun cookies");
-                return;
-            }
+            if (cookieResp == null || !cookieResp.isJsonObject()) return;
+
 
             JsonObject cookieObj = cookieResp.getAsJsonObject();
             if (!"SUCCESS".equalsIgnoreCase(cookieObj.get("state").getAsString())) {
-                System.out.println("[Client] ❌ setReRunCookies failed: " + cookieObj);
                 Platform.runLater(() ->
                         ServerResponseHandler.showAlert("Error", "Failed to set ReRun cookies.", Alert.AlertType.ERROR)
                 );
                 return;
             }
-            System.out.println("[Client] ✅ ReRun cookies saved for run #" + selected.runID());
 
 
             // 2) Activate Re-Run mode for user
@@ -146,24 +145,21 @@ public class HistoryTableController {
                     .add("progName", selected.name())
                     .add("progType", selected.progType())
                     .add("degree", String.valueOf(selected.runDegree()))
+                    .add("runID", String.valueOf(selected.runID()))
+                    .add("ownerUser", ownerUser)
                     .build();
 
             JsonElement activateResp = ServerRequestUtils.sendPost("/activateReRun", activateBody);
-            if (activateResp == null || !activateResp.isJsonObject()) {
-                System.out.println("[Client] ❌ Failed to activate ReRun mode.");
-                return;
-            }
+            if (activateResp == null || !activateResp.isJsonObject()) return;
+
 
             JsonObject activateObj = activateResp.getAsJsonObject();
             if (!"SUCCESS".equalsIgnoreCase(activateObj.get("state").getAsString())) {
-                System.out.println("[Client] ❌ activateReRun failed: " + activateObj);
                 Platform.runLater(() ->
                         ServerResponseHandler.showAlert("Error", "Failed to Activate Re-Run mode for user.", Alert.AlertType.ERROR)
                 );
                 return;
             }
-            System.out.println("[Client] ✅ ReRun mode activated successfully.");
-
             Platform.runLater(ScreenManager::showExecutionScreen);
         }).start();
     }
