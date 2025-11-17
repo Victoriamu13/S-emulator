@@ -4,7 +4,6 @@
 
 [![GitHub: Victoriamu13/S-emulator](https://img.shields.io/badge/GitHub%20Repository-Victoriamu13%2FS--emulator-blue?style=for-the-badge&logo=github)](https://github.com/Victoriamu13/S-emulator)
 [![Technologies](https://img.shields.io/badge/Tech-Java%2C%20Tomcat%2C%20JavaFX%2C%20Servlets-red?style=for-the-badge)](https://www.java.com/)
-[![Project Status](https://img.shields.io/badge/Status-Completed-success?style=for-the-badge)]()
 
 ---
 
