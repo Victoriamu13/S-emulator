@@ -33,7 +33,7 @@ The system is split into three main modules: **Engine (Core Logic), UI (Client),
 | **UI** | Client Side: Full JavaFX Graphical User Interface (GUI) and Debugger. Includes Dashboard and Execution Screen. | JavaFX, OkHttp, Gson |
 | **WEB** | API Server: Manages sessions, and exposes specific Servlets for Client-Server communication (Login, Load, Run, Debug). | Apache Tomcat, Servlets |
 
-### 🧠 Engine Module: The Computational Core
+### 🧠 Engine Module: Logic Core
 
 The Engine module is completely independent from the UI and server layers.
 
@@ -58,24 +58,5 @@ The WEB module exposes Servlets that are stateless and communicate using HTTP + 
 * **Execution Servlets:** Executes the selected program in normal mode (`/runProgram`).
 * **Re-Run & History Servlets:** Allows cross-user debugging and run replay, and enables re-run mode (`/activateReRun`).
 
----
 
-## 🔑 Contact
 
-For any questions, suggestions, or comments about the project, feel free to reach out:
-
-* **Name:** Victoria Musayko
-* **Email:** Victoriamus130@gmail.com
-* **GitHub:** [Victoriamu13/S-emulator](https://github.com/Victoriamu13/S-emulator)
-
----
-
-## 🤝 Contributing
-
-The project is open for contribution! We welcome:
-
-* Bug reports (Issues)
-* Feature requests
-* Pull Requests with improvements to the existing code
-
-**Thank you!**
